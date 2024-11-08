@@ -2,6 +2,7 @@ import { DataSourceOptions } from "typeorm";
 import { ConfigService } from "@nestjs/config";
 import { GLOBAL_CONFIG } from "../constants/global-config.constant";
 import 'dotenv/config';
+import { User } from "src/user/user.entity";
 
 const configService = new ConfigService();
 
@@ -13,5 +14,5 @@ export const databaseConfig: DataSourceOptions = {
     password: configService.get<string>(GLOBAL_CONFIG.DB_PASSWORD),
     database: configService.get<string>(GLOBAL_CONFIG.DB_DATABASE),
     logging: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
-    // entities: [Scheduler, Files, Screen, User],
+    entities: [User],
 };

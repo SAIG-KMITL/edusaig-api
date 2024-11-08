@@ -8,7 +8,6 @@ export class User {
     id: string;
 
     @Column({
-        type: "string",
         nullable: false,
         unique: true,
     })
@@ -22,14 +21,12 @@ export class User {
     role: Roles;
 
     @Column({
-        type: "string",
         nullable: false,
         unique: true,
     })
     password: string;
 
     @Column({
-        type: "string",
         nullable: false,
         unique: true,
     })

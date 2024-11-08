@@ -11,6 +11,9 @@ import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
 import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from './database/database.module';
 import { UserModule } from './user/user.module';
+import { User } from './user/user.entity';
+
+const forFeatures = TypeOrmModule.forFeature([User]);
 
 @Module({
     imports: [
