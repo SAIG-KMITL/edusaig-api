@@ -51,7 +51,7 @@ export class AuthService {
             }
         } catch (error) {
             if (error instanceof Error) {
-                await this.userService.delete({ id: createdUser.id });
+                await this.userService.delete(createdUser.id);
                 throw new InternalServerErrorException(error.message);
             }
         }
