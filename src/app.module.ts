@@ -12,11 +12,14 @@ import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from './database/database.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/user.entity';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
 
 const forFeatures = TypeOrmModule.forFeature([User]);
 
 @Module({
     imports: [
+        forFeatures,
         AuthModule,
         ConfigModule.forRoot({
             isGlobal: true,
@@ -39,6 +42,12 @@ const forFeatures = TypeOrmModule.forFeature([User]);
         UserModule,
     ],
     controllers: [AppController],
-    providers: [AppService],
+    providers: [
+        AppService,
+        {
+            provide: APP_GUARD,
+            useClass: AuthGuard,
+        }
+    ],
 })
 export class AppModule { }

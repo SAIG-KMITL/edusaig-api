@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { LoginDto } from "./dtos/login.dto";
@@ -20,28 +20,40 @@ export class AuthService {
 
     async login(loginDto: LoginDto): Promise<AuthResponseDto> {
         const user = await this.userService.findOne({ where: { email: loginDto.email } });
-        if (!user) 
+        if (!user)
             throw new NotFoundException("User not found");
         const isPasswordValid = await verify(user.password, loginDto.password);
         if (!isPasswordValid)
             throw new BadRequestException("Invalid password");
-        return {
-            accessToken: this.generateAccessToken({ id: user.id, role: user.role }),
-            refreshToken: this.generateRefreshToken(),
-            user: new UserResponseDto(user),
+        try {
+            return {
+                accessToken: this.generateAccessToken({ id: user.id, role: user.role }),
+                refreshToken: this.generateRefreshToken(),
+                user: new UserResponseDto(user),
+            }
+        } catch (error) {
+            if (error instanceof Error)
+                throw new InternalServerErrorException(error.message);
         }
     }
 
     async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
         const user = await this.userService.findOne({ where: { email: registerDto.email } });
-        if (user) 
+        if (user)
             throw new BadRequestException("User already exists");
         const hashedPassword = await hash(registerDto.password);
         const createdUser = await this.userService.create({ ...registerDto, password: hashedPassword });
-        return {
-            accessToken: this.generateAccessToken({ id: createdUser.id, role: createdUser.role }),
-            refreshToken: this.generateRefreshToken(),
-            user: new UserResponseDto(createdUser),
+        try {
+            return {
+                accessToken: this.generateAccessToken({ id: createdUser.id, role: createdUser.role }),
+                refreshToken: this.generateRefreshToken(),
+                user: new UserResponseDto(createdUser),
+            }
+        } catch (error) {
+            if (error instanceof Error) {
+                await this.userService.delete({ id: createdUser.id });
+                throw new InternalServerErrorException(error.message);
+            }
         }
     }
 
@@ -53,7 +65,7 @@ export class AuthService {
     }
 
     generateRefreshToken(): string {
-        return this.jwtService.sign(null, {
+        return this.jwtService.sign({}, {
             secret: this.configService.get<string>(GLOBAL_CONFIG.JWT_REFRESH_SECRET),
             expiresIn: this.configService.get<string>(GLOBAL_CONFIG.JWT_REFRESH_EXPIRATION),
         });

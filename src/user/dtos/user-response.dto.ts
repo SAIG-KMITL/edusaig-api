@@ -7,6 +7,7 @@ export class UserResponseDto {
     role: Roles;
     createdAt: Date;
     updatedAt: Date;
+    fullname: string;
 
     constructor(user: User) {
         this.id = user.id;
@@ -14,5 +15,6 @@ export class UserResponseDto {
         this.role = user.role;
         this.createdAt = user.createdAt;
         this.updatedAt = user.updatedAt;
+        this.fullname = user.fullname;
     }
 }

@@ -14,8 +14,13 @@ export class User {
     username: string;
 
     @Column({
+        nullable: false,
+    })
+    fullname: string;
+
+    @Column({
         type: "enum",
-        enum: Roles,
+        enum: [Roles.STUDENT, Roles.TEACHER],
         nullable: false,
     })
     role: Roles;
