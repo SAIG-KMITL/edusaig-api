@@ -26,10 +26,10 @@ async function bootstrap() {
 
     const config = new DocumentBuilder()
         .addBearerAuth()
-        .setTitle('Cats example')
-        .setDescription('The cats API description')
+        .setTitle('Edusaig API')
+        .setDescription('This is the Edusaig API documentation')
         .setVersion('1.0')
-        .addTag('cats')
+        .addTag('Edusaig-API')
         .build();
     const documentFactory = () => SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('docs', app, documentFactory);
