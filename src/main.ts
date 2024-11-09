@@ -29,7 +29,6 @@ async function bootstrap() {
         .setTitle('Edusaig API')
         .setDescription('This is the Edusaig API documentation')
         .setVersion('1.0')
-        .addTag('Edusaig-API')
         .build();
     const documentFactory = () => SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('docs', app, documentFactory);
