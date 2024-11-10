@@ -1,4 +1,4 @@
-import { Controller, Injectable, Get, Req, Patch, HttpStatus } from "@nestjs/common";
+import { Controller, Injectable, Get, Req, Patch, HttpStatus, HttpCode } from "@nestjs/common";
 import { ApiTags, ApiResponse } from "@nestjs/swagger";
 import { UserStreakService } from "./user-streak.service";
 import { UserStreak } from "./user-streak.entity";
@@ -40,13 +40,14 @@ export class UserStreakController {
 
     @Patch() 
     @ApiResponse({
-        status: HttpStatus.OK,
+        status: HttpStatus.NO_CONTENT,
         type: UserStreak,
         description: 'Update user streak',
     })
+    @HttpCode(HttpStatus.NO_CONTENT)
     async update(
         @Req() request: AuthenticatedRequest,
-    ): Promise<UserStreak> {
+    ): Promise<void> {
         return await this.userStreakService.update(request.user.id);
     }
 }

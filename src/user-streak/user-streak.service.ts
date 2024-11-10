@@ -29,7 +29,7 @@ export class UserStreakService {
         }
     }
 
-    async update(userId: string): Promise<UserStreak> {
+    async update(userId: string): Promise<void> {
         try {
             const streak = await this.findOne({ where: { user: { id: userId } } });
             const currentDate = new Date();
@@ -52,7 +52,6 @@ export class UserStreakService {
                     lastActivityDate: currentDate,
                 },
             );
-            return await this.findOne({ where: { user: { id: userId } } });
         } catch (error) {
             if (error instanceof Error) {
                 throw new InternalServerErrorException(error.message);
