@@ -1,19 +1,26 @@
-import { Controller, Injectable, Get, Req, Patch, HttpStatus, HttpCode } from "@nestjs/common";
-import { ApiTags, ApiResponse, ApiBearerAuth } from "@nestjs/swagger";
-import { UserStreakService } from "./user-streak.service";
-import { UserStreak } from "./user-streak.entity";
-import { AuthenticatedRequest } from "src/auth/interfaces/authenticated-request.interface";
-import { Role } from "src/shared/enums/roles.enum";
-import { Roles } from "src/shared/decorators/role.decorator";
+import {
+    Controller,
+    Injectable,
+    Get,
+    Req,
+    Patch,
+    HttpStatus,
+    HttpCode,
+} from '@nestjs/common';
+import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { UserStreakService } from './user-streak.service';
+import { UserStreak } from './user-streak.entity';
+import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
+import { Role } from 'src/shared/enums/roles.enum';
+import { Roles } from 'src/shared/decorators/role.decorator';
+import { UserStreakResponseDto } from './dtos/user-streak-response.dto';
 
-@Controller("user-streak")
-@ApiTags("User Streak")
+@Controller('user-streak')
+@ApiTags('User Streak')
 @ApiBearerAuth()
 @Injectable()
 export class UserStreakController {
-    constructor(
-        private readonly userStreakService: UserStreakService,
-    ) { }
+    constructor(private readonly userStreakService: UserStreakService) { }
 
     @Get()
     @Roles(Role.ADMIN)
@@ -23,8 +30,11 @@ export class UserStreakController {
         description: 'Get all user streaks',
         isArray: true,
     })
-    async findAll(): Promise<UserStreak[]> {
-        return await this.userStreakService.findAll();
+    async findAll(): Promise<UserStreakResponseDto[]> {
+        const userStreaks = await this.userStreakService.findAll();
+        return userStreaks.map(
+            (userStreak) => new UserStreakResponseDto(userStreak),
+        );
     }
 
     @Get('profile')
@@ -35,20 +45,21 @@ export class UserStreakController {
     })
     async findOne(
         @Req() request: AuthenticatedRequest,
-    ): Promise<UserStreak> {
-        return await this.userStreakService.findOne({ where: { id: request.user.id } });
+    ): Promise<UserStreakResponseDto> {
+        const userStreak = await this.userStreakService.findOne({
+            where: { user: { id: request.user.id } },
+            relations: { user: true },
+        });
+        return new UserStreakResponseDto(userStreak);
     }
 
-    @Patch() 
+    @Patch()
     @ApiResponse({
         status: HttpStatus.NO_CONTENT,
-        type: UserStreak,
         description: 'Update user streak',
     })
     @HttpCode(HttpStatus.NO_CONTENT)
-    async update(
-        @Req() request: AuthenticatedRequest,
-    ): Promise<void> {
+    async update(@Req() request: AuthenticatedRequest): Promise<void> {
         return await this.userStreakService.update(request.user.id);
     }
 }

@@ -20,8 +20,9 @@ export class UserStreakService {
     }
 
     async findOne(options: FindOneOptions<UserStreak>): Promise<UserStreak> {
-        const userStreak = this.userStreakRepository.findOne(options);
-        if (!userStreak) throw new NotFoundException('User streak not found');
+        const userStreak = await this.userStreakRepository.findOne(options);
+        if (!userStreak) 
+            throw new NotFoundException('User streak not found');
         return userStreak;
     }
 
