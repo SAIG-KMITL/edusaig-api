@@ -14,8 +14,11 @@ import { UserModule } from './user/user.module';
 import { User } from './user/user.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
+import { UserStreak } from './user-streak/user-streak.entity';
+import { UserStreakModule } from './user-streak/user-streak.module';
+import { RolesGuard } from './shared/guards/role.guard';
 
-const forFeatures = TypeOrmModule.forFeature([User]);
+const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
 
 @Module({
     imports: [
@@ -40,6 +43,7 @@ const forFeatures = TypeOrmModule.forFeature([User]);
         }),
         DatabaseModule,
         UserModule,
+        UserStreakModule,
     ],
     controllers: [AppController],
     providers: [
@@ -47,6 +51,10 @@ const forFeatures = TypeOrmModule.forFeature([User]);
         {
             provide: APP_GUARD,
             useClass: AuthGuard,
+        },
+        {
+            provide: APP_GUARD,
+            useClass: RolesGuard,
         }
     ],
 })
