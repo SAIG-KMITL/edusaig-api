@@ -9,6 +9,12 @@ export class UserStreakService {
         private readonly userStreakRepository: Repository<UserStreak>,
     ) { }
 
+    async create(userId: string): Promise<UserStreak> {
+        return await this.userStreakRepository.save({
+            user: { id: userId },
+        })
+    }
+
     async findAll(): Promise<UserStreak[]> {
         return this.userStreakRepository.find();
     }

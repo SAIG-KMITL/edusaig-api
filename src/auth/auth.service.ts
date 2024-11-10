@@ -49,9 +49,12 @@ export class AuthService {
         const hashedPassword = await hash(registerDto.password);
         const createdUser = await this.userService.create({ ...registerDto, password: hashedPassword });
         try {
+            const accessToken = this.generateAccessToken({ id: createdUser.id, role: createdUser.role });
+            const refreshToken = this.generateRefreshToken();
+            await this.userStreakService.create(createdUser.id);
             return {
-                accessToken: this.generateAccessToken({ id: createdUser.id, role: createdUser.role }),
-                refreshToken: this.generateRefreshToken(),
+                accessToken,
+                refreshToken,
                 user: new UserResponseDto(createdUser),
             }
         } catch (error) {

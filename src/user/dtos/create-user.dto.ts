@@ -49,5 +49,5 @@ export class CreateUserDto {
         example: AvailableRoles.STUDENT,
         enum: AvailableRoles,
     })
-    role: Role;
+    role: Role.STUDENT | Role.TEACHER;
 }

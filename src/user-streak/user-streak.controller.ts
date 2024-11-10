@@ -1,5 +1,5 @@
 import { Controller, Injectable, Get, Req, Patch, HttpStatus, HttpCode } from "@nestjs/common";
-import { ApiTags, ApiResponse } from "@nestjs/swagger";
+import { ApiTags, ApiResponse, ApiBearerAuth } from "@nestjs/swagger";
 import { UserStreakService } from "./user-streak.service";
 import { UserStreak } from "./user-streak.entity";
 import { AuthenticatedRequest } from "src/auth/interfaces/authenticated-request.interface";
@@ -8,6 +8,7 @@ import { Roles } from "src/shared/decorators/role.decorator";
 
 @Controller("user-streak")
 @ApiTags("User Streak")
+@ApiBearerAuth()
 @Injectable()
 export class UserStreakController {
     constructor(

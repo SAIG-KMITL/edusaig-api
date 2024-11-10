@@ -18,6 +18,7 @@ import { ApiTags, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { Role } from 'src/shared/enums/roles.enum';
 import { Roles } from 'src/shared/decorators/role.decorator';
+import { Public } from 'src/shared/decorators/public.decorator';
 
 @Controller('user')
 @ApiTags('User')
@@ -65,6 +66,7 @@ export class UserController {
         type: UserResponseDto,
         description: 'Get user by id',
     })
+    @Public()
     async findOne(
         @Param(
             'id',

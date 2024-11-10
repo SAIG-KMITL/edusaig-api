@@ -33,18 +33,19 @@ export class UserStreak {
     longestStreak: number;
 
     @Column({
-        type: "timestamp",
+        type: "timestamp with time zone",
+        default: () => "CURRENT_TIMESTAMP",
     })
     lastActivityDate: Date;
 
     @CreateDateColumn({
-        type: "timestamp",
+        type: "timestamp with time zone",
         nullable: false,
     })
     createdAt: Date;
 
     @UpdateDateColumn({
-        type: "timestamp",
+        type: "timestamp with time zone",
         nullable: false,
     })
     updatedAt: Date;
