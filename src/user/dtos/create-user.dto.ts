@@ -1,5 +1,5 @@
 import { IsString, IsEmail, IsStrongPassword, IsEnum, IsNotEmpty } from "class-validator";
-import { AvailableRoles } from "src/shared/enums/roles.enum";
+import { AvailableRoles, Role } from "src/shared/enums/roles.enum";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateUserDto {
@@ -49,5 +49,5 @@ export class CreateUserDto {
         example: AvailableRoles.STUDENT,
         enum: AvailableRoles,
     })
-    role: AvailableRoles;
+    role: Role;
 }
