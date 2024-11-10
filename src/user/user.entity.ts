@@ -1,6 +1,6 @@
 import { Entity } from "typeorm";
 import { Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { Roles } from "src/shared/enums/roles.enum";
+import { Role } from "src/shared/enums/roles.enum";
 
 @Entity()
 export class User {
@@ -20,10 +20,10 @@ export class User {
 
     @Column({
         type: "enum",
-        enum: [Roles.STUDENT, Roles.TEACHER],
+        enum: [Role.STUDENT, Role.TEACHER],
         nullable: false,
     })
-    role: Roles;
+    role: Role;
 
     @Column({
         nullable: false,
