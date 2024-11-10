@@ -1,51 +1,45 @@
-import { Course } from 'src/course/course.entity';
-import { Role } from 'src/shared/enums/roles.enum';
+import { User } from 'src/user/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  JoinColumn
 } from 'typeorm';
 
 @Entity()
-export class User {
+export class Course {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
     nullable: false,
-    unique: true,
   })
-  username: string;
+  title: string;
 
   @Column({
     nullable: false,
   })
-  fullname: string;
+  description: string;
 
-  @Column({
-    type: 'enum',
-    enum: [Role.STUDENT, Role.TEACHER],
-    nullable: false,
-  })
-  role: Role;
+  @Column({ name: 'teacher_id' })
+  teacherId: string;
 
-  @OneToMany(() => Course, (course) => course.teacher)
-  courses: Course[];
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'teacher_id' })
+  teacher: User;
 
   @Column({
     nullable: false,
-    unique: true,
   })
-  password: string;
+  thumbnail: string;
 
   @Column({
     nullable: false,
-    unique: true,
   })
-  email: string;
+  duration: number;
 
   @CreateDateColumn({
     type: 'timestamp',
