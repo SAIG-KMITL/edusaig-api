@@ -17,6 +17,11 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "migration:generate": "pnpx typeorm migration:generate -o -d dist/shared/configs/database.config.js dist/database/migrations/migration",
+    "migration:create": "pnpx typeorm migration:create dist/database/migrations/migration",
+    "migration:run": "pnpx typeorm migration:run -- -d dist/shared/configs/database.config.js",
+    "migration:revert": "pnpm run typeorm -- migration:revert",
+    "migration:generate:prod": "docker compose run app pnpm migration:generate",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
