@@ -1,11 +1,6 @@
 import { IsString, IsEmail, IsStrongPassword, IsEnum, IsNotEmpty } from "class-validator";
-import { Role } from "src/shared/enums/roles.enum";
+import { AvailableRoles } from "src/shared/enums/roles.enum";
 import { ApiProperty } from "@nestjs/swagger";
-
-enum AvailableRoles {
-    STUDENT = Role.STUDENT,
-    TEACHER = Role.TEACHER,
-}
 
 export class CreateUserDto {
     @IsEmail()
@@ -45,14 +40,14 @@ export class CreateUserDto {
     password: string;
 
     @IsEnum(AvailableRoles, {
-        message: `Invalid role. Role should be either ${Role.STUDENT} or ${Role.TEACHER}`,
+        message: `Invalid role. Role should be either ${AvailableRoles.STUDENT} or ${AvailableRoles.TEACHER}`,
     })
     @IsNotEmpty()
     @ApiProperty({
         description: 'User role',
         type: String,
-        example: Role.STUDENT,
-        enum: [Role.STUDENT, Role.TEACHER],
+        example: AvailableRoles.STUDENT,
+        enum: AvailableRoles,
     })
-    role: Role.STUDENT | Role.TEACHER;
+    role: AvailableRoles;
 }
