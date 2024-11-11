@@ -18,6 +18,7 @@ FROM base AS deploy
 RUN apk add --update curl && rm -rf /var/cache/apk/*
 
 WORKDIR /app
+COPY --from=build --chown=node:node /app/package.json /app/pnpm-lock.yaml ./
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --chown=node:node .env .env

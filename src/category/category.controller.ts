@@ -14,12 +14,21 @@ import { Get } from '@nestjs/common';
 import { CreateCategoryDto } from './dtos/create-cateory.dto';
 import { updateCategoryDto } from './dtos/update-category.dto';
 import { Public } from 'src/shared/decorators/public.decorator';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Category } from './category.entity';
 
 @Controller('category')
+@ApiTags('Category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Category,
+    description: 'create category',
+  })
+  @ApiBearerAuth()
   async create(
     @Body() CreateCategoryDto: CreateCategoryDto,
   ): Promise<categoryResponseDto> {
@@ -28,12 +37,24 @@ export class CategoryController {
 
   @Get()
   @Public()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Category,
+    isArray: true,
+    description: 'get all categories',
+  })
   async findAll(): Promise<categoryResponseDto[]> {
     const categories = await this.categoryService.findAll();
     return categories.map((category) => new categoryResponseDto(category));
   }
 
   @Get(':id')
+  @Public()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Category,
+    description: 'get one category',
+  })
   async findOne(
     @Param(
       'id',
@@ -49,6 +70,11 @@ export class CategoryController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'edit category',
+  })
   async update(
     @Param(
       'id',
@@ -64,6 +90,11 @@ export class CategoryController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'delete category',
+  })
   async delete(
     @Param(
       'id',

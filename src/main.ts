@@ -5,9 +5,10 @@ import { ConfigService } from '@nestjs/config';
 import { createDatabase } from 'typeorm-extension';
 import { databaseConfig } from './shared/configs/database.config';
 import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
-    const configService = new ConfigService()
+    const configService = new ConfigService();
 
     await createDatabase({
         options: databaseConfig,
@@ -20,8 +21,17 @@ async function bootstrap() {
         origin: configService.get<string>(GLOBAL_CONFIG.CORS_ALLOW_ORIGIN),
         methods: ['GET', 'POST', 'PATCH', 'DELETE'],
         optionsSuccessStatus: 200,
-        exposedHeaders: "Authorization",
+        exposedHeaders: 'Authorization',
     });
+
+    const config = new DocumentBuilder()
+        .addBearerAuth()
+        .setTitle('Edusaig API')
+        .setDescription('This is the Edusaig API documentation')
+        .setVersion('1.0')
+        .build();
+    const documentFactory = () => SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, documentFactory);
 
     await app.listen(configService.get<string>(GLOBAL_CONFIG.PORT) ?? 3000);
 }

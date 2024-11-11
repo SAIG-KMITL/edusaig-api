@@ -1,6 +1,6 @@
 import { Entity } from "typeorm";
 import { Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { Roles } from "src/shared/enums/roles.enum";
+import { Role } from "src/shared/enums/roles.enum";
 
 @Entity()
 export class User {
@@ -20,10 +20,10 @@ export class User {
 
     @Column({
         type: "enum",
-        enum: [Roles.STUDENT, Roles.TEACHER],
+        enum: Role,
         nullable: false,
     })
-    role: Roles;
+    role: Role;
 
     @Column({
         nullable: false,
@@ -38,13 +38,13 @@ export class User {
     email: string;
 
     @CreateDateColumn({
-        type: "timestamp",
+        type: "timestamp with time zone",
         nullable: false,
     })
     createdAt: Date;
 
     @UpdateDateColumn({
-        type: "timestamp",
+        type: "timestamp with time zone",
         nullable: false,
     })
     updatedAt: Date;
