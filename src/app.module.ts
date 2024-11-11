@@ -14,40 +14,42 @@ import { UserModule } from './user/user.module';
 import { User } from './user/user.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
+import { CategoryModule } from './category/category.module';
 
 const forFeatures = TypeOrmModule.forFeature([User]);
 
 @Module({
-    imports: [
-        forFeatures,
-        AuthModule,
-        ConfigModule.forRoot({
-            isGlobal: true,
-            validationSchema: dotenvConfig,
-        }),
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: (configService: ConfigService) => ({
-                ...databaseConfig,
-                migrations: ["dist/database/migrations/*.js"],
-                migrationsRun: true,
-                synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
-            }),
-            inject: [ConfigService],
-        }),
-        JwtModule.register({
-            global: true,
-        }),
-        DatabaseModule,
-        UserModule,
-    ],
-    controllers: [AppController],
-    providers: [
-        AppService,
-        {
-            provide: APP_GUARD,
-            useClass: AuthGuard,
-        }
-    ],
+  imports: [
+    forFeatures,
+    AuthModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: dotenvConfig,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        ...databaseConfig,
+        migrations: ['dist/database/migrations/*.js'],
+        migrationsRun: true,
+        synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
+      }),
+      inject: [ConfigService],
+    }),
+    JwtModule.register({
+      global: true,
+    }),
+    DatabaseModule,
+    UserModule,
+    CategoryModule,
+  ],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
-export class AppModule { }
+export class AppModule {}
