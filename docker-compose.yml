@@ -34,3 +34,5 @@ services:
       - TZ=Asia/Bangkok
     ports:
       - '${PORT}:${PORT}'
+    volumes:
+      - ./src/database/migrations:/app/dist/database/migrations

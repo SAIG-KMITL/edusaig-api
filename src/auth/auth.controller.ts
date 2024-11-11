@@ -10,7 +10,9 @@ import { AuthResponseDto } from './dtos/auth-response.dto';
 @ApiTags('Auth')
 @Injectable()
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(
+        private readonly authService: AuthService,
+    ) { }
 
     @Post('login')
     @ApiResponse({ 
@@ -29,6 +31,7 @@ export class AuthController {
         description: 'Register',
         type: AuthResponseDto
     })
+    @HttpCode(HttpStatus.CREATED)
     @Public()
     async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
         return await this.authService.register(registerDto);

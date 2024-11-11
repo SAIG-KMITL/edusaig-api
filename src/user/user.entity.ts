@@ -20,7 +20,7 @@ export class User {
 
     @Column({
         type: "enum",
-        enum: [Role.STUDENT, Role.TEACHER],
+        enum: Role,
         nullable: false,
     })
     role: Role;
@@ -38,13 +38,13 @@ export class User {
     email: string;
 
     @CreateDateColumn({
-        type: "timestamp",
+        type: "timestamp with time zone",
         nullable: false,
     })
     createdAt: Date;
 
     @UpdateDateColumn({
-        type: "timestamp",
+        type: "timestamp with time zone",
         nullable: false,
     })
     updatedAt: Date;

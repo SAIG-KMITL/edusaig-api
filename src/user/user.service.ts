@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException, ForbiddenException } from "@nestjs/common";
+import { Injectable, Inject, NotFoundException, BadRequestException } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { User } from "./user.entity";
 import { UpdateUserDto } from "./dtos/update-user.dto";
@@ -25,7 +25,12 @@ export class UserService {
     }
 
     async create(createUserDto: CreateUserDto): Promise<User> {
-        return this.userRepository.save(createUserDto);
+        try {
+            return this.userRepository.save(createUserDto);
+        } catch (error) {
+            if (error instanceof Error) 
+                throw new BadRequestException(error.message);
+        }
     }
 
     async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
@@ -35,9 +40,8 @@ export class UserService {
             await this.userRepository.update(id, updateUserDto);
             return await this.findOne({ where: { id } });
         } catch (error) {
-            if (error instanceof Error) {
+            if (error instanceof Error)
                 throw new NotFoundException("User not found");
-            }
         }
     }
 
@@ -45,9 +49,8 @@ export class UserService {
         try {
             await this.userRepository.delete(id);
         } catch (error) {
-            if (error instanceof Error) {
+            if (error instanceof Error)
                 throw new NotFoundException("User not found");
-            }
         }
     }
 }
