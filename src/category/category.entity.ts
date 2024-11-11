@@ -1,3 +1,4 @@
+import { Slug } from 'src/shared/enums/slug.enum';
 import { Entity } from 'typeorm';
 import {
   Column,
@@ -22,8 +23,10 @@ export class Category {
 
   @Column({
     nullable: false,
+    type: 'enum',
+    enum: Slug,
   })
-  slug: string;
+  slug: Slug;
 
   @CreateDateColumn({
     type: 'timestamp',

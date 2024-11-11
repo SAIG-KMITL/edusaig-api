@@ -1,10 +1,11 @@
+import { Slug } from 'src/shared/enums/slug.enum';
 import { Category } from '../category.entity';
 
 export class categoryResponseDto {
   id: string;
   title: string;
   description: string;
-  slug: string;
+  slug: Slug;
   createdAt: Date;
   updatedAt: Date;
 

@@ -1,5 +1,11 @@
-import { IsNotEmpty, IsOptional, IsString } from '@nestjs/class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from '@nestjs/class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Slug } from 'src/shared/enums/slug.enum';
 
 export class CreateCategoryDto {
   @IsNotEmpty()
@@ -20,12 +26,15 @@ export class CreateCategoryDto {
   })
   description?: string;
 
-  @IsString()
+  @IsEnum(Slug, {
+    message: `Invalid role. Role should be either ${Slug.COURSE} or ${Slug.REWARD}`,
+  })
   @IsNotEmpty()
   @ApiProperty({
-    description: '-',
+    description: 'slug',
     type: String,
-    example: '-',
+    example: Slug.COURSE,
+    enum: Slug,
   })
-  slug: string;
+  slug: Slug;
 }
