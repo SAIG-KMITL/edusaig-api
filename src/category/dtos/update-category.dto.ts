@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsEnum } from '@nestjs/class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Slug } from 'src/shared/enums/slug.enum';
+import { Slug } from 'src/category/enums/slug.enum';
 
 export class updateCategoryDto {
   @IsOptional()

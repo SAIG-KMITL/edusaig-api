@@ -1,4 +1,4 @@
-import { Slug } from 'src/shared/enums/slug.enum';
+import { Slug } from 'src/category/enums/slug.enum';
 import { Category } from '../category.entity';
 
 export class categoryResponseDto {
