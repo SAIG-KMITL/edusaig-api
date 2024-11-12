@@ -43,7 +43,7 @@ export class AuthService {
     }
 
     async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
-        const user = await this.userService.findOne({ where: { email: registerDto.email } });
+        const user = await this.userService.findByEmail(registerDto.email);
         if (user)
             throw new BadRequestException("User already exists");
         const hashedPassword = await hash(registerDto.password);
