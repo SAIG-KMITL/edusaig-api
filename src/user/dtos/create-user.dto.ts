@@ -39,15 +39,4 @@ export class CreateUserDto {
     })
     password: string;
 
-    @IsEnum(AvailableRoles, {
-        message: `Invalid role. Role should be either ${AvailableRoles.STUDENT} or ${AvailableRoles.TEACHER}`,
-    })
-    @IsNotEmpty()
-    @ApiProperty({
-        description: 'User role',
-        type: String,
-        example: AvailableRoles.STUDENT,
-        enum: AvailableRoles,
-    })
-    role: Role.STUDENT | Role.TEACHER;
 }
