@@ -20,14 +20,6 @@ export class CreateCourseDto {
     description: string;
     @IsNotEmpty()
     @ApiProperty({
-        description: 'Teacher ID',
-        type: String,
-        example: '123456',
-    })
-    teacherId: string;
-
-    @IsNotEmpty()
-    @ApiProperty({
         description: 'Course thumbnail',
         type: String,
         example: 'https://www.example.com/thumbnail.jpg',
@@ -47,8 +39,8 @@ export class CreateCourseDto {
     @ApiProperty({
         description: 'Course level',
         type: String,
-        example: 'beginner',
-        enum: ['beginner', 'intermediate', 'advanced'],
+        example: CourseLevel.BEGINNER,
+        enum: CourseLevel,
     })
     level: CourseLevel;
 
@@ -66,8 +58,8 @@ export class CreateCourseDto {
     @ApiProperty({
         description: 'Course status',
         type: String,
-        example: 'draft',
-        enum: ['draft', 'published', 'archived'],
+        example: CourseStatus.DRAFT,
+        enum: CourseStatus,
     })
     status: CourseStatus;
 }

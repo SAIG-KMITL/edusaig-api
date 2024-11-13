@@ -1,4 +1,4 @@
-import { Entity, JoinColumn, ManyToOne } from "typeorm";
+import { Entity, ManyToOne } from "typeorm";
 import { Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { User } from "src/user/user.entity";
 import { CourseLevel } from "src/shared/enums/course-level.enum";
@@ -20,11 +20,7 @@ export class Course {
     })
     description: string;
 
-    @Column({ name: 'teacher_id' })
-    teacherId: string;
-  
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'teacher_id' })
+    @ManyToOne(() => User, user => user.courses)
     teacher: User;
 
     @Column({

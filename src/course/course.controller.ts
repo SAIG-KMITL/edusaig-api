@@ -5,7 +5,6 @@ import { CourseResponseDto, CreateCourseDto, UpdateCourseDto } from "./dtos/inde
 import { AuthenticatedRequest } from "src/auth/interfaces/authenticated-request.interface";
 import { Roles } from "src/shared/decorators/role.decorator";
 import { Role } from "src/shared/enums";
-import { UserResponseDto } from "src/user/dtos/user-response.dto";
 
 @Controller("course")
 @ApiTags("Course")
@@ -38,6 +37,7 @@ export class CourseController {
         description: 'Get course by id',
     })
     async findOne(
+        @Req() request: AuthenticatedRequest,
         @Param(
             'id',
             new ParseUUIDPipe({
@@ -47,7 +47,7 @@ export class CourseController {
         )
         id: string,
     ): Promise<CourseResponseDto> {
-        const course = await this.courseService.findOne({ where: { id } });
+        const course = await this.courseService.findOne(request.user.id,request.user.role,{ where: { id } });
         return new CourseResponseDto(course);
     }
 
@@ -60,14 +60,15 @@ export class CourseController {
         description: 'Create course',
     })
     async create(
+        @Req() request: AuthenticatedRequest,
         @Body() createCourseDto: CreateCourseDto,
     ): Promise<CourseResponseDto> {
-        const course = await this.courseService.create(createCourseDto);
+        const course = await this.courseService.create(request.user.id,createCourseDto);
         return new CourseResponseDto(course);
     }
 
     @Patch(':id')
-    @Roles(Role.TEACHER)
+    @Roles(Role.TEACHER, Role.ADMIN)
     @ApiParam({
         name: 'id',
         type: String,
@@ -75,7 +76,7 @@ export class CourseController {
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        type: UserResponseDto,
+        type: CourseResponseDto,
         description: 'Update course by id',
     })
     async update(
@@ -91,13 +92,13 @@ export class CourseController {
         id: string,
 
     ): Promise<CourseResponseDto> {
-        const course = await this.courseService.update(id,request.user.id, updateCourseDto);
+        const course = await this.courseService.update(id,request.user.id,request.user.role, updateCourseDto);
         return new CourseResponseDto(course);
     }
 
 
     @Delete(':id')
-    @Roles(Role.TEACHER)
+    @Roles(Role.TEACHER, Role.ADMIN)
     @ApiParam({
         name: 'id',
         type: String,
@@ -118,6 +119,6 @@ export class CourseController {
         )
         id: string,
     ): Promise<void> {
-        await this.courseService.delete(id,request.user.id);
+        await this.courseService.delete(id,request.user.id, request.user.role);
     }
 }
