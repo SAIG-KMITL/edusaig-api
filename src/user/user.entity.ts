@@ -1,6 +1,7 @@
-import { Entity } from "typeorm";
+import { Entity, OneToMany } from "typeorm";
 import { Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Role } from "src/shared/enums/roles.enum";
+import { Course } from "src/course/course.entity";
 
 @Entity()
 export class User {
@@ -37,6 +38,9 @@ export class User {
         unique: true,
     })
     email: string;
+    
+    @OneToMany(() => Course, (course) => course.teacher)
+    courses: Course[];
 
     @CreateDateColumn({
         type: "timestamp with time zone",

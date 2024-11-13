@@ -1,5 +1,6 @@
 import { Slug } from 'src/category/enums/slug.enum';
-import { Entity } from 'typeorm';
+import { Course } from 'src/course/course.entity';
+import { Entity, OneToMany } from 'typeorm';
 import {
   Column,
   PrimaryGeneratedColumn,
@@ -27,6 +28,10 @@ export class Category {
     enum: Slug,
   })
   slug: Slug;
+
+  @OneToMany(() => Course, (course) => course.category)
+  courses: Course[];
+
 
   @CreateDateColumn({
     type: 'timestamp',

@@ -5,6 +5,7 @@ import 'dotenv/config';
 import { User } from 'src/user/user.entity';
 import { Category } from 'src/category/category.entity';
 import { UserStreak } from 'src/user-streak/user-streak.entity';
+import { Course } from "src/course/course.entity";
 
 const configService = new ConfigService();
 
@@ -16,7 +17,7 @@ export const databaseConfig: DataSourceOptions = {
   password: configService.get<string>(GLOBAL_CONFIG.DB_PASSWORD),
   database: configService.get<string>(GLOBAL_CONFIG.DB_DATABASE),
   logging: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
-  entities: [User, UserStreak, Category],
+  entities: [User, UserStreak, Category, Course],
 };
 
 export default new DataSource(databaseConfig);

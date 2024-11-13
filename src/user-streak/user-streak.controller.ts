@@ -27,7 +27,7 @@ export class UserStreakController {
     @ApiResponse({
         status: HttpStatus.OK,
         type: UserStreak,
-        description: 'Get all user streaks',
+        description: 'Get all user streaks', 
         isArray: true,
     })
     async findAll(): Promise<UserStreakResponseDto[]> {
