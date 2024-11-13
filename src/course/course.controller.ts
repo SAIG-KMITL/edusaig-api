@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpStatus, Injectable, Param, ParseUUIDPipe, Patch, Post, Req } from "@nestjs/common";
 import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CourseService } from "./course.service";
-import { CourseResponseDto, UpdateCourseDto } from "./dtos/index";
+import { CourseResponseDto, CreateCourseDto, UpdateCourseDto } from "./dtos/index";
 import { AuthenticatedRequest } from "src/auth/interfaces/authenticated-request.interface";
 import { Roles } from "src/shared/decorators/role.decorator";
 import { Role } from "src/shared/enums";
@@ -48,6 +48,21 @@ export class CourseController {
         id: string,
     ): Promise<CourseResponseDto> {
         const course = await this.courseService.findOne({ where: { id } });
+        return new CourseResponseDto(course);
+    }
+
+
+    @Post()
+    @Roles(Role.TEACHER)
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        type: CourseResponseDto,
+        description: 'Create course',
+    })
+    async create(
+        @Body() createCourseDto: CreateCourseDto,
+    ): Promise<CourseResponseDto> {
+        const course = await this.courseService.create(createCourseDto);
         return new CourseResponseDto(course);
     }
 
