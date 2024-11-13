@@ -17,47 +17,50 @@ import { AuthGuard } from './auth/auth.guard';
 import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { RolesGuard } from './shared/guards/role.guard';
+import { CategoryModule } from './category/category.module';
 import { CourseModule } from './course/course.module';
+import { Course } from './course/course.entity';
 
 const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
 
 @Module({
-    imports: [
-        forFeatures,
-        AuthModule,
-        ConfigModule.forRoot({
-            isGlobal: true,
-            validationSchema: dotenvConfig,
-        }),
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: (configService: ConfigService) => ({
-                ...databaseConfig,
-                migrations: ["dist/database/migrations/*.js"],
-                migrationsRun: true,
-                synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
-            }),
-            inject: [ConfigService],
-        }),
-        JwtModule.register({
-            global: true,
-        }),
-        DatabaseModule,
-        UserModule,
-        UserStreakModule,
-        CourseModule,
-    ],
-    controllers: [AppController],
-    providers: [
-        AppService,
-        {
-            provide: APP_GUARD,
-            useClass: AuthGuard,
-        },
-        {
-            provide: APP_GUARD,
-            useClass: RolesGuard,
-        }
-    ],
+  imports: [
+    forFeatures,
+    AuthModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: dotenvConfig,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        ...databaseConfig,
+        migrations: ['dist/database/migrations/*.js'],
+        migrationsRun: true,
+        synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
+      }),
+      inject: [ConfigService],
+    }),
+    JwtModule.register({
+      global: true,
+    }),
+    DatabaseModule,
+    UserModule,
+    UserStreakModule,
+    CategoryModule,
+    CourseModule,
+  ],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
-export class AppModule { }
+export class AppModule {}

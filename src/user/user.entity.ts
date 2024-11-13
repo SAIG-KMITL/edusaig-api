@@ -23,6 +23,7 @@ export class User {
         type: "enum",
         enum: Role,
         nullable: false,
+        default: Role.STUDENT,
     })
     role: Role;
 

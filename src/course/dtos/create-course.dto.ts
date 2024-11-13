@@ -18,6 +18,15 @@ export class CreateCourseDto {
         example: 'This course is an introduction to programming',
     })
     description: string;
+
+    @IsNotEmpty()
+    @ApiProperty({
+        description: 'Category Id',
+        type: String,
+        example: '8d4887aa-28e7-4d0e-844c-28a8ccead003',
+    })
+    categoryId: string;
+
     @IsNotEmpty()
     @ApiProperty({
         description: 'Course thumbnail',

@@ -2,8 +2,10 @@ import { ApiProperty } from "@nestjs/swagger";
 import { UserResponseDto } from "src/user/dtos/user-response.dto";
 import { Course } from "../course.entity";
 import { CourseLevel, CourseStatus } from "src/shared/enums";
+import { categoryResponseDto } from "src/category/dtos/category-response.dto";
+import { PaginatedResponse } from "src/shared/pagination/dtos/paginate-response.dto";
 
-export class CourseResponseDto {
+    export class CourseResponseDto {
     @ApiProperty(
         {
             description: 'Course ID',
@@ -41,7 +43,24 @@ export class CourseResponseDto {
                 fullname: 'John Doe',
             }
         })
-    teacherData: UserResponseDto;
+        teacher: UserResponseDto;
+
+    @ApiProperty(
+        {
+            description: 'Category Data',
+            type: categoryResponseDto,
+            example: {
+                id: '8d4887aa-28e7-4d0e-844c-28a8ccead003',
+                title: 'Programming',
+                description: 'Programming courses',
+                slug: 'programming',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+        }
+    })
+    category: categoryResponseDto;
+
+
     @ApiProperty(
         {
             description: 'Course thumbnail',
@@ -105,8 +124,9 @@ export class CourseResponseDto {
         this.id = course.id;
         this.title = course.title;
         this.description = course.description;
-        this.teacherData = new UserResponseDto(course.teacher);
+        this.teacher = new UserResponseDto(course.teacher);
         this.thumbnail = course.thumbnail;
+        this.category = new categoryResponseDto(course.category);
         this.duration = course.duration;
         this.level = course.level;
         this.price = course.price;
@@ -116,3 +136,20 @@ export class CourseResponseDto {
     }
 
 }
+
+
+export class PaginatedCourseResponeDto extends PaginatedResponse(
+    CourseResponseDto,
+) {
+    constructor(
+        courses: Course[], 
+        total: number, 
+        pageSize: number, 
+        currentPage: number
+    ) {
+        const courseDtos = courses.map((course) => new CourseResponseDto(course));
+        super(courseDtos, total, pageSize, currentPage);
+    }
+
+}
+

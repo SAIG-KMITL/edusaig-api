@@ -1,8 +1,9 @@
-import { Entity, ManyToOne } from "typeorm";
+import { Entity, JoinColumn, ManyToOne } from "typeorm";
 import { Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { User } from "src/user/user.entity";
 import { CourseLevel } from "src/shared/enums/course-level.enum";
 import { CourseStatus } from "src/shared/enums/course-status.enum";
+import { Category } from "src/category/category.entity";
 
 
 @Entity()
@@ -19,9 +20,14 @@ export class Course {
         nullable: false,
     })
     description: string;
-
-    @ManyToOne(() => User, user => user.courses)
+    
+    @ManyToOne(() => User)
+    @JoinColumn({ name: 'teacher_id' })
     teacher: User;
+    
+    @ManyToOne(() => Category)
+    @JoinColumn({ name: 'category_id' })
+    category: Category;
 
     @Column({
         type: String,
