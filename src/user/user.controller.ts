@@ -33,7 +33,7 @@ export class UserController {
         type: UserResponseDto,
         description: 'Get user profile',
     })
-    async getProfile(
+    async getProfile( 
         @Req() request: AuthenticatedRequest,
     ): Promise<UserResponseDto> {
         const user = await this.userService.findOne({

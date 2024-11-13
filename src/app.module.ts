@@ -17,6 +17,7 @@ import { AuthGuard } from './auth/auth.guard';
 import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { RolesGuard } from './shared/guards/role.guard';
+import { CourseModule } from './course/course.module';
 
 const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
 
@@ -44,6 +45,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
         DatabaseModule,
         UserModule,
         UserStreakModule,
+        CourseModule,
     ],
     controllers: [AppController],
     providers: [
