@@ -30,6 +30,7 @@ import {
 } from './dtos/chapter-response.dto';
 import { CreateChapterDto } from './dtos/create-chapter.dto';
 import { UpdateChapterDto } from './dtos/update-chapter.dto';
+import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
 
 @Controller('chapter')
 @ApiTags('Chapters')
@@ -94,7 +95,7 @@ export class ChapterController {
   }
 
   @Patch(':id')
-  @Roles(Role.TEACHER)
+  @CourseOwnership({adminDraftOnly: true})
   @ApiResponse({
     status: HttpStatus.OK,
     type: ChapterResponseDto,
@@ -113,7 +114,7 @@ export class ChapterController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @CourseOwnership()
   @ApiResponse({
     status: HttpStatus.OK,
     type: ChapterResponseDto,
@@ -130,3 +131,5 @@ export class ChapterController {
     return this.chapterService.remove(id);
   }
 }
+
+

@@ -31,13 +31,14 @@ import {
 } from './dtos/course-module-response.dto';
 import { CreateCourseModuleDto } from './dtos/create-course-module.dto';
 import { UpdateCourseModuleDto } from './dtos/update-course-module.dto';
+import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
 
 @Controller('course-module')
 @ApiTags('Course Modules')
 @ApiBearerAuth()
 @Injectable()
 export class CourseModuleController {
-  constructor(private readonly courseModuleService: CourseModuleService) {}
+  constructor(private readonly courseModuleService: CourseModuleService) { }
 
   @Get()
   @ApiResponse({
@@ -65,7 +66,6 @@ export class CourseModuleController {
     description: 'Search by title',
   })
   async findAll(
-    @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
   ): Promise<PaginatedCourseModuleResponseDto> {
     return this.courseModuleService.findAll({
@@ -126,7 +126,9 @@ export class CourseModuleController {
   }
 
   @Patch(':id')
-  @Roles(Role.TEACHER)
+  @CourseOwnership({
+    adminDraftOnly: true
+  })
   @ApiParam({
     name: 'id',
     type: String,
@@ -140,7 +142,7 @@ export class CourseModuleController {
   }
 
   @Delete(':id')
-  @Roles(Role.TEACHER)
+  @CourseOwnership()
   @ApiParam({
     name: 'id',
     type: String,

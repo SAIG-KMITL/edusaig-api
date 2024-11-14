@@ -32,6 +32,7 @@ import {
   PaginatedCourseResponeDto,
   UpdateCourseDto,
 } from './dtos/index';
+import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
 
 @Controller('course')
 @ApiTags('Course')
@@ -41,7 +42,7 @@ export class CourseController {
   constructor(
     private readonly courseService: CourseService,
     private readonly categoryService: CategoryService,
-  ) {}
+  ) { }
   @Get()
   @ApiResponse({
     status: HttpStatus.OK,
@@ -137,7 +138,9 @@ export class CourseController {
   }
 
   @Patch(':id')
-  @Roles(Role.TEACHER, Role.ADMIN)
+  @CourseOwnership({
+    adminDraftOnly: true
+  })
   @ApiParam({
     name: 'id',
     type: String,
@@ -151,14 +154,7 @@ export class CourseController {
   async update(
     @Req() request: AuthenticatedRequest,
     @Body() updateCourseDto: UpdateCourseDto,
-    @Param(
-      'id',
-      new ParseUUIDPipe({
-        version: '4',
-        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-      }),
-    )
-    id: string,
+    @Param('id', ParseUUIDPipe) id: string,
   ): Promise<CourseResponseDto> {
     const category = await this.categoryService.findOne({
       where: { id: updateCourseDto.categoryId },
@@ -170,16 +166,13 @@ export class CourseController {
 
     const course = await this.courseService.update(
       id,
-      request.user.id,
-      request.user.role,
       updateCourseDto,
     );
 
     return new CourseResponseDto(course);
   }
-
   @Delete(':id')
-  @Roles(Role.TEACHER, Role.ADMIN)
+  @CourseOwnership()
   @ApiParam({
     name: 'id',
     type: String,
@@ -190,16 +183,8 @@ export class CourseController {
     description: 'Delete course by id',
   })
   async delete(
-    @Req() request: AuthenticatedRequest,
-    @Param(
-      'id',
-      new ParseUUIDPipe({
-        version: '4',
-        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-      }),
-    )
-    id: string,
+    @Param('id', ParseUUIDPipe) id: string,
   ): Promise<void> {
-    await this.courseService.delete(id, request.user.id, request.user.role);
+    await this.courseService.delete(id);
   }
 }

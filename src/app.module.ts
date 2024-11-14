@@ -10,7 +10,6 @@ import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
 import { ChapterModule } from './chapter/chapter.module';
 import { CourseModuleModule } from './course-module/course-module.module';
-import { Course } from './course/course.entity';
 import { CourseModule } from './course/course.module';
 import { DatabaseModule } from './database/database.module';
 import { databaseConfig } from './shared/configs/database.config';
@@ -21,8 +20,18 @@ import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
+import { CourseOwnershipGuard } from './shared/guards/course-ownership.guard';
+import { Course } from './course/course.entity';
+import { CourseModule as CourseModuleEntity } from './course-module/course-module.entity';
+import { Chapter } from './chapter/chapter.entity';
 
-const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
+const forFeatures = TypeOrmModule.forFeature([
+  User, 
+  UserStreak, 
+  Course,
+  CourseModuleEntity,
+  Chapter
+]);
 
 @Module({
   imports: [
@@ -64,6 +73,10 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    {
+      provide: APP_GUARD,
+      useClass: CourseOwnershipGuard,
+    }
   ],
 })
 export class AppModule {}
