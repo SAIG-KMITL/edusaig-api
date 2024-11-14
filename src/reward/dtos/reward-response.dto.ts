@@ -1,17 +1,16 @@
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from '@nestjs/class-validator';
-import { Type } from '../enums/type.enum';
-import { Status } from '../enums/status.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Status } from '../enums/status.enum';
+import { Type } from '../enums/type.enum';
+import { Reward } from '../reward.entity';
 
-export class CreateRewardDto {
-  @IsString()
-  @IsNotEmpty()
+export class RewardResponseDto {
+  @ApiProperty({
+    description: 'Reward ID',
+    type: String,
+    example: '8d4887aa-28e7-4d0e-844c-28a8ccead003',
+  })
+  id: string;
+
   @ApiProperty({
     description: 'reward name',
     type: String,
@@ -19,8 +18,6 @@ export class CreateRewardDto {
   })
   name: string;
 
-  @IsOptional()
-  @IsString()
   @ApiPropertyOptional({
     description: 'description of reward (optional)',
     type: String,
@@ -28,29 +25,21 @@ export class CreateRewardDto {
   })
   description?: string;
 
-  @IsString()
-  @IsOptional()
   @ApiPropertyOptional({
     description: 'thumbnail of reward (optional)',
     type: String,
     example: 'url.png',
   })
-  thumnail: string;
+  thumbnail: string;
 
-  @IsEnum(Type, {
-    message: `Invalid type. Type should be ${Type.BADGE} ${Type.CERTIFICATE} or ${Type.ITEM}`,
-  })
-  @IsNotEmpty()
   @ApiProperty({
     description: 'type of reward',
     type: String,
     example: Type.BADGE,
     enum: Type,
   })
-  type: Type.BADGE | Type.CERTIFICATE | Type.ITEM;
+  type: Type;
 
-  @IsNumber()
-  @IsNotEmpty()
   @ApiProperty({
     description: 'how many points require for this reward',
     type: Number,
@@ -58,8 +47,6 @@ export class CreateRewardDto {
   })
   points: number;
 
-  @IsNumber()
-  @IsNotEmpty()
   @ApiProperty({
     description: 'how many reward left',
     type: Number,
@@ -67,15 +54,38 @@ export class CreateRewardDto {
   })
   stock: number;
 
-  @IsEnum(Status, {
-    message: `Invalid status. Status should be ${Status.ACTIVE} or ${Status.INACTIVE}`,
-  })
-  @IsNotEmpty()
   @ApiProperty({
     description: 'status of reward',
     type: String,
     example: Status.INACTIVE,
     enum: Status,
   })
-  status: Status.ACTIVE | Status.INACTIVE;
+  status: Status;
+
+  @ApiProperty({
+    description: 'created date',
+    type: Date,
+    example: new Date(),
+  })
+  createdAt: Date;
+
+  @ApiProperty({
+    description: 'updated date',
+    type: Date,
+    example: new Date(),
+  })
+  updatedAt: Date;
+
+  constructor(reward: Reward) {
+    this.id = reward.id;
+    this.name = reward.name;
+    this.description = reward.description;
+    this.thumbnail = reward.thumbnail;
+    this.type = reward.type;
+    this.points = reward.points;
+    this.stock = reward.stock;
+    this.status = reward.status;
+    this.createdAt = reward.createdAt;
+    this.updatedAt = reward.updatedAt;
+  }
 }

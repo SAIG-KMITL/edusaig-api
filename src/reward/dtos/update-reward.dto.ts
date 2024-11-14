@@ -1,6 +1,5 @@
 import {
   IsEnum,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -9,15 +8,15 @@ import { Type } from '../enums/type.enum';
 import { Status } from '../enums/status.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateRewardDto {
+export class UpdateRewardDto {
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
+  @IsOptional()
+  @ApiPropertyOptional({
     description: 'reward name',
     type: String,
     example: 'gift card',
   })
-  name: string;
+  name?: string;
 
   @IsOptional()
   @IsString()
@@ -35,47 +34,47 @@ export class CreateRewardDto {
     type: String,
     example: 'url.png',
   })
-  thumnail: string;
+  thumnail?: string;
 
   @IsEnum(Type, {
     message: `Invalid type. Type should be ${Type.BADGE} ${Type.CERTIFICATE} or ${Type.ITEM}`,
   })
-  @IsNotEmpty()
-  @ApiProperty({
+  @IsOptional()
+  @ApiPropertyOptional({
     description: 'type of reward',
     type: String,
     example: Type.BADGE,
     enum: Type,
   })
-  type: Type.BADGE | Type.CERTIFICATE | Type.ITEM;
+  type?: Type.BADGE | Type.CERTIFICATE | Type.ITEM;
 
   @IsNumber()
-  @IsNotEmpty()
-  @ApiProperty({
+  @IsOptional()
+  @ApiPropertyOptional({
     description: 'how many points require for this reward',
     type: Number,
     example: 100,
   })
-  points: number;
+  points?: number;
 
   @IsNumber()
-  @IsNotEmpty()
-  @ApiProperty({
+  @IsOptional()
+  @ApiPropertyOptional({
     description: 'how many reward left',
     type: Number,
     example: 5,
   })
-  stock: number;
+  stock?: number;
 
   @IsEnum(Status, {
     message: `Invalid status. Status should be ${Status.ACTIVE} or ${Status.INACTIVE}`,
   })
-  @IsNotEmpty()
-  @ApiProperty({
+  @IsOptional()
+  @ApiPropertyOptional({
     description: 'status of reward',
     type: String,
     example: Status.INACTIVE,
     enum: Status,
   })
-  status: Status.ACTIVE | Status.INACTIVE;
+  status?: Status.ACTIVE | Status.INACTIVE;
 }

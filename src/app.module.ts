@@ -17,45 +17,47 @@ import { AuthGuard } from './auth/auth.guard';
 import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { RolesGuard } from './shared/guards/role.guard';
+import { RewardModule } from './reward/reward.module';
 
 const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
 
 @Module({
-    imports: [
-        forFeatures,
-        AuthModule,
-        ConfigModule.forRoot({
-            isGlobal: true,
-            validationSchema: dotenvConfig,
-        }),
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: (configService: ConfigService) => ({
-                ...databaseConfig,
-                migrations: ["dist/database/migrations/*.js"],
-                migrationsRun: true,
-                synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
-            }),
-            inject: [ConfigService],
-        }),
-        JwtModule.register({
-            global: true,
-        }),
-        DatabaseModule,
-        UserModule,
-        UserStreakModule,
-    ],
-    controllers: [AppController],
-    providers: [
-        AppService,
-        {
-            provide: APP_GUARD,
-            useClass: AuthGuard,
-        },
-        {
-            provide: APP_GUARD,
-            useClass: RolesGuard,
-        }
-    ],
+  imports: [
+    forFeatures,
+    AuthModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: dotenvConfig,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        ...databaseConfig,
+        migrations: ['dist/database/migrations/*.js'],
+        migrationsRun: true,
+        synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
+      }),
+      inject: [ConfigService],
+    }),
+    JwtModule.register({
+      global: true,
+    }),
+    DatabaseModule,
+    UserModule,
+    UserStreakModule,
+    RewardModule,
+  ],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
-export class AppModule { }
+export class AppModule {}

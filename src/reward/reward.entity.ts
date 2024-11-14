@@ -5,6 +5,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Type } from './enums/type.enum';
+import { Status } from './enums/status.enum';
 
 @Entity()
 export class Reward {
@@ -22,21 +24,39 @@ export class Reward {
   @Column()
   thumbnail: string;
 
-  @Column()
-  type: string;
+  @Column({
+    nullable: false,
+    type: 'enum',
+    enum: Type,
+  })
+  type: Type;
 
-  @Column()
+  @Column({
+    nullable: false,
+  })
   points: number;
 
-  @Column()
+  @Column({
+    nullable: false,
+  })
   stock: number;
 
-  @Column()
-  status: string;
+  @Column({
+    nullable: false,
+    type: 'enum',
+    enum: Status,
+  })
+  status: Status;
 
-  @CreateDateColumn()
+  @CreateDateColumn({
+    type: 'timestamp with time zone',
+    nullable: false,
+  })
   createdAt: Date;
 
-  @UpdateDateColumn()
-  UpdatedAt: Date;
+  @UpdateDateColumn({
+    type: 'timestamp with time zone',
+    nullable: false,
+  })
+  updatedAt: Date;
 }
