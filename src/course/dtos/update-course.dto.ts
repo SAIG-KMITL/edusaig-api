@@ -1,5 +1,4 @@
-import { PartialType } from "@nestjs/swagger";
-import { CreateCourseDto } from "./index";
+import { PartialType } from '@nestjs/swagger';
+import { CreateCourseDto } from './index';
 
 export class UpdateCourseDto extends PartialType(CreateCourseDto) {}
-

@@ -1,3 +1,4 @@
+import { Chapter } from 'src/chapter/chapter.entity';
 import { Course } from 'src/course/course.entity';
 import {
   Column,
@@ -5,6 +6,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -31,6 +33,9 @@ export class CourseModule {
     nullable: false,
   })
   orderIndex: number;
+
+  @OneToMany(() => Chapter, (chapter) => chapter.module)
+  chapters: Chapter[];
 
   @ManyToOne(() => Course, (course) => course.modules, {
     onDelete: 'CASCADE',

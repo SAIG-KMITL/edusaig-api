@@ -32,7 +32,6 @@ export class Category {
   @OneToMany(() => Course, (course) => course.category)
   courses: Course[];
 
-
   @CreateDateColumn({
     type: 'timestamp',
     nullable: false,
