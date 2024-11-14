@@ -1,25 +1,25 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
-import { dotenvConfig } from './shared/configs/dotenv.config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
-import { databaseConfig } from './shared/configs/database.config';
-import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
-import { JwtModule } from '@nestjs/jwt';
-import { DatabaseModule } from './database/database.module';
-import { UserModule } from './user/user.module';
-import { User } from './user/user.entity';
-import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
+import { AuthModule } from './auth/auth.module';
+import { CategoryModule } from './category/category.module';
+import { CourseModuleModule } from './course-module/course-module.module';
+import { Course } from './course/course.entity';
+import { CourseModule } from './course/course.module';
+import { DatabaseModule } from './database/database.module';
+import { databaseConfig } from './shared/configs/database.config';
+import { dotenvConfig } from './shared/configs/dotenv.config';
+import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
+import { RolesGuard } from './shared/guards/role.guard';
 import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
-import { RolesGuard } from './shared/guards/role.guard';
-import { CategoryModule } from './category/category.module';
-import { CourseModule } from './course/course.module';
-import { Course } from './course/course.entity';
+import { User } from './user/user.entity';
+import { UserModule } from './user/user.module';
 
 const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
 
@@ -49,6 +49,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
     UserStreakModule,
     CategoryModule,
     CourseModule,
+    CourseModuleModule,
   ],
   controllers: [AppController],
   providers: [
