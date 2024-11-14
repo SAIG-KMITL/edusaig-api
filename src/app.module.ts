@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
+import { ChapterModule } from './chapter/chapter.module';
 import { CourseModuleModule } from './course-module/course-module.module';
 import { Course } from './course/course.entity';
 import { CourseModule } from './course/course.module';
@@ -50,6 +51,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
     CategoryModule,
     CourseModule,
     CourseModuleModule,
+    ChapterModule,
   ],
   controllers: [AppController],
   providers: [

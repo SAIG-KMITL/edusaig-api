@@ -1,12 +1,13 @@
-import { DataSourceOptions, DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { GLOBAL_CONFIG } from '../constants/global-config.constant';
 import 'dotenv/config';
-import { User } from 'src/user/user.entity';
 import { Category } from 'src/category/category.entity';
-import { UserStreak } from 'src/user-streak/user-streak.entity';
-import { Course } from "src/course/course.entity";
+import { Chapter } from 'src/chapter/chapter.entity';
 import { CourseModule } from 'src/course-module/course-module.entity';
+import { Course } from 'src/course/course.entity';
+import { UserStreak } from 'src/user-streak/user-streak.entity';
+import { User } from 'src/user/user.entity';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { GLOBAL_CONFIG } from '../constants/global-config.constant';
 
 const configService = new ConfigService();
 
@@ -18,7 +19,7 @@ export const databaseConfig: DataSourceOptions = {
   password: configService.get<string>(GLOBAL_CONFIG.DB_PASSWORD),
   database: configService.get<string>(GLOBAL_CONFIG.DB_DATABASE),
   logging: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
-  entities: [User, UserStreak, Category, Course, CourseModule],
+  entities: [User, UserStreak, Category, Course, CourseModule, Chapter],
 };
 
 export default new DataSource(databaseConfig);
