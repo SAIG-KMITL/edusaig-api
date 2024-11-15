@@ -20,6 +20,7 @@ import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
+import { ExamModule } from './exam/exam.module';
 import { Course } from './course/course.entity';
 import { CourseModule as CourseModuleEntity } from './course-module/course-module.entity';
 import { Chapter } from './chapter/chapter.entity';
@@ -60,6 +61,7 @@ const forFeatures = TypeOrmModule.forFeature([
     CourseModule,
     CourseModuleModule,
     ChapterModule,
+    ExamModule
   ],
   controllers: [AppController],
   providers: [
@@ -74,4 +76,4 @@ const forFeatures = TypeOrmModule.forFeature([
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
