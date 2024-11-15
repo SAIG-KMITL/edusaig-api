@@ -21,4 +21,8 @@ export const dotenvConfig = Joi.object({
   JWT_REFRESH_SECRET: Joi.string().required(),
   JWT_ACCESS_EXPIRATION: Joi.string().required(),
   JWT_REFRESH_EXPIRATION: Joi.string().required(),
+  AWS_ACCESS_KEY_ID: Joi.string().required(),
+  AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+  AWS_REGION: Joi.string().required(),
+  AWS_BUCKET_NAME: Joi.string().required(),
 });
