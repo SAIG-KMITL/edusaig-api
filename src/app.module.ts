@@ -39,6 +39,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
                 migrations: ['dist/database/migrations/*.js'],
                 migrationsRun: true,
                 synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
+                autoLoadEntities: true,
             }),
             inject: [ConfigService],
         }),
