@@ -9,6 +9,7 @@ import { UserStreak } from 'src/user-streak/user-streak.entity';
 import { User } from 'src/user/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { GLOBAL_CONFIG } from '../constants/global-config.constant';
+import { Exam } from 'src/exam/exam.entity';
 
 const configService = new ConfigService();
 
@@ -28,6 +29,7 @@ export const databaseConfig: DataSourceOptions = {
     CourseModule,
     Chapter,
     Enrollment,
+    Exam
   ],
 };
 
