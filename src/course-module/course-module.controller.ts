@@ -32,13 +32,15 @@ import {
 import { CreateCourseModuleDto } from './dtos/create-course-module.dto';
 import { UpdateCourseModuleDto } from './dtos/update-course-module.dto';
 import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
+import { Course } from 'src/course/course.entity';
+import { CourseService } from 'src/course/course.service';
 
 @Controller('course-module')
 @ApiTags('Course Modules')
 @ApiBearerAuth()
 @Injectable()
 export class CourseModuleController {
-  constructor(private readonly courseModuleService: CourseModuleService) { }
+  constructor(private readonly courseModuleService: CourseModuleService, private readonly courseService: CourseService) { }
 
   @Get()
   @ApiResponse({
@@ -113,15 +115,21 @@ export class CourseModuleController {
   }
 
   @Post()
-  @Roles(Role.TEACHER)
   @ApiResponse({
     status: HttpStatus.CREATED,
     type: CourseModuleResponseDto,
     description: 'Create a course module',
   })
   async create(
+    @Req() request: AuthenticatedRequest,
     @Body() createCourseModuleDto: CreateCourseModuleDto,
   ): Promise<CourseModuleResponseDto> {
+    const course = await this.courseService.findOne(request.user.id, Role.TEACHER, { where: { id: createCourseModuleDto.courseId } });
+
+    if (!course) {
+      throw new BadRequestException('Course not found');
+    }
+
     return this.courseModuleService.create(createCourseModuleDto);
   }
 
@@ -135,9 +143,16 @@ export class CourseModuleController {
     description: 'Course Module ID',
   })
   async update(
+    @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateCourseModuleDto: UpdateCourseModuleDto,
   ): Promise<CourseModuleResponseDto> {
+    if (updateCourseModuleDto.courseId != null) {
+      const course = await this.courseService.findOne(request.user.id, request.user.role, { where: { id: updateCourseModuleDto.courseId } });
+      if (!course) {
+        throw new BadRequestException('Course not found');
+      }
+    }
     return this.courseModuleService.update(id, updateCourseModuleDto);
   }
 

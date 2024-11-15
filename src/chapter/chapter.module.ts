@@ -4,9 +4,10 @@ import { ChapterController } from './chapter.controller';
 import { Chapter } from './chapter.entity';
 import { chapterProviders } from './chapter.provider';
 import { ChapterService } from './chapter.service';
+import { CourseModuleModule } from 'src/course-module/course-module.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, CourseModuleModule],
   controllers: [ChapterController],
   providers: [...chapterProviders, ChapterService],
   exports: [ChapterService],

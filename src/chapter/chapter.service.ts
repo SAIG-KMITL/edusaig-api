@@ -16,7 +16,7 @@ export class ChapterService {
   constructor(
     @InjectRepository(Chapter)
     private readonly chapterRepository: Repository<Chapter>,
-  ) {}
+  ) { }
 
   async findAll({
     page = 1,
@@ -84,21 +84,13 @@ export class ChapterService {
   }
 
   async create(createChapterDto: CreateChapterDto): Promise<Chapter> {
-    if (!createChapterDto.orderIndex) {
-      createChapterDto.orderIndex = await this.validateAndGetNextOrderIndex(
-        createChapterDto.moduleId,
-      );
-    } else {
-      const existingChapter = await this.chapterRepository.findOne({
-        where: { orderIndex: createChapterDto.orderIndex },
-      });
 
-      if (existingChapter) {
-        throw new BadRequestException('Order index is duplicated');
-      }
-    }
+    let orderIndex = await this.validateAndGetNextOrderIndex(
+      createChapterDto.moduleId,
+    );
 
-    const chapter = this.chapterRepository.create(createChapterDto);
+
+    const chapter = this.chapterRepository.create({...createChapterDto, orderIndex: orderIndex});
 
     await this.chapterRepository.save(chapter);
     return chapter;
@@ -126,7 +118,9 @@ export class ChapterService {
     if (!chapter) {
       throw new NotFoundException('Chapter not found');
     }
-
+    if (updateChapterDto.orderIndex != null) {
+      await this.validateOrderIndex(chapter.moduleId, updateChapterDto.orderIndex); 
+    }
     if (
       updateChapterDto.orderIndex &&
       updateChapterDto.orderIndex !== chapter.orderIndex
@@ -136,7 +130,7 @@ export class ChapterService {
       });
 
       if (existingChapter) {
-        throw new BadRequestException('Order index is duplicated');
+        await this.chapterRepository.update(existingChapter.id, { orderIndex: chapter.orderIndex });
       }
     }
 
@@ -158,5 +152,28 @@ export class ChapterService {
     await this.reorderModules(chapter.moduleId);
 
     return result;
+  }
+
+  private async validateOrderIndex(moduleId: string, orderIndex: number): Promise<void> {
+    const existingModules = await this.chapterRepository.find({
+      where: { moduleId },
+      order: { orderIndex: 'ASC' },
+    });
+    if (existingModules.length === 0) {
+      if (orderIndex !== 1) {
+        throw new BadRequestException(
+          'Order index should be 1 when there are no modules in the course'
+        );
+      }
+      return;
+    }
+    const minIndex = 1;
+    const maxIndex = existingModules[existingModules.length - 1].orderIndex;
+
+    if (orderIndex < minIndex || orderIndex > maxIndex) {
+      throw new BadRequestException(
+        `Order index must be between ${minIndex} and ${maxIndex}`
+      );
+    }
   }
 }

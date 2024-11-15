@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -31,13 +32,14 @@ import {
 import { CreateChapterDto } from './dtos/create-chapter.dto';
 import { UpdateChapterDto } from './dtos/update-chapter.dto';
 import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
+import { CourseModuleService } from 'src/course-module/course-module.service';
 
 @Controller('chapter')
 @ApiTags('Chapters')
 @ApiBearerAuth()
 @Injectable()
 export class ChapterController {
-  constructor(private readonly chapterService: ChapterService) {}
+  constructor(private readonly chapterService: ChapterService, private readonly courseModuleService: CourseModuleService) { }
 
   @Get()
   @ApiResponse({
@@ -76,8 +78,15 @@ export class ChapterController {
     description: 'Chapter ID',
   })
   async findOne(
+    @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ChapterResponseDto> {
+    const courseModule = await this.courseModuleService.findOne(id, { where: { id } });
+
+    if (!courseModule && courseModule.course.teacher.id !== request.user.id) {
+      throw new BadRequestException('Course Module not found');
+    }
+
     return this.chapterService.findOne(id, { where: { id } });
   }
 
@@ -107,9 +116,17 @@ export class ChapterController {
     description: 'Chapter ID',
   })
   async update(
+    @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateChapterDto: UpdateChapterDto,
   ): Promise<ChapterResponseDto> {
+  if (updateChapterDto.moduleId != null) {
+    const courseModule = await this.courseModuleService.findOne(id, { where: { id } });
+
+    if (!courseModule && courseModule.course.teacher.id !== request.user.id) {
+      throw new BadRequestException('Course Module not found');
+    }
+  }
     return this.chapterService.update(id, updateChapterDto);
   }
 

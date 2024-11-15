@@ -16,7 +16,7 @@ export class CourseModuleService {
   constructor(
     @Inject('CourseModuleRepository')
     private readonly courseModuleRepository: Repository<CourseModule>,
-  ) {}
+  ) { }
 
   async findAll({
     page = 1,
@@ -98,27 +98,8 @@ export class CourseModuleService {
   async create(
     createCourseModuleDto: CreateCourseModuleDto,
   ): Promise<CourseModule> {
-    if (!createCourseModuleDto.orderIndex) {
-      createCourseModuleDto.orderIndex =
-        await this.validateAndGetNextOrderIndex(createCourseModuleDto.courseId);
-    } else {
-      const existingModule = await this.courseModuleRepository.findOne({
-        where: {
-          courseId: createCourseModuleDto.courseId,
-          orderIndex: createCourseModuleDto.orderIndex,
-        },
-      });
-
-      if (existingModule) {
-        throw new BadRequestException(
-          `Module with orderIndex ${createCourseModuleDto.orderIndex} already exists in this course`,
-        );
-      }
-    }
-
-    const courseModule = this.courseModuleRepository.create(
-      createCourseModuleDto,
-    );
+    let orderIndex = await this.validateAndGetNextOrderIndex(createCourseModuleDto.courseId);
+    const courseModule = this.courseModuleRepository.create({ ...createCourseModuleDto, orderIndex: orderIndex });
     await this.courseModuleRepository.save(courseModule);
 
     return courseModule;
@@ -148,7 +129,9 @@ export class CourseModuleService {
     if (!courseModule) {
       throw new BadRequestException('Course module not found');
     }
-
+    if (updateCourseModuleDto.orderIndex != null) {
+      await this.validateOrderIndex(courseModule.courseId, updateCourseModuleDto.orderIndex);
+    }
     if (
       updateCourseModuleDto.orderIndex &&
       updateCourseModuleDto.orderIndex !== courseModule.orderIndex
@@ -161,9 +144,7 @@ export class CourseModuleService {
       });
 
       if (existingModule) {
-        throw new BadRequestException(
-          `Module with orderIndex ${updateCourseModuleDto.orderIndex} already exists in this course`,
-        );
+        await this.courseModuleRepository.update(existingModule.id, { orderIndex: courseModule.orderIndex });
       }
     }
 
@@ -187,5 +168,28 @@ export class CourseModuleService {
     await this.reorderModules(courseModule.courseId, courseModule.orderIndex);
 
     return result;
+  }
+  private async validateOrderIndex(courseId: string, orderIndex: number): Promise<void> {
+    const existingModules = await this.courseModuleRepository.find({
+      where: { courseId },
+      order: { orderIndex: 'ASC' },
+    });
+    if (existingModules.length === 0) {
+      if (orderIndex !== 1) {
+        throw new BadRequestException(
+          'Order index should be 1 when there are no modules in the course'
+        );
+      }
+      return;
+    }
+    console.log(orderIndex)
+    const minIndex = 1;
+    const maxIndex = existingModules[existingModules.length - 1].orderIndex;
+
+    if (orderIndex < minIndex || orderIndex > maxIndex) {
+      throw new BadRequestException(
+        `Order index is invalid`
+      );
+    }
   }
 }
