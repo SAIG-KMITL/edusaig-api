@@ -20,7 +20,6 @@ import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
-import { CourseOwnershipGuard } from './shared/guards/course-ownership.guard';
 import { Course } from './course/course.entity';
 import { CourseModule as CourseModuleEntity } from './course-module/course-module.entity';
 import { Chapter } from './chapter/chapter.entity';
@@ -73,10 +72,6 @@ const forFeatures = TypeOrmModule.forFeature([
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
-    {
-      provide: APP_GUARD,
-      useClass: CourseOwnershipGuard,
-    }
   ],
 })
 export class AppModule {}

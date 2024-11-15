@@ -8,7 +8,8 @@ import { CourseModuleService } from './course-module.service';
 @Module({
   imports: [DatabaseModule, CourseModule],
   controllers: [CourseModuleController],
-  providers: [...courseModuleProviders, CourseModuleService],
+  providers: [...courseModuleProviders, CourseModuleService
+  ],
   exports: [CourseModuleService],
 })
 export class CourseModuleModule {}

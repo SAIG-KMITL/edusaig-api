@@ -12,6 +12,7 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -21,7 +22,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
-import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
 import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
 import { CourseModuleService } from './course-module.service';
@@ -32,8 +32,8 @@ import {
 import { CreateCourseModuleDto } from './dtos/create-course-module.dto';
 import { UpdateCourseModuleDto } from './dtos/update-course-module.dto';
 import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
-import { Course } from 'src/course/course.entity';
 import { CourseService } from 'src/course/course.service';
+import { CourseOwnershipGuard } from 'src/shared/guards/course-ownership.guard';
 
 @Controller('course-module')
 @ApiTags('Course Modules')
@@ -157,7 +157,6 @@ export class CourseModuleController {
   }
 
   @Delete(':id')
-  @CourseOwnership()
   @ApiParam({
     name: 'id',
     type: String,
