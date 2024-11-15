@@ -13,6 +13,7 @@ import { CourseModuleModule } from './course-module/course-module.module';
 import { Course } from './course/course.entity';
 import { CourseModule } from './course/course.module';
 import { DatabaseModule } from './database/database.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
 import { databaseConfig } from './shared/configs/database.config';
 import { dotenvConfig } from './shared/configs/dotenv.config';
 import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
@@ -52,6 +53,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
     CourseModule,
     CourseModuleModule,
     ChapterModule,
+    EnrollmentModule,
   ],
   controllers: [AppController],
   providers: [
