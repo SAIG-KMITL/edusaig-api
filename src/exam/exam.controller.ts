@@ -91,6 +91,7 @@ export class ExamController {
         description: 'Create an exam',
         type: ExamResponseDto,
     })
+    @HttpCode(HttpStatus.CREATED)
     async createExam(@Body() createExamDto: CreateExamDto
     ): Promise<ExamResponseDto> {
         const exam = await this.examService.createExam(createExamDto);

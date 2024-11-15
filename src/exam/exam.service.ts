@@ -4,10 +4,8 @@ import { Exam } from "./exam.entity";
 import { CreateExamDto } from "./dtos/create-exam.dto";
 import { PaginatedExamResponseDto } from "./dtos/exam-response.dto";
 import { createPagination } from "src/shared/pagination";
-import { ExamStatus } from "src/shared/enums";
+import { ExamStatus, Role } from "src/shared/enums";
 import { AuthenticatedRequest } from "src/auth/interfaces/authenticated-request.interface";
-import { isInstance } from "class-validator";
-import { string } from "joi";
 import { UpdateExamDto } from "./dtos/update-exam.dto";
 
 @Injectable()
@@ -46,11 +44,11 @@ export class ExamService {
     private validateAndCreateCondition(request: AuthenticatedRequest, search: string): FindOptionsWhere<Exam> {
         const baseSearch = search ? { title: ILike(`%${search}%`) } : {};
 
-        if (request.user.role === 'student') {
+        if (request.user.role === Role.STUDENT) {
             return { ...baseSearch, status: ExamStatus.PUBLISHED };
         }
 
-        if (request.user.role === 'teacher') {
+        if (request.user.role === Role.TEACHER) {
             return {
                 ...baseSearch,
                 courseModule: {
@@ -63,11 +61,11 @@ export class ExamService {
             };
         }
 
-        if (request.user.role === 'admin') {
+        if (request.user.role === Role.ADMIN) {
             return { ...baseSearch };
         }
 
-        return { ...baseSearch };
+        return { ...baseSearch, status: ExamStatus.PUBLISHED };
     }
 
     async findOne(request: AuthenticatedRequest, options: FindOneOptions<Exam> = {}): Promise<Exam> {
