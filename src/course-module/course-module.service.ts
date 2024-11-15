@@ -182,7 +182,6 @@ export class CourseModuleService {
       }
       return;
     }
-    console.log(orderIndex)
     const minIndex = 1;
     const maxIndex = existingModules[existingModules.length - 1].orderIndex;
 
