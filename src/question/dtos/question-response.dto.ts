@@ -26,8 +26,6 @@ export class QuestionResponseDto {
       maxAttempts: 1,
       shuffleQuestions: true,
       status: 'draft',
-      createdAt: new Date(),
-      updatedAt: new Date(),
     },
   })
   exam: Exam;

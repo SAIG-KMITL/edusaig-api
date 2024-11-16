@@ -45,6 +45,9 @@ export class ExamService {
     const exam = await find({
       where: whereCondition,
       relations: ['courseModule'],
+      select: {
+        courseModule: this.selectPopulateCourseModule(),
+      },
     }).run();
 
     return exam;
@@ -96,6 +99,9 @@ export class ExamService {
       ...options,
       where: whereCondition,
       relations: ['courseModule'],
+      select: {
+        courseModule: this.selectPopulateCourseModule(),
+      },
     });
 
     if (!exam) {
@@ -108,6 +114,8 @@ export class ExamService {
   async createExam(createExamDto: CreateExamDto): Promise<Exam> {
     const courseModule = await this.courseModuleRepository.findOne({
       where: { id: createExamDto.courseModuleId },
+      relations: ['courseModule'],
+      select: this.selectPopulateCourseModule(),
     });
 
     const exam = this.examRepository.create({ ...createExamDto, courseModule });
@@ -131,7 +139,13 @@ export class ExamService {
     }
     const exam = await this.examRepository.update(id, updateExamDto);
     if (!exam) throw new NotFoundException("Can't update exam");
-    return await this.examRepository.findOne({ where: { id } });
+    return await this.examRepository.findOne({
+      where: { id },
+      relations: ['courseModule'],
+      select: {
+        courseModule: this.selectPopulateCourseModule(),
+      },
+    });
   }
 
   async deleteExam(request: AuthenticatedRequest, id: string): Promise<void> {
@@ -142,5 +156,9 @@ export class ExamService {
     } catch (error) {
       if (error instanceof Error) throw new NotFoundException('Exam not found');
     }
+  }
+
+  private selectPopulateCourseModule(): FindOptionsSelect<CourseModule> {
+    return { id: true, title: true, description: true, orderIndex: true };
   }
 }

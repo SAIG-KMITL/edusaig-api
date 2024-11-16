@@ -20,9 +20,6 @@ export class ExamResponseDto {
       title: 'Thai',
       description: 'This module is an introduction to programming',
       orderIndex: 1,
-      courseId: 'c621f01b-35dc-4448-a065-bd4a6bebb132',
-      createdAt: new Date(),
-      updatedAt: new Date(),
     },
   })
   courseModule: CourseModuleResponseDto;

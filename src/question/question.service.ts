@@ -8,9 +8,9 @@ import {
 import { Question } from './question.entity';
 import {
   FindOneOptions,
+  FindOptionsSelect,
   FindOptionsWhere,
   ILike,
-  Raw,
   Repository,
 } from 'typeorm';
 import { PaginatedQuestionResponseDto } from './dtos/question-response.dto';
@@ -53,6 +53,9 @@ export class QuestionService {
       },
       where: whereCondition,
       relations: ['exam'],
+      select: {
+        exam: this.selectPopulateExam(),
+      },
     }).run();
 
     return question;
@@ -68,6 +71,9 @@ export class QuestionService {
       ...options,
       where: whereCondition,
       relations: ['exam'],
+      select: {
+        exam: this.selectPopulateExam(),
+      },
     });
 
     if (!question) {
@@ -102,12 +108,20 @@ export class QuestionService {
       where: { id: examId },
     });
 
+    if (!exam) {
+      throw new NotFoundException('Exam not found.');
+    }
+
     if (!exam.shuffleQuestions) {
       const question = await find({
         order: {
           orderIndex: 'ASC',
         },
         where: whereCondition,
+        relations: ['exam'],
+        select: {
+          exam: this.selectPopulateExam(),
+        },
       }).run();
       return question;
     }
@@ -121,6 +135,10 @@ export class QuestionService {
       where: whereCondition,
       ...{
         __queryBuilder: baseQuery,
+      },
+      relations: ['exam'],
+      select: {
+        exam: this.selectPopulateExam(),
       },
     }).run();
   }
@@ -202,6 +220,7 @@ export class QuestionService {
     }
     const exam = await this.examRepository.findOne({
       where: { id: createQuestionDto.examId },
+      select: this.selectPopulateExam(),
     });
     if (!exam) {
       throw new NotFoundException('Exam not found.');
@@ -237,7 +256,13 @@ export class QuestionService {
         updateQuestionDto,
       );
       if (!question) throw new NotFoundException("Can't update question");
-      return await this.questionRepository.findOne({ where: { id } });
+      return await this.questionRepository.findOne({
+        where: { id },
+        relations: ['exam'],
+        select: {
+          exam: this.selectPopulateExam(),
+        },
+      });
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException(
@@ -262,5 +287,31 @@ export class QuestionService {
       if (error instanceof Error)
         throw new NotFoundException('Question not found');
     }
+  }
+
+  private selectPopulateExamForQuery(): string[] {
+    return [
+      'question.id',
+      'question.title',
+      'question.description',
+      'question.timeLimit',
+      'question.passingScore',
+      'question.maxAttempts',
+      'question.shuffleQuestions',
+      'question.status',
+    ];
+  }
+
+  private selectPopulateExam(): FindOptionsSelect<Exam> {
+    return {
+      id: true,
+      title: true,
+      description: true,
+      timeLimit: true,
+      passingScore: true,
+      maxAttempts: true,
+      shuffleQuestions: true,
+      status: true,
+    };
   }
 }
