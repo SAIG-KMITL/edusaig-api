@@ -1,5 +1,6 @@
 import { Category } from 'src/category/category.entity';
 import { CourseModule } from 'src/course-module/course-module.entity';
+import { Enrollment } from 'src/enrollment/enrollment.entity';
 import { CourseLevel } from 'src/shared/enums/course-level.enum';
 import { CourseStatus } from 'src/shared/enums/course-status.enum';
 import { User } from 'src/user/user.entity';
@@ -41,6 +42,9 @@ export class Course {
     cascade: true,
   })
   modules: CourseModule[];
+
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.course)
+  enrollments: Enrollment[];
 
   @Column({
     type: String,
