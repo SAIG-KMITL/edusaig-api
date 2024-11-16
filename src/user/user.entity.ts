@@ -52,7 +52,7 @@ export class User {
   @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.exam, {
     cascade: true,
   })
-  examAttempt: ExamAttempt;
+  examAttempt: ExamAttempt[];
 
   @CreateDateColumn({
     type: 'timestamp with time zone',
