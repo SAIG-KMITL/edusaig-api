@@ -143,15 +143,18 @@ export class QuestionService {
     if (request.user.role === Role.TEACHER) {
       return {
         ...baseSearch,
-        exam: {
-          courseModule: {
-            course: {
-              teacher: {
-                id: request.user.id,
+        exam: [
+          {
+            status: ExamStatus.PUBLISHED,
+          },
+          {
+            courseModule: {
+              course: {
+                teacher: { id: request.user.id },
               },
             },
           },
-        },
+        ],
       };
     }
 

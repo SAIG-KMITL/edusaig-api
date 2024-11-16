@@ -3,6 +3,7 @@ import { PaginatedResponse } from 'src/shared/pagination/dtos/paginate-response.
 import { Question } from '../question.entity';
 import { Exam } from 'src/exam/exam.entity';
 import { ExamResponseDto } from 'src/exam/dtos/exam-response.dto';
+import { QuestionType } from 'src/shared/enums';
 
 export class QuestionResponseDto {
   @ApiProperty({
@@ -41,9 +42,10 @@ export class QuestionResponseDto {
   @ApiProperty({
     description: 'Type question',
     type: String,
-    example: 'Open question',
+    example: QuestionType.TRUE_FALSE,
+    enum: QuestionType,
   })
-  type: string;
+  type: QuestionType;
 
   @ApiProperty({
     description: 'Points in 1 question',
