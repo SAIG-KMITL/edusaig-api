@@ -43,8 +43,8 @@ export class Course {
   })
   modules: CourseModule[];
 
-  @OneToMany(() => Enrollment, (enrolment) => enrolment.course)
-  enrolments: Enrollment[];
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.course)
+  enrollments: Enrollment[];
 
   @Column({
     type: String,
