@@ -1,68 +1,83 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne, JoinColumn } from "typeorm";
-import { ExamStatus } from "src/shared/enums";
-import { CourseModule } from "src/course-module/course-module.entity";
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
+import { ExamStatus } from 'src/shared/enums';
+import { CourseModule } from 'src/course-module/course-module.entity';
+import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 
 @Entity()
 export class Exam {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @OneToOne(() => CourseModule, (courseModule) => courseModule.exam, {
-        onDelete: 'CASCADE',
-        nullable: false,
-    })
-    @JoinColumn({ name: 'course_module_id' })
-    courseModule: CourseModule;
+  @OneToOne(() => CourseModule, (courseModule) => courseModule.exam, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
+  @JoinColumn({ name: 'course_module_id' })
+  courseModule: CourseModule;
 
-    @Column({ name: 'course_module_id' })
-    courseModuleId: string;
+  @Column({ name: 'course_module_id' })
+  courseModuleId: string;
 
-    @Column({
-        nullable: false,
-    })
-    title: string;
+  @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.exam, {
+    cascade: true,
+  })
+  examAttempt: ExamAttempt;
 
-    @Column({
-        nullable: true,
-    })
-    description: string;
+  @Column({
+    nullable: false,
+  })
+  title: string;
 
-    @Column({
-        nullable: false,
-        default: 20,
-    })
-    timeLimit: number;
+  @Column({
+    nullable: true,
+  })
+  description: string;
 
-    @Column({
-        nullable: false,
-    })
-    passingScore: number;
+  @Column({
+    nullable: false,
+    default: 20,
+  })
+  timeLimit: number;
 
-    @Column({
-        nullable: false,
-    })
-    maxAttempts: number;
+  @Column({
+    nullable: false,
+  })
+  passingScore: number;
 
-    @Column({
-        nullable: false,
-        default: false,
-    })
-    shuffleQuestions: boolean;
+  @Column({
+    nullable: false,
+  })
+  maxAttempts: number;
 
-    @Column({
-        enum: ExamStatus,
-        nullable: false,
-        default: ExamStatus.DRAFT,
-    })
-    status: ExamStatus;
+  @Column({
+    nullable: false,
+    default: false,
+  })
+  shuffleQuestions: boolean;
 
-    @CreateDateColumn({
-        type: "timestamp with time zone"
-    })
-    createdAt: Date;
+  @Column({
+    enum: ExamStatus,
+    nullable: false,
+    default: ExamStatus.DRAFT,
+  })
+  status: ExamStatus;
 
-    @UpdateDateColumn({
-        type: "timestamp with time zone"
-    })
-    updatedAt: Date;
+  @CreateDateColumn({
+    type: 'timestamp with time zone',
+  })
+  createdAt: Date;
+
+  @UpdateDateColumn({
+    type: 'timestamp with time zone',
+  })
+  updatedAt: Date;
 }

@@ -10,6 +10,7 @@ import { User } from 'src/user/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { GLOBAL_CONFIG } from '../constants/global-config.constant';
 import { Exam } from 'src/exam/exam.entity';
+import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 
 const configService = new ConfigService();
 
@@ -29,7 +30,9 @@ export const databaseConfig: DataSourceOptions = {
     CourseModule,
     Chapter,
     Enrollment,
-    Exam
+    Exam,
+
+    ExamAttempt,
   ],
 };
 
