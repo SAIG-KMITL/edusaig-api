@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne, JoinColumn } from "typeorm";
 import { ExamStatus } from "src/shared/enums";
 import { CourseModule } from "src/course-module/course-module.entity";
+import { Question } from "src/question/question.entity";
 
 @Entity()
 export class Exam {
@@ -16,6 +17,11 @@ export class Exam {
 
     @Column({ name: 'course_module_id' })
     courseModuleId: string;
+
+    @OneToMany(() => Question, (question) => question.exam, {
+        cascade: true,
+    })
+    question: Question;
 
     @Column({
         nullable: false,
