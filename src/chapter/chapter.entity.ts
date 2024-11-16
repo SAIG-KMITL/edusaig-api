@@ -30,8 +30,11 @@ export class Chapter {
         onDelete: 'CASCADE',
         nullable: false,
     })
-    @JoinColumn()
+    @JoinColumn({ name: 'module_id' })
     module: CourseModule;
+
+    @Column({ name: 'module_id' })
+    moduleId: string;
 
     @Column({
         type: String,

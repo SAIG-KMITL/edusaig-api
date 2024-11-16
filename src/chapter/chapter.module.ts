@@ -5,11 +5,12 @@ import { Chapter } from './chapter.entity';
 import { chapterProviders } from './chapter.provider';
 import { ChapterService } from './chapter.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CourseModule } from 'src/course-module/course-module.entity';
 
 @Module({
     imports: [
         DatabaseModule,
-        TypeOrmModule.forFeature([Chapter]),
+        TypeOrmModule.forFeature([Chapter, CourseModule]),
     ],
     controllers: [ChapterController],
     providers: [...chapterProviders, ChapterService],

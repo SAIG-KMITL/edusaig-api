@@ -1,12 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
 import { Chapter } from "src/chapter/chapter.entity";
+import { ChatRoomType, ChatRoomStatus } from "./enums";
 
 @Entity()
 export class ChatRoom {
     @PrimaryGeneratedColumn("uuid")
-    id: number;
+    id: string;
 
-    @OneToOne(() => Chapter, { onDelete: "CASCADE" })
+    @OneToOne(() => Chapter, {
+        onDelete: "CASCADE",
+        nullable: false,
+        eager: true,
+    })
+    @JoinColumn({ name: "chapter_id" })
     chapter: Chapter;
 
     @Column({
@@ -16,13 +22,19 @@ export class ChatRoom {
 
     @Column({
         nullable: false,
+        type: "enum",
+        enum: ChatRoomType,
+        default: ChatRoomType.QUESTION,
     })
-    type: string;
+    type: ChatRoomType;
 
     @Column({
         nullable: false,
+        type: "enum",
+        enum: ChatRoomStatus,
+        default: ChatRoomStatus.ACTIVE,
     })
-    status: string;
+    status: ChatRoomStatus;
 
     @CreateDateColumn({
         type: "timestamp",

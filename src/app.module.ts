@@ -21,6 +21,7 @@ import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
 import { RolesGuard } from './shared/guards/role.guard';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { UserModule } from './user/user.module';
+import { ChatRoomModule } from './chat-room/chat-room.module';
 
 @Module({
     imports: [
@@ -53,6 +54,7 @@ import { UserModule } from './user/user.module';
         FileModule,
         ExamModule,
         EnrollmentModule,
+        ChatRoomModule,
     ],
     controllers: [AppController],
     providers: [
