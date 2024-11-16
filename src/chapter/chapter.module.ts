@@ -4,11 +4,15 @@ import { ChapterController } from './chapter.controller';
 import { Chapter } from './chapter.entity';
 import { chapterProviders } from './chapter.provider';
 import { ChapterService } from './chapter.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [DatabaseModule],
-  controllers: [ChapterController],
-  providers: [...chapterProviders, ChapterService],
-  exports: [ChapterService],
+    imports: [
+        DatabaseModule,
+        TypeOrmModule.forFeature([Chapter]),
+    ],
+    controllers: [ChapterController],
+    providers: [...chapterProviders, ChapterService],
+    exports: [ChapterService],
 })
-export class ChapterModule {}
+export class ChapterModule { }

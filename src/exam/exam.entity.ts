@@ -14,9 +14,6 @@ export class Exam {
     @JoinColumn({ name: 'course_module_id' })
     courseModule: CourseModule;
 
-    @Column({ name: 'course_module_id' })
-    courseModuleId: string;
-
     @Column({
         nullable: false,
     })

@@ -19,57 +19,52 @@ import { databaseConfig } from './shared/configs/database.config';
 import { dotenvConfig } from './shared/configs/dotenv.config';
 import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
 import { RolesGuard } from './shared/guards/role.guard';
-import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
-import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
 
-const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
-
 @Module({
-  imports: [
-    forFeatures,
-    AuthModule,
-    ConfigModule.forRoot({
-      isGlobal: true,
-      validationSchema: dotenvConfig,
-    }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        ...databaseConfig,
-        migrations: ['dist/database/migrations/*.js'],
-        migrationsRun: true,
-        synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
-        autoLoadEntities: true,
-      }),
-      inject: [ConfigService],
-    }),
-    JwtModule.register({
-      global: true,
-    }),
-    DatabaseModule,
-    UserModule,
-    UserStreakModule,
-    CategoryModule,
-    CourseModule,
-    CourseModuleModule,
-    ChapterModule,
-    FileModule,
-    ExamModule,
-    EnrollmentModule,
-  ],
-  controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
-  ],
+    imports: [
+        AuthModule,
+        ConfigModule.forRoot({
+            isGlobal: true,
+            validationSchema: dotenvConfig,
+        }),
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                ...databaseConfig,
+                migrations: ['dist/database/migrations/*.js'],
+                migrationsRun: true,
+                synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
+                autoLoadEntities: true,
+            }),
+            inject: [ConfigService],
+        }),
+        JwtModule.register({
+            global: true,
+        }),
+        DatabaseModule,
+        UserModule,
+        UserStreakModule,
+        CategoryModule,
+        CourseModule,
+        CourseModuleModule,
+        ChapterModule,
+        FileModule,
+        ExamModule,
+        EnrollmentModule,
+    ],
+    controllers: [AppController],
+    providers: [
+        AppService,
+        {
+            provide: APP_GUARD,
+            useClass: AuthGuard,
+        },
+        {
+            provide: APP_GUARD,
+            useClass: RolesGuard,
+        },
+    ],
 })
-export class AppModule {}
+export class AppModule { }

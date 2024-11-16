@@ -87,7 +87,7 @@ export class ExamResponseDto {
 
     constructor(exam: Exam) {
         this.id = exam.id;
-        this.courseModuleId = exam.courseModuleId
+        this.courseModuleId = exam.courseModule.id;
         this.title = exam.title;
         this.description = exam.description;
         this.timeLimit = exam.timeLimit;
