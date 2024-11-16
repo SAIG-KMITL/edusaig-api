@@ -1,5 +1,6 @@
 import { Course } from 'src/course/course.entity';
 import { Enrollment } from 'src/enrollment/enrollment.entity';
+import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 import { Role } from 'src/shared/enums/roles.enum';
 import {
   Column,
@@ -50,6 +51,11 @@ export class User {
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.user)
   enrollments: Enrollment[];
+
+  @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.exam, {
+    cascade: true,
+  })
+  examAttempt: ExamAttempt[];
 
   @CreateDateColumn({
     type: 'timestamp with time zone',
