@@ -5,11 +5,12 @@ import { Chapter } from 'src/chapter/chapter.entity';
 import { CourseModule } from 'src/course-module/course-module.entity';
 import { Course } from 'src/course/course.entity';
 import { Enrollment } from 'src/enrollment/enrollment.entity';
+import { Exam } from 'src/exam/exam.entity';
+import { Progress } from 'src/progress/progress.entity';
 import { UserStreak } from 'src/user-streak/user-streak.entity';
 import { User } from 'src/user/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { GLOBAL_CONFIG } from '../constants/global-config.constant';
-import { Exam } from 'src/exam/exam.entity';
 
 const configService = new ConfigService();
 
@@ -29,7 +30,8 @@ export const databaseConfig: DataSourceOptions = {
     CourseModule,
     Chapter,
     Enrollment,
-    Exam
+    Exam,
+    Progress,
   ],
 };
 
