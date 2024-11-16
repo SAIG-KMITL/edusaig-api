@@ -22,7 +22,10 @@ export class ChatRoomService {
 
     async create(createChatRoomDto: CreateChatRoomDto): Promise<ChatRoom> {
         try {
-            return await this.chatRoomRepository.save(createChatRoomDto);
+            return await this.chatRoomRepository.save({
+                ...createChatRoomDto, 
+                chapter: { id: createChatRoomDto.chapterId }
+            });
         } catch (error) {
             if (error instanceof Error)
                 throw new InternalServerErrorException(error.message);

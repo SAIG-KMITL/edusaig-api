@@ -22,6 +22,7 @@ import { RolesGuard } from './shared/guards/role.guard';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { UserModule } from './user/user.module';
 import { ChatRoomModule } from './chat-room/chat-room.module';
+import { ChatMessageModule } from './chat-message/chat-message.module';
 
 @Module({
     imports: [
@@ -55,6 +56,7 @@ import { ChatRoomModule } from './chat-room/chat-room.module';
         ExamModule,
         EnrollmentModule,
         ChatRoomModule,
+        ChatMessageModule,
     ],
     controllers: [AppController],
     providers: [

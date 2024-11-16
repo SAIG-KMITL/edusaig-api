@@ -3,7 +3,7 @@ import { Get } from "@nestjs/common";
 import { ChatRoomService } from "./chat-room.service";
 import { PaginateQueryDto } from "src/shared/pagination/dtos/paginate-query.dto";
 import { ApiTags, ApiBearerAuth, ApiResponse, ApiQuery, ApiParam } from "@nestjs/swagger";
-import { ChatRoomResponseDto, PaginatedChatRoomResponseDto } from "./dtos/paginated-user-response.dto";
+import { ChatRoomResponseDto, PaginatedChatRoomResponseDto } from "./dtos/paginated-chat-room-response.dto";
 import { Roles } from "src/shared/decorators/role.decorator";
 import { Role } from "src/shared/enums";
 import { CreateChatRoomDto } from "./dtos/create-chat-room.dto";
