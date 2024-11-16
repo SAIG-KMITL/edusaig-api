@@ -53,7 +53,7 @@ export class ExamService {
   private validateAndCreateCondition(
     request: AuthenticatedRequest,
     search: string,
-  ): FindOptionsWhere<Exam> {
+  ): FindOptionsWhere<Exam> | FindOptionsWhere<Exam>[] {
     const baseSearch = search ? { title: ILike(`%${search}%`) } : {};
 
     if (request.user.role === Role.STUDENT) {
@@ -61,16 +61,22 @@ export class ExamService {
     }
 
     if (request.user.role === Role.TEACHER) {
-      return {
-        ...baseSearch,
-        courseModule: {
-          course: {
-            teacher: {
-              id: request.user.id,
+      return [
+        {
+          ...baseSearch,
+          courseModule: {
+            course: {
+              teacher: {
+                id: request.user.id,
+              },
             },
           },
         },
-      };
+        {
+          ...baseSearch,
+          status: ExamStatus.PUBLISHED,
+        },
+      ];
     }
 
     if (request.user.role === Role.ADMIN) {
