@@ -9,6 +9,7 @@ import { User } from 'src/user/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { GLOBAL_CONFIG } from '../constants/global-config.constant';
 import { Exam } from 'src/exam/exam.entity';
+import { Question } from 'src/question/question.entity';
 
 const configService = new ConfigService();
 
@@ -20,7 +21,7 @@ export const databaseConfig: DataSourceOptions = {
   password: configService.get<string>(GLOBAL_CONFIG.DB_PASSWORD),
   database: configService.get<string>(GLOBAL_CONFIG.DB_DATABASE),
   logging: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
-  entities: [User, UserStreak, Category, Course, CourseModule, Chapter, Exam],
+  entities: [User, UserStreak, Category, Course, CourseModule, Chapter, Exam, Question],
 };
 
 export default new DataSource(databaseConfig);
