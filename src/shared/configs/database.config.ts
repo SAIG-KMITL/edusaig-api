@@ -11,6 +11,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { GLOBAL_CONFIG } from '../constants/global-config.constant';
 import { Exam } from 'src/exam/exam.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
+import { Question } from 'src/question/question.entity';
 
 const configService = new ConfigService();
 
@@ -33,6 +34,7 @@ export const databaseConfig: DataSourceOptions = {
     Exam,
 
     ExamAttempt,
+    Question,
   ],
 };
 

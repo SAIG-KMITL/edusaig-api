@@ -11,6 +11,7 @@ import {
 import { ExamStatus } from 'src/shared/enums';
 import { CourseModule } from 'src/course-module/course-module.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
+import { Question } from 'src/question/question.entity';
 
 @Entity()
 export class Exam {
@@ -31,6 +32,10 @@ export class Exam {
     cascade: true,
   })
   examAttempt: ExamAttempt;
+  @OneToMany(() => Question, (question) => question.exam, {
+    cascade: true,
+  })
+  question: Question[];
 
   @Column({
     nullable: false,

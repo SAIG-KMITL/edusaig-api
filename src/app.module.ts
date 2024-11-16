@@ -24,6 +24,7 @@ import { UserStreakModule } from './user-streak/user-streak.module';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
 import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
+import { QuestionModule } from './question/question.module';
 
 const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
 
@@ -61,6 +62,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
     EnrollmentModule,
 
     ExamAttemptModule,
+    QuestionModule,
   ],
   controllers: [AppController],
   providers: [
