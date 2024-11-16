@@ -58,6 +58,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
     ChapterModule,
     FileModule,
     ExamModule,
+    EnrollmentModule,
     QuestionModule,
   ],
   controllers: [AppController],
