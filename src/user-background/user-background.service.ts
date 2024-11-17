@@ -25,7 +25,6 @@ export class UserBackgroundService {
   constructor(
     @InjectRepository(UserBackground)
     private readonly userBackgroundRepository: Repository<UserBackground>,
-    private readonly userBackgroundTopicRepository: Repository<UserBackgroundTopic>,
   ) {}
 
   async findAll({
@@ -75,14 +74,9 @@ export class UserBackgroundService {
   }
 
   async create(data: CreateUserBackground): Promise<UserBackgroundResponseDto> {
-    const topics = await this.userBackgroundTopicRepository.findByIds(
-      data.topics,
-    );
-
     const userBackground = this.userBackgroundRepository.create({
       userId: data.userId,
       occupationId: data.occupationId,
-      topics: topics,
     });
 
     const savedUserBackground = await this.userBackgroundRepository.save(
@@ -103,16 +97,6 @@ export class UserBackgroundService {
       userId: data.userId,
       occupationId: data.occupationId,
     };
-
-    if (data.topics) {
-      const topics = await this.userBackgroundTopicRepository.findByIds(
-        data.topics,
-      );
-      if (topics.length !== data.topics.length) {
-        throw new BadRequestException('Some topics were not found');
-      }
-      updateData.topics = topics;
-    }
 
     this.userBackgroundRepository.merge(userBackground, updateData);
     const savedUserBackground = await this.userBackgroundRepository.save(
