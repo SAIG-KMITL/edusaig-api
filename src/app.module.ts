@@ -25,63 +25,62 @@ import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
 import { RolesGuard } from './shared/guards/role.guard';
 import { UserBackgroundTopicModule } from './user-background-topic/user-background-topic.module';
 import { UserOccupationModule } from './user-occupation/user-occupation.module';
-import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
-import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
-
-const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
+import { ChatRoomModule } from './chat-room/chat-room.module';
+import { ChatMessageModule } from './chat-message/chat-message.module';
 
 @Module({
-  imports: [
-    forFeatures,
-    AuthModule,
-    ConfigModule.forRoot({
-      isGlobal: true,
-      validationSchema: dotenvConfig,
-    }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        ...databaseConfig,
-        migrations: ['dist/database/migrations/*.js'],
-        migrationsRun: true,
-        synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
-        autoLoadEntities: true,
-      }),
-      inject: [ConfigService],
-    }),
-    JwtModule.register({
-      global: true,
-    }),
-    DatabaseModule,
-    UserModule,
-    UserStreakModule,
-    CategoryModule,
-    CourseModule,
-    CourseModuleModule,
-    ChapterModule,
-    FileModule,
-    ExamModule,
-    EnrollmentModule,
+    imports: [
+        AuthModule,
+        ConfigModule.forRoot({
+            isGlobal: true,
+            validationSchema: dotenvConfig,
+        }),
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                ...databaseConfig,
+                migrations: ['dist/database/migrations/*.js'],
+                migrationsRun: true,
+                synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
+                autoLoadEntities: true,
+            }),
+            inject: [ConfigService],
+        }),
+        JwtModule.register({
+            global: true,
+        }),
+        DatabaseModule,
+        UserModule,
+        UserStreakModule,
+        CategoryModule,
+        CourseModule,
+        CourseModuleModule,
+        ChapterModule,
+        FileModule,
+        ExamModule,
+        EnrollmentModule,
     ProgressModule,
     ExamAttemptModule,
     QuestionModule,
     QuestionOptionModule,
     UserOccupationModule,
     UserBackgroundTopicModule,
-  ],
-  controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
-  ],
+        ChatRoomModule,
+        ChatMessageModule,
+    ],
+    controllers: [AppController],
+    providers: [
+        AppService,
+        {
+            provide: APP_GUARD,
+            useClass: AuthGuard,
+        },
+        {
+            provide: APP_GUARD,
+            useClass: RolesGuard,
+        },
+    ],
 })
-export class AppModule {}
+export class AppModule { }
