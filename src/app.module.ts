@@ -15,12 +15,10 @@ import { CourseModuleModule } from './course-module/course-module.module';
 import { CourseModule } from './course/course.module';
 import { DatabaseModule } from './database/database.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
-import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
 import { ExamModule } from './exam/exam.module';
 import { FileModule } from './file/file.module';
 import { ProgressModule } from './progress/progress.module';
 import { QuestionOptionModule } from './question-option/question-option.module';
-import { QuestionModule } from './question/question.module';
 import { databaseConfig } from './shared/configs/database.config';
 import { dotenvConfig } from './shared/configs/dotenv.config';
 import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
@@ -30,6 +28,8 @@ import { UserBackgroundModule } from './user-background/user-background.module';
 import { UserOccupationModule } from './user-occupation/user-occupation.module';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { UserModule } from './user/user.module';
+import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
+import { QuestionModule } from './question/question.module';
 
 @Module({
   imports: [

@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -20,7 +19,7 @@ export class CourseService {
   constructor(
     @Inject('CourseRepository')
     private readonly courseRepository: Repository<Course>,
-  ) {}
+  ) { }
 
   async findAll({
     page = 1,
@@ -97,8 +96,6 @@ export class CourseService {
   }
   async update(
     id: string,
-    userId: string,
-    role: Role,
     updateCourseDto: UpdateCourseDto,
   ): Promise<Course> {
     const existingCourse = await this.courseRepository.findOne({
@@ -113,7 +110,6 @@ export class CourseService {
       throw new NotFoundException('Course not found');
     }
 
-    await this.validateUpdatePermissions(existingCourse, userId, role);
     this.validateStatusTransition(
       existingCourse.status,
       updateCourseDto.status,
@@ -128,20 +124,12 @@ export class CourseService {
     return updatedCourse;
   }
 
-  async delete(id: string, userId: string, role: Role): Promise<void> {
-    if (role === Role.TEACHER) await this.checkOwnership(id, userId);
+  async delete(id: string): Promise<void> {
     try {
       await this.courseRepository.delete(id);
     } catch (error) {
-      if (error instanceof Error)
-        throw new NotFoundException('Course not found');
+      throw new NotFoundException('Course not found');
     }
-  }
-
-  private async checkOwnership(id: string, userId: string): Promise<void> {
-    const course = await this.courseRepository.findOne({ where: { id } });
-    if (course.teacher.id !== userId)
-      throw new BadRequestException("You don't own this course");
   }
 
   private buildWhereCondition(
@@ -179,31 +167,6 @@ export class CourseService {
     return buildCondition();
   }
 
-  private async validateUpdatePermissions(
-    course: Course,
-    userId: string,
-    role: Role,
-  ): Promise<void> {
-    switch (role) {
-      case Role.TEACHER:
-        if (course.teacher.id !== userId) {
-          throw new ForbiddenException('You can only update your own courses');
-        }
-        break;
-
-      case Role.ADMIN:
-        if (course.status !== CourseStatus.DRAFT) {
-          throw new BadRequestException(
-            'Admin can only update courses in draft status',
-          );
-        }
-        break;
-
-      default:
-        throw new BadRequestException('Invalid role');
-    }
-  }
-
   private validateStatusTransition(
     currentStatus: CourseStatus,
     newStatus?: CourseStatus,
@@ -218,5 +181,11 @@ export class CourseService {
         `Cannot change status back to draft when current status is ${currentStatus}`,
       );
     }
+  }
+  async validateOwnership(id: string, userId: string): Promise<void> {
+    const course = await this.courseRepository.findOne({ where: { id }, relations: { teacher: true } });
+    if(!course) throw new NotFoundException('Course not found');
+    if (course.teacher.id !== userId)
+      throw new BadRequestException('You can only access your own courses');
   }
 }

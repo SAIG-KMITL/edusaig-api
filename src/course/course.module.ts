@@ -17,4 +17,4 @@ import { Course } from './course.entity';
   providers: [...courseProviders, CourseService],
   exports: [CourseService],
 })
-export class CourseModule {}
+export class CourseModule { }
