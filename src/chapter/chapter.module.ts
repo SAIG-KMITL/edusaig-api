@@ -6,11 +6,13 @@ import { chapterProviders } from './chapter.provider';
 import { ChapterService } from './chapter.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CourseModule } from 'src/course-module/course-module.entity';
+import { ChatRoomModule } from 'src/chat-room/chat-room.module';
 
 @Module({
     imports: [
         DatabaseModule,
         TypeOrmModule.forFeature([Chapter, CourseModule]),
+        ChatRoomModule,
     ],
     controllers: [ChapterController],
     providers: [...chapterProviders, ChapterService],

@@ -1,4 +1,4 @@
-import { Controller, Injectable, Query, HttpStatus, Param, ParseUUIDPipe, Post, HttpCode, Body, Patch, Delete } from "@nestjs/common";
+import { Controller, Injectable, Query, HttpStatus, Param, ParseUUIDPipe, Post, HttpCode, Body, Patch, Delete, UseGuards } from "@nestjs/common";
 import { Get } from "@nestjs/common";
 import { ChatRoomService } from "./chat-room.service";
 import { PaginateQueryDto } from "src/shared/pagination/dtos/paginate-query.dto";
@@ -8,6 +8,7 @@ import { Roles } from "src/shared/decorators/role.decorator";
 import { Role } from "src/shared/enums";
 import { CreateChatRoomDto } from "./dtos/create-chat-room.dto";
 import { UpdateChatRoomDto } from "./dtos/update-chat-room.dto";
+import { ChatRoomOwnershipGuard } from "./guards/chat-room-ownership.guard";
 
 @Controller('chat-room')
 @Injectable()
@@ -57,7 +58,8 @@ export class ChatRoomController {
         type: String,
         required: true,
     })
-    @Roles(Role.ADMIN)
+    @Roles(Role.ADMIN, Role.STUDENT)
+    @UseGuards(ChatRoomOwnershipGuard)
     async findById(
         @Param(
             'id', 

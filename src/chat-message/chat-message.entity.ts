@@ -49,6 +49,7 @@ export class ChatMessage {
     @ManyToOne(() => User, {
         nullable: false,
         onDelete: 'CASCADE',
+        eager: true,
     })
     user: User;
 }
