@@ -5,7 +5,6 @@ import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { CreateProgressDto } from './dtos/create-progress.dto';
 import { PaginatedProgressResponseDto } from './dtos/progress-response.dto';
 import { UpdateProgressDto } from './dtos/update-progress.dto';
-import { ProgressStatus } from './enums/progress-status.enum';
 import { Progress } from './progress.entity';
 
 @Injectable()
