@@ -2,11 +2,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Type } from './enums/type.enum';
 import { Status } from './enums/status.enum';
+import { UserReward } from 'src/userReward/user-reward.entity';
 
 @Entity()
 export class Reward {
@@ -15,6 +18,7 @@ export class Reward {
 
   @Column({
     nullable: false,
+    unique: true,
   })
   name: string;
 
@@ -47,6 +51,9 @@ export class Reward {
     enum: Status,
   })
   status: Status;
+
+  @OneToMany(() => UserReward, (userReward) => userReward.rewardId)
+  userReward: UserReward;
 
   @CreateDateColumn({
     type: 'timestamp with time zone',

@@ -35,7 +35,7 @@ export class CreateRewardDto {
     type: String,
     example: 'url.png',
   })
-  thumnail: string;
+  thumbnail: string;
 
   @IsEnum(Type, {
     message: `Invalid type. Type should be ${Type.BADGE} ${Type.CERTIFICATE} or ${Type.ITEM}`,
