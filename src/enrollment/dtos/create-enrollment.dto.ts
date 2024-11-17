@@ -5,7 +5,6 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsString,
   IsUUID,
 } from 'class-validator';
 import { EnrollmentStatus } from '../enums/enrollment-status.enum';
@@ -56,7 +55,7 @@ export class CreateEnrollmentDto {
   })
   status?: EnrollmentStatus;
 
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty({
     description: 'Enrollment date',
     type: Date,
