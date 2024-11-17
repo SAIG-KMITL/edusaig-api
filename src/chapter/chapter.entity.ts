@@ -1,10 +1,12 @@
 import { CourseModule } from 'src/course-module/course-module.entity';
+import { Progress } from 'src/progress/progress.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -32,9 +34,11 @@ export class Chapter {
   })
   @JoinColumn({ name: 'module_id' })
   module: CourseModule;
-
   @Column({ name: 'module_id' })
   moduleId: string;
+
+  @OneToMany(() => Progress, (progress) => progress.chapter)
+  progresses: Progress[];
 
   @Column({
     type: String,

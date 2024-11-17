@@ -13,19 +13,22 @@ import { CourseModuleModule } from './course-module/course-module.module';
 import { CourseModule } from './course/course.module';
 import { DatabaseModule } from './database/database.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
+import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
 import { ExamModule } from './exam/exam.module';
 import { FileModule } from './file/file.module';
+import { ProgressModule } from './progress/progress.module';
+import { QuestionOptionModule } from './question-option/question-option.module';
+import { QuestionModule } from './question/question.module';
 import { databaseConfig } from './shared/configs/database.config';
 import { dotenvConfig } from './shared/configs/dotenv.config';
 import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
 import { RolesGuard } from './shared/guards/role.guard';
+import { UserBackgroundTopicModule } from './user-background-topic/user-background-topic.module';
+import { UserOccupationModule } from './user-occupation/user-occupation.module';
 import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
-import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
-import { QuestionModule } from './question/question.module';
-import { QuestionOptionModule } from './question-option/question-option.module';
 import { ExamAnswerModule } from './exam-answer/exam-answer.module';
 
 const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
@@ -62,11 +65,13 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
     FileModule,
     ExamModule,
     EnrollmentModule,
-
+    ProgressModule,
     ExamAttemptModule,
     QuestionModule,
     QuestionOptionModule,
     ExamAnswerModule,
+    UserOccupationModule,
+    UserBackgroundTopicModule,
   ],
   controllers: [AppController],
   providers: [
