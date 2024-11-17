@@ -10,6 +10,7 @@ import { Exam } from 'src/exam/exam.entity';
 import { Progress } from 'src/progress/progress.entity';
 import { QuestionOption } from 'src/question-option/question-option.entity';
 import { Question } from 'src/question/question.entity';
+import { UserBackgroundTopic } from 'src/user-background-topic/user-background-topic.entity';
 import { UserOccupation } from 'src/user-occupation/user-occupation.entity';
 import { UserStreak } from 'src/user-streak/user-streak.entity';
 import { User } from 'src/user/user.entity';
@@ -40,6 +41,7 @@ export const databaseConfig: DataSourceOptions = {
     Question,
     QuestionOption,
     UserOccupation,
+    UserBackgroundTopic,
   ],
 };
 
