@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsUUID } from 'class-validator';
 
 export class CreateCourseModuleDto {
   @IsNotEmpty()
@@ -18,15 +18,9 @@ export class CreateCourseModuleDto {
   })
   description: string;
 
-  @IsNotEmpty()
-  @ApiProperty({
-    description: 'Course Module order index',
-    type: Number,
-    example: 1,
-  })
-  orderIndex: number;
 
   @IsNotEmpty()
+  @IsUUID(4)
   @ApiProperty({
     description: 'Course ID',
     type: String,

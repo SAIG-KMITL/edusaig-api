@@ -5,7 +5,6 @@ import {
   Delete,
   Get,
   HttpStatus,
-  Injectable,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -21,7 +20,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
-import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
 import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
 import { CourseModuleService } from './course-module.service';
@@ -31,13 +29,15 @@ import {
 } from './dtos/course-module-response.dto';
 import { CreateCourseModuleDto } from './dtos/create-course-module.dto';
 import { UpdateCourseModuleDto } from './dtos/update-course-module.dto';
+import { CourseService } from 'src/course/course.service';
+import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
+import { Roles } from 'src/shared/decorators/role.decorator';
 
 @Controller('course-module')
 @ApiTags('Course Modules')
 @ApiBearerAuth()
-@Injectable()
 export class CourseModuleController {
-  constructor(private readonly courseModuleService: CourseModuleService) {}
+  constructor(private readonly courseModuleService: CourseModuleService, private readonly courseService: CourseService) { }
 
   @Get()
   @ApiResponse({
@@ -72,6 +72,8 @@ export class CourseModuleController {
       page: query.page,
       limit: query.limit,
       search: query.search,
+      userId: request.user.id,
+      role: request.user.role,
     });
   }
 
@@ -87,11 +89,10 @@ export class CourseModuleController {
     description: 'Get a course module',
   })
   async findOne(
+    @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<CourseModuleResponseDto> {
-    return this.courseModuleService.findOne(id, {
-      where: { id },
-    });
+    return this.courseModuleService.findOne(request.user.id, request.user.role, {where: { id }});
   }
 
   @Get('course/:courseId')
@@ -107,8 +108,10 @@ export class CourseModuleController {
     isArray: true,
   })
   async findByCourseId(
+    @Req() request: AuthenticatedRequest,
     @Param('courseId', new ParseUUIDPipe()) courseId: string,
   ): Promise<CourseModuleResponseDto[]> {
+    await this.courseService.validateOwnership(courseId, request.user.id);
     return this.courseModuleService.findByCourseId(courseId);
   }
 
@@ -120,27 +123,43 @@ export class CourseModuleController {
     description: 'Create a course module',
   })
   async create(
+    @Req() request: AuthenticatedRequest,
     @Body() createCourseModuleDto: CreateCourseModuleDto,
   ): Promise<CourseModuleResponseDto> {
+    if (createCourseModuleDto.courseId != null) {
+      await this.courseService.validateOwnership(createCourseModuleDto.courseId, request.user.id);
+    }
+
     return this.courseModuleService.create(createCourseModuleDto);
   }
 
   @Patch(':id')
-  @Roles(Role.TEACHER)
   @ApiParam({
     name: 'id',
     type: String,
     description: 'Course Module ID',
   })
+  @CourseOwnership({adminDraftOnly: true})
   async update(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() request: AuthenticatedRequest,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
     @Body() updateCourseModuleDto: UpdateCourseModuleDto,
   ): Promise<CourseModuleResponseDto> {
+    if (updateCourseModuleDto.courseId != null) {
+      await this.courseService.validateOwnership(updateCourseModuleDto.courseId, request.user.id);
+    }
     return this.courseModuleService.update(id, updateCourseModuleDto);
   }
 
   @Delete(':id')
-  @Roles(Role.TEACHER)
+  @CourseOwnership()
   @ApiParam({
     name: 'id',
     type: String,
