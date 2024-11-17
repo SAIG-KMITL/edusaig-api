@@ -33,6 +33,7 @@ import {
   UpdateCourseDto,
 } from './dtos/index';
 import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
+import { CourseOwnershipGuard } from 'src/shared/guards/course-ownership.guard';
 
 @Controller('course')
 @ApiTags('Course')
@@ -138,9 +139,7 @@ export class CourseController {
   }
 
   @Patch(':id')
-  @CourseOwnership({
-    adminDraftOnly: true
-  })
+  @CourseOwnership({adminDraftOnly: true})
   @ApiParam({
     name: 'id',
     type: String,
@@ -154,7 +153,13 @@ export class CourseController {
   async update(
     @Req() request: AuthenticatedRequest,
     @Body() updateCourseDto: UpdateCourseDto,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )id: string,
   ): Promise<CourseResponseDto> {
     const category = await this.categoryService.findOne({
       where: { id: updateCourseDto.categoryId },
@@ -183,7 +188,13 @@ export class CourseController {
     description: 'Delete course by id',
   })
   async delete(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    ) id: string,
   ): Promise<void> {
     await this.courseService.delete(id);
   }

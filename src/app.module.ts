@@ -24,6 +24,7 @@ import { ExamModule } from './exam/exam.module';
 import { Course } from './course/course.entity';
 import { CourseModule as CourseModuleEntity } from './course-module/course-module.entity';
 import { Chapter } from './chapter/chapter.entity';
+import { CourseOwnershipGuard } from './shared/guards/course-ownership.guard';
 
 const forFeatures = TypeOrmModule.forFeature([
   User, 
@@ -74,6 +75,10 @@ const forFeatures = TypeOrmModule.forFeature([
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    {
+      provide: APP_GUARD,
+      useClass: CourseOwnershipGuard,
+    }
   ],
 })
 export class AppModule { }

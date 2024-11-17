@@ -12,6 +12,7 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -33,6 +34,7 @@ import { CreateChapterDto } from './dtos/create-chapter.dto';
 import { UpdateChapterDto } from './dtos/update-chapter.dto';
 import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
 import { CourseModuleService } from 'src/course-module/course-module.service';
+import { Course } from 'src/course/course.entity';
 
 @Controller('chapter')
 @ApiTags('Chapters')
@@ -61,9 +63,16 @@ export class ChapterController {
     description: 'Items per page',
   })
   async findAll(
+    @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
   ): Promise<PaginatedChapterResponseDto> {
-    return this.chapterService.findAll(query);
+    return this.chapterService.findAll({
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+      userId: request.user.id,
+      role: request.user.role,
+    });
   }
 
   @Get(':id')
@@ -81,13 +90,7 @@ export class ChapterController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ChapterResponseDto> {
-    const courseModule = await this.courseModuleService.findOne(id, { where: { id } });
-
-    if (!courseModule && courseModule.course.teacher.id !== request.user.id) {
-      throw new BadRequestException('Course Module not found');
-    }
-
-    return this.chapterService.findOne(id, { where: { id } });
+    return this.chapterService.findOne(request.user.id, request.user.role, { where: { id } });
   }
 
   @Post()
@@ -98,8 +101,12 @@ export class ChapterController {
     description: 'Create a chapter',
   })
   async create(
+    @Req() request: AuthenticatedRequest,
     @Body() createChapterDto: CreateChapterDto,
   ): Promise<ChapterResponseDto> {
+    if (createChapterDto.moduleId != null) {
+      await this.courseModuleService.validateOwnership(createChapterDto.moduleId, request.user.id);
+    }
     return this.chapterService.create(createChapterDto);
   }
 
@@ -120,13 +127,9 @@ export class ChapterController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateChapterDto: UpdateChapterDto,
   ): Promise<ChapterResponseDto> {
-  if (updateChapterDto.moduleId != null) {
-    const courseModule = await this.courseModuleService.findOne(id, { where: { id } });
-
-    if (!courseModule && courseModule.course.teacher.id !== request.user.id) {
-      throw new BadRequestException('Course Module not found');
+    if (updateChapterDto.moduleId != null) {
+      await this.courseModuleService.validateOwnership(updateChapterDto.moduleId, request.user.id);
     }
-  }
     return this.chapterService.update(id, updateChapterDto);
   }
 

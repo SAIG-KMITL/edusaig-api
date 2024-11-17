@@ -10,6 +10,7 @@ import { Chapter } from './chapter.entity';
 import { PaginatedChapterResponseDto } from './dtos/chapter-response.dto';
 import { CreateChapterDto } from './dtos/create-chapter.dto';
 import { UpdateChapterDto } from './dtos/update-chapter.dto';
+import { CourseStatus, Role } from 'src/shared/enums';
 
 @Injectable()
 export class ChapterService {
@@ -22,10 +23,14 @@ export class ChapterService {
     page = 1,
     limit = 20,
     search = '',
+    userId,
+    role,
   }: {
     page?: number;
     limit?: number;
     search?: string;
+    userId: string;
+    role: Role;
   }): Promise<PaginatedChapterResponseDto> {
     const { find } = await createPagination(this.chapterRepository, {
       page,
@@ -33,7 +38,7 @@ export class ChapterService {
     });
 
     const baseSearch = search ? { title: ILike(`%${search}%`) } : {};
-    const whereCondition = { ...baseSearch };
+    const whereCondition = this.buildWhereCondition(userId, role, baseSearch);
 
     const chapters = await find({
       where: whereCondition,
@@ -46,11 +51,12 @@ export class ChapterService {
   }
 
   async findOne(
-    id: string,
+    userId: string,
+    role: Role,
     options: FindOneOptions<Chapter>,
   ): Promise<Chapter> {
     const baseWhere = options.where as FindOptionsWhere<Chapter>;
-    const whereCondition = { ...baseWhere, id };
+    const whereCondition = this.buildWhereCondition(userId, role, baseWhere);
 
     const chapter = await this.chapterRepository.findOne({
       where: whereCondition,
@@ -113,7 +119,7 @@ export class ChapterService {
     id: string,
     updateChapterDto: UpdateChapterDto,
   ): Promise<Chapter> {
-    const chapter = await this.findOne(id, { where: { id } });
+    const chapter = await this.chapterRepository.findOne({ where: { id } });
 
     if (!chapter) {
       throw new NotFoundException('Chapter not found');
@@ -126,7 +132,9 @@ export class ChapterService {
       updateChapterDto.orderIndex !== chapter.orderIndex
     ) {
       const existingChapter = await this.chapterRepository.findOne({
-        where: { orderIndex: updateChapterDto.orderIndex },
+        where: { 
+          moduleId: chapter.moduleId,
+          orderIndex: updateChapterDto.orderIndex },
       });
 
       if (existingChapter) {
@@ -134,14 +142,14 @@ export class ChapterService {
       }
     }
 
-    this.chapterRepository.merge(chapter, updateChapterDto);
+    Object.assign(chapter, updateChapterDto);
     await this.chapterRepository.save(chapter);
 
     return chapter;
   }
 
   async remove(id: string): Promise<Chapter> {
-    const chapter = await this.findOne(id, { where: { id } });
+    const chapter = await this.chapterRepository.findOne({ where: { id } });
 
     if (!chapter) {
       throw new BadRequestException('Chapter not found');
@@ -176,4 +184,60 @@ export class ChapterService {
       );
     }
   }
+  async validateOwnership(id: string, userId: string): Promise<void> {
+    const chapter = await this.chapterRepository.findOne({ where: { id }, relations: { module: { course: { teacher: true } } } });
+    if(!chapter) throw new NotFoundException('Chapter not found');
+    if (chapter.module.course.teacher.id !== userId)
+      throw new BadRequestException('You can only access your own courses');
+  }
+  private buildWhereCondition(
+    userId: string,
+    role: Role,
+    baseCondition: FindOptionsWhere<Chapter> = {}
+  )
+  {
+    const conditions: Record<
+      Role,
+      () => FindOptionsWhere<Chapter> | FindOptionsWhere<Chapter>[]
+    > = {
+      [Role.STUDENT]: () => ({
+        ...baseCondition,
+        module: {
+          course: {
+            status: CourseStatus.PUBLISHED,
+          },
+        },
+      }),
+      [Role.TEACHER]: () => [
+        {
+          ...baseCondition,
+          module: {
+            course: {
+              status: CourseStatus.PUBLISHED,
+            },
+          },
+        },
+        {
+          ...baseCondition,
+          module: {
+            course: {
+              teacher: {
+                id: userId,
+              },
+            },
+          },
+        },
+      ],
+      [Role.ADMIN]: () => baseCondition,
+    };
+
+    const buildCondition = conditions[role];
+
+    if (!buildCondition) {
+      throw new BadRequestException('Invalid role');
+    }
+
+    return buildCondition();
+  }
+
 }

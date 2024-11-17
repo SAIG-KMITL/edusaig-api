@@ -10,6 +10,7 @@ import { CourseModule } from './course-module.entity';
 import { PaginatedCourseModuleResponseDto } from './dtos/course-module-response.dto';
 import { CreateCourseModuleDto } from './dtos/create-course-module.dto';
 import { UpdateCourseModuleDto } from './dtos/update-course-module.dto';
+import { CourseStatus, Role } from 'src/shared/enums';
 
 @Injectable()
 export class CourseModuleService {
@@ -22,10 +23,14 @@ export class CourseModuleService {
     page = 1,
     limit = 20,
     search = '',
+    userId,
+    role,
   }: {
     page?: number;
     limit?: number;
     search?: string;
+    userId: string;
+    role: Role;
   }): Promise<PaginatedCourseModuleResponseDto> {
     const { find } = await createPagination(this.courseModuleRepository, {
       page,
@@ -33,7 +38,7 @@ export class CourseModuleService {
     });
 
     const baseSearch = search ? { title: ILike(`%${search}%`) } : {};
-    const whereCondition = { ...baseSearch };
+    const whereCondition = this.buildWhereCondition(userId, role, baseSearch);
 
     const courseModules = await find({
       where: whereCondition,
@@ -46,11 +51,12 @@ export class CourseModuleService {
   }
 
   async findOne(
-    id: string,
+    userId: string,
+    role: Role,
     options: FindOneOptions<CourseModule>,
   ): Promise<CourseModule> {
     const baseWhere = options.where as FindOptionsWhere<CourseModule>;
-    const whereCondition = { ...baseWhere, id };
+    const whereCondition = this.buildWhereCondition(userId, role, baseWhere);
 
     const courseModule = await this.courseModuleRepository.findOne({
       where: whereCondition,
@@ -190,5 +196,54 @@ export class CourseModuleService {
         `Order index is invalid`
       );
     }
+  }
+  async validateOwnership(id: string, userId: string): Promise<void> {
+    const courseModule = await this.courseModuleRepository.findOne({ where: { id }, relations: { course: { teacher: true } } });
+    if(!courseModule) throw new NotFoundException('Course Module not found');
+    if (courseModule.course.teacher.id !== userId)
+      throw new BadRequestException('You can only access your own courses');
+  }
+  private buildWhereCondition(
+    userId: string,
+    role: Role,
+    baseCondition: FindOptionsWhere<CourseModule> = {}
+  )
+  {
+    const conditions: Record<
+      Role,
+      () => FindOptionsWhere<CourseModule> | FindOptionsWhere<CourseModule>[]
+    > = {
+      [Role.STUDENT]: () => ({
+        ...baseCondition,
+        course: {
+          status: CourseStatus.PUBLISHED,
+        },
+      }),
+      [Role.TEACHER]: () => [
+        {
+          ...baseCondition,
+          course: {
+            status: CourseStatus.PUBLISHED,
+          },
+        },
+        {
+          ...baseCondition,
+          course: {
+            teacher: {
+              id: userId,
+            },
+          },
+        },
+      ],
+      [Role.ADMIN]: () => baseCondition,
+    };
+
+    const buildCondition = conditions[role];
+
+    if (!buildCondition) {
+      throw new BadRequestException('Invalid role');
+    }
+
+    return buildCondition();
   }
 }

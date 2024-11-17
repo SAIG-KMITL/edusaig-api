@@ -182,4 +182,10 @@ export class CourseService {
       );
     }
   }
+  async validateOwnership(id: string, userId: string): Promise<void> {
+    const course = await this.courseRepository.findOne({ where: { id }, relations: { teacher: true } });
+    if(!course) throw new NotFoundException('Course not found');
+    if (course.teacher.id !== userId)
+      throw new BadRequestException('You can only access your own courses');
+  }
 }
