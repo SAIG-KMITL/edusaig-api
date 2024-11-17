@@ -140,7 +140,6 @@ export class ExamAttemptController {
 
   @Patch('/submit/:id')
   @Roles(Role.STUDENT)
-  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Update an exam-attempt',
