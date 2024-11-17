@@ -11,12 +11,15 @@ import { Progress } from 'src/progress/progress.entity';
 import { QuestionOption } from 'src/question-option/question-option.entity';
 import { Question } from 'src/question/question.entity';
 import { UserBackgroundTopic } from 'src/user-background-topic/user-background-topic.entity';
+import { UserBackground } from 'src/user-background/user-background.entity';
 import { UserOccupation } from 'src/user-occupation/user-occupation.entity';
 import { UserStreak } from 'src/user-streak/user-streak.entity';
 import { User } from 'src/user/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { GLOBAL_CONFIG } from '../constants/global-config.constant';
 import { ExamAnswer } from 'src/exam-answer/exam-answer.entity';
+import { Reward } from 'src/reward/reward.entity';
+import { UserReward } from 'src/userReward/user-reward.entity';
 
 const configService = new ConfigService();
 
@@ -30,11 +33,19 @@ export const databaseConfig: DataSourceOptions = {
   logging: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
   entities: [
     User,
+
     UserStreak,
+
     Category,
+
     Course,
+
     CourseModule,
+
     Chapter,
+    Reward,
+    UserReward,
+    ,
     Enrollment,
     Exam,
     Progress,
@@ -44,6 +55,7 @@ export const databaseConfig: DataSourceOptions = {
     ExamAnswer,
     UserOccupation,
     UserBackgroundTopic,
+    UserBackground,
   ],
 };
 

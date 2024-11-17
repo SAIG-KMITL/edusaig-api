@@ -61,8 +61,8 @@ export class ExamService {
       },
     }).run();
 
-    return exam;
-  }
+        return new PaginatedExamResponseDto(exam.data, exam.meta.total, exam.meta.pageSize, exam.meta.currentPage);
+    }
 
   private validateAndCreateCondition(
     userId: string,

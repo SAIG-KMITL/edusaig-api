@@ -19,6 +19,13 @@ export class UserResponseDto {
   email: string;
 
   @ApiProperty({
+    description: 'points for reward',
+    type: Number,
+    example: '200',
+  })
+  points: number;
+
+  @ApiProperty({
     description: 'User role',
     type: String,
     example: Role.STUDENT,
