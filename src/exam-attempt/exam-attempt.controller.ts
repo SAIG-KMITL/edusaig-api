@@ -93,7 +93,7 @@ export class ExamAttemptController {
   }
 
   @Post()
-  @Roles(Role.TEACHER)
+  @Roles(Role.STUDENT)
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Create an exam-attempt',
@@ -101,15 +101,18 @@ export class ExamAttemptController {
   })
   @HttpCode(HttpStatus.CREATED)
   async createExamAttempt(
+    @Req() request: AuthenticatedRequest,
     @Body() createExamAttemptDto: CreateExamAttemptDto,
   ): Promise<ExamAttemptResponseDto> {
-    const exam =
-      await this.examAttemptService.createExamAttempt(createExamAttemptDto);
+    const exam = await this.examAttemptService.createExamAttempt(
+      request,
+      createExamAttemptDto,
+    );
     return new ExamAttemptResponseDto(exam);
   }
 
   @Patch(':id')
-  @Roles(Role.TEACHER)
+  @Roles(Role.STUDENT)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Update an exam-attempt',
@@ -136,7 +139,8 @@ export class ExamAttemptController {
   }
 
   @Patch('/submit/:id')
-  @Roles(Role.TEACHER)
+  @Roles(Role.STUDENT)
+  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Update an exam-attempt',

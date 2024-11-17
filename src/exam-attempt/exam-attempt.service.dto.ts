@@ -75,26 +75,13 @@ export class ExamAttemptService {
     }
 
     if (request.user.role === Role.STUDENT) {
-      return [
-        {
-          ...baseSearch,
-          submittedAt: Not(IsNull()),
-          status: ExamAttemptStatus.FAILED,
-          userId: request.user.id,
-          exam: {
-            status: ExamStatus.PUBLISHED,
-          },
+      return {
+        ...baseSearch,
+        userId: request.user.id,
+        exam: {
+          status: ExamStatus.PUBLISHED,
         },
-        {
-          ...baseSearch,
-          submittedAt: Not(IsNull()),
-          status: ExamAttemptStatus.PASSED,
-          userId: request.user.id,
-          exam: {
-            status: ExamStatus.PUBLISHED,
-          },
-        },
-      ];
+      };
     }
 
     if (request.user.role === Role.TEACHER) {
@@ -114,14 +101,9 @@ export class ExamAttemptService {
 
     return {
       ...baseSearch,
+      userId: request.user.id,
       exam: {
-        courseModule: {
-          course: {
-            teacher: {
-              id: request.user.id,
-            },
-          },
-        },
+        status: ExamStatus.PUBLISHED,
       },
     };
   }
@@ -157,6 +139,7 @@ export class ExamAttemptService {
   }
 
   async createExamAttempt(
+    request: AuthenticatedRequest,
     createExamAttemptDto: CreateExamAttemptDto,
   ): Promise<ExamAttempt> {
     const exam = await this.examRepository.findOne({
@@ -167,7 +150,7 @@ export class ExamAttemptService {
       throw new NotFoundException('Exam not found.');
     }
     const user = await this.userRepository.findOne({
-      where: { id: createExamAttemptDto.userId },
+      where: { id: request.user.id },
       select: this.selectPopulateUser(),
     });
     if (!user) {
@@ -178,7 +161,7 @@ export class ExamAttemptService {
     if (
       (await this.countExamAttempts(
         createExamAttemptDto.examId,
-        createExamAttemptDto.userId,
+        request.user.id,
       )) >= exam.maxAttempts
     )
       throw new ForbiddenException(

@@ -12,14 +12,6 @@ export class CreateExamAttemptDto {
   examId: string;
 
   @IsNotEmpty()
-  @ApiProperty({
-    description: 'User ID',
-    type: String,
-    example: '8d4887aa-28e7-4d0e-844c-28a8ccead003',
-  })
-  userId: string;
-
-  @IsNotEmpty()
   @Min(0)
   @IsInt()
   @ApiProperty({
