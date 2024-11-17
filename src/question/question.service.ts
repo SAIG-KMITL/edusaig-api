@@ -30,7 +30,8 @@ export class QuestionService {
   ) {}
 
   async findAll(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     {
       page = 1,
       limit = 20,
@@ -46,7 +47,11 @@ export class QuestionService {
       limit,
     });
 
-    const whereCondition = this.validateAndCreateCondition(request, search);
+    const whereCondition = this.validateAndCreateCondition(
+      userId,
+      role,
+      search,
+    );
     const question = await find({
       order: {
         orderIndex: 'ASC',
@@ -62,10 +67,11 @@ export class QuestionService {
   }
 
   async findOne(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     options: FindOneOptions<Question> = {},
   ): Promise<Question> {
-    const whereCondition = this.validateAndCreateCondition(request, '');
+    const whereCondition = this.validateAndCreateCondition(userId, role, '');
 
     const where = Array.isArray(whereCondition)
       ? [
@@ -91,7 +97,8 @@ export class QuestionService {
   }
 
   async findQuestionByExamId(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     examId: string,
     {
       page = 1,
@@ -108,7 +115,11 @@ export class QuestionService {
       limit,
     });
 
-    const whereCondition = this.validateAndCreateCondition(request, search);
+    const whereCondition = this.validateAndCreateCondition(
+      userId,
+      role,
+      search,
+    );
     whereCondition['exam'] = { id: examId };
 
     const exam = await this.examRepository.findOne({
@@ -151,12 +162,13 @@ export class QuestionService {
   }
 
   private validateAndCreateCondition(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     search: string,
   ): FindOptionsWhere<Question> {
     const baseSearch = search ? { question: ILike(`%${search}%`) } : {};
 
-    if (request.user.role === Role.STUDENT) {
+    if (role === Role.STUDENT) {
       return {
         ...baseSearch,
         exam: {
@@ -165,7 +177,7 @@ export class QuestionService {
       };
     }
 
-    if (request.user.role === Role.TEACHER) {
+    if (role === Role.TEACHER) {
       return {
         ...baseSearch,
         exam: [
@@ -175,7 +187,7 @@ export class QuestionService {
           {
             courseModule: {
               course: {
-                teacher: { id: request.user.id },
+                teacher: { id: userId },
               },
             },
           },
@@ -183,7 +195,7 @@ export class QuestionService {
       };
     }
 
-    if (request.user.role === Role.ADMIN) {
+    if (role === Role.ADMIN) {
       return { ...baseSearch };
     }
 
@@ -232,10 +244,11 @@ export class QuestionService {
     if (!exam) {
       throw new NotFoundException('Exam not found.');
     }
-    const question = this.questionRepository.create({
+    const question = await this.questionRepository.create({
       ...createQuestionDto,
       exam,
     });
+    if (!question) throw new BadRequestException('Can not create question');
     try {
       await this.questionRepository.save(question);
       return question;
@@ -252,17 +265,30 @@ export class QuestionService {
   }
 
   async updateQuestion(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     id: string,
     updateQuestionDto: UpdateQuestionDto,
   ): Promise<Question> {
-    await this.findOne(request, { where: { id } });
+    const question = await this.findOne(userId, role, { where: { id } });
+    if (this.checkPermission(userId, role, question) === false)
+      throw new BadRequestException('Can not change this question');
+    let exam = null;
+    if (updateQuestionDto.examId) {
+      exam = await this.examRepository.findOne({
+        where: { id: updateQuestionDto.examId },
+        select: this.selectPopulateExam(),
+      });
+
+      if (!exam) throw new NotFoundException('Exam Not Found');
+    }
+    const updateQuestion = {
+      ...updateQuestionDto,
+      ...(exam ? { examId: exam.id } : {}),
+    };
     try {
-      const question = await this.questionRepository.update(
-        id,
-        updateQuestionDto,
-      );
-      if (!question) throw new NotFoundException("Can't update question");
+      const question = await this.questionRepository.update(id, updateQuestion);
+      if (!question) throw new BadRequestException("Can't update question");
       return await this.questionRepository.findOne({
         where: { id },
         relations: ['exam'],
@@ -282,12 +308,11 @@ export class QuestionService {
     }
   }
 
-  async deleteQuestion(
-    request: AuthenticatedRequest,
-    id: string,
-  ): Promise<void> {
+  async deleteQuestion(userId: string, role: Role, id: string): Promise<void> {
     try {
-      const question = await this.findOne(request, { where: { id } });
+      const question = await this.findOne(userId, role, { where: { id } });
+      if (this.checkPermission(userId, role, question) === false)
+        throw new BadRequestException('Can not change this question');
       await this.questionRepository.delete(id);
       await this.reOrderIndex(question.examId);
     } catch (error) {
@@ -307,5 +332,20 @@ export class QuestionService {
       shuffleQuestions: true,
       status: true,
     };
+  }
+
+  private checkPermission(
+    userId: string,
+    role: Role,
+    question: Question,
+  ): boolean {
+    switch (role) {
+      case Role.ADMIN:
+        return true;
+      case Role.TEACHER:
+        return question.exam.courseModule?.course?.teacher?.id == userId;
+      case Role.STUDENT:
+        return false;
+    }
   }
 }

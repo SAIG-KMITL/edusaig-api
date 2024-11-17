@@ -1,4 +1,10 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import {
   Repository,
   FindOneOptions,
@@ -25,7 +31,8 @@ export class ExamService {
   ) {}
 
   async findAll(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     {
       page = 1,
       limit = 20,
@@ -41,7 +48,11 @@ export class ExamService {
       limit,
     });
 
-    const whereCondition = this.validateAndCreateCondition(request, search);
+    const whereCondition = this.validateAndCreateCondition(
+      userId,
+      role,
+      search,
+    );
     const exam = await find({
       where: whereCondition,
       relations: ['courseModule'],
@@ -54,23 +65,24 @@ export class ExamService {
     }
 
   private validateAndCreateCondition(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     search: string,
   ): FindOptionsWhere<Exam> | FindOptionsWhere<Exam>[] {
     const baseSearch = search ? { title: ILike(`%${search}%`) } : {};
 
-    if (request.user.role === Role.STUDENT) {
+    if (role === Role.STUDENT) {
       return { ...baseSearch, status: ExamStatus.PUBLISHED };
     }
 
-    if (request.user.role === Role.TEACHER) {
+    if (role === Role.TEACHER) {
       return [
         {
           ...baseSearch,
           courseModule: {
             course: {
               teacher: {
-                id: request.user.id,
+                id: userId,
               },
             },
           },
@@ -82,7 +94,7 @@ export class ExamService {
       ];
     }
 
-    if (request.user.role === Role.ADMIN) {
+    if (role === Role.ADMIN) {
       return { ...baseSearch };
     }
 
@@ -90,10 +102,11 @@ export class ExamService {
   }
 
   async findOne(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     options: FindOneOptions<Exam> = {},
   ): Promise<Exam> {
-    const whereCondition = this.validateAndCreateCondition(request, '');
+    const whereCondition = this.validateAndCreateCondition(userId, role, '');
 
     const where = Array.isArray(whereCondition)
       ? [
@@ -124,27 +137,49 @@ export class ExamService {
       select: this.selectPopulateCourseModule(),
     });
 
-    const exam = this.examRepository.create({ ...createExamDto, courseModule });
+    if (!courseModule) throw new NotFoundException('Course Module not found');
 
+    const exam = await this.examRepository.create({
+      ...createExamDto,
+      courseModule,
+    });
+
+    if (!exam) throw new BadRequestException("Can't create exam");
     await this.examRepository.save(exam);
-    if (!exam) throw new NotFoundException("Can't create exam");
     return exam;
   }
 
   async updateExam(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     id: string,
     updateExamDto: UpdateExamDto,
   ): Promise<Exam> {
-    const examInData = await this.findOne(request, { where: { id } });
+    const examInData = await this.findOne(userId, role, { where: { id } });
+    if (this.checkPermission(userId, role, examInData) === false)
+      throw new ForbiddenException('Can not change this exam');
     if (
       examInData.status != ExamStatus.DRAFT &&
       updateExamDto.status == ExamStatus.DRAFT
     ) {
-      throw new NotFoundException("Can't change status to draft");
+      throw new ForbiddenException("Can't change status to draft");
     }
-    const exam = await this.examRepository.update(id, updateExamDto);
-    if (!exam) throw new NotFoundException("Can't update exam");
+    let courseModule = null;
+    if (updateExamDto.courseModuleId) {
+      courseModule = await this.courseModuleRepository.findOne({
+        where: { id: updateExamDto.courseModuleId },
+        select: this.selectPopulateCourseModule(),
+      });
+
+      if (!courseModule) throw new NotFoundException('CourseModule Not Found');
+    }
+    const updateExam = {
+      ...updateExamDto,
+      ...(courseModule ? { examAttemptId: courseModule.id } : {}),
+    };
+
+    const exam = await this.examRepository.update(id, updateExam);
+    if (!exam) throw new BadRequestException("Can't update exam");
     return await this.examRepository.findOne({
       where: { id },
       relations: ['courseModule'],
@@ -154,11 +189,12 @@ export class ExamService {
     });
   }
 
-  async deleteExam(request: AuthenticatedRequest, id: string): Promise<void> {
+  async deleteExam(userId: string, role: Role, id: string): Promise<void> {
     try {
-      if (await this.findOne(request, { where: { id } })) {
-        await this.examRepository.delete(id);
-      }
+      const exam = await this.findOne(userId, role, { where: { id } });
+      if (this.checkPermission(userId, role, exam) === false)
+        throw new ForbiddenException('Can not change this exam');
+      await this.examRepository.delete(id);
     } catch (error) {
       if (error instanceof Error) throw new NotFoundException('Exam not found');
     }
@@ -166,5 +202,16 @@ export class ExamService {
 
   private selectPopulateCourseModule(): FindOptionsSelect<CourseModule> {
     return { id: true, title: true, description: true, orderIndex: true };
+  }
+
+  private checkPermission(userId: string, role: Role, exam: Exam): boolean {
+    switch (role) {
+      case Role.ADMIN:
+        return true;
+      case Role.TEACHER:
+        return exam.courseModule?.course?.teacher?.id === userId;
+      case Role.STUDENT:
+        return false;
+    }
   }
 }

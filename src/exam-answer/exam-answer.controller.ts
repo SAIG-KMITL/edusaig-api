@@ -14,30 +14,32 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
-import { QuestionService } from './question.service';
+import { ExamAnswerService } from './exam-answer.service';
 import {
-  PaginatedQuestionResponseDto,
-  QuestionResponseDto,
-} from './dtos/question-response.dto';
+  ExamAnswerResponseDto,
+  PaginatedExamAnswerResponseDto,
+} from './dtos/exam-answer-response.dto';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
 import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
-import { CreateQuestionDto } from './dtos/create-question.dto';
-import { UpdateQuestionDto } from './dtos/update-question.dto';
+import { CreateExamAnswerDto } from './dtos/create-exam-answer.dto';
+import { UpdateExamAnswerDto } from './dtos/update-exam-answer.dto';
 
-@Controller('question')
-@Injectable()
-@ApiTags('Question')
+@Controller('examAnswer')
+@ApiTags('ExamAnswer')
 @ApiBearerAuth()
-export class QuestionController {
-  constructor(private readonly questionService: QuestionService) {}
+@Injectable()
+export class ExamAnswerController {
+  constructor(private readonly examAnswerService: ExamAnswerService) {}
 
   @Get()
+  @Roles(Role.TEACHER)
+  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Returns all questions',
-    type: PaginatedQuestionResponseDto,
+    description: 'Returns all exam answers',
+    type: PaginatedExamAnswerResponseDto,
     isArray: true,
   })
   @ApiQuery({
@@ -61,8 +63,8 @@ export class QuestionController {
   async findAll(
     @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
-  ): Promise<PaginatedQuestionResponseDto> {
-    return await this.questionService.findAll(
+  ): Promise<PaginatedExamAnswerResponseDto> {
+    return await this.examAnswerService.findAll(
       request.user.id,
       request.user.role,
       {
@@ -74,10 +76,12 @@ export class QuestionController {
   }
 
   @Get(':id')
+  @Roles(Role.TEACHER)
+  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Returns an question',
-    type: QuestionResponseDto,
+    description: 'Returns an exam answer',
+    type: ExamAnswerResponseDto,
   })
   async findOne(
     @Req() request: AuthenticatedRequest,
@@ -89,22 +93,24 @@ export class QuestionController {
       }),
     )
     id: string,
-  ): Promise<QuestionResponseDto> {
-    const question = await this.questionService.findOne(
+  ): Promise<ExamAnswerResponseDto> {
+    const examAnswer = await this.examAnswerService.findOne(
       request.user.id,
       request.user.role,
       {
         where: { id },
       },
     );
-    return new QuestionResponseDto(question);
+    return new ExamAnswerResponseDto(examAnswer);
   }
 
-  @Get('exam/:examId')
+  @Get('question/:questionId')
+  @Roles(Role.TEACHER)
+  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Returns all questions in exam',
-    type: PaginatedQuestionResponseDto,
+    description: 'Returns all exam answer in question',
+    type: PaginatedExamAnswerResponseDto,
     isArray: true,
   })
   @ApiQuery({
@@ -129,18 +135,69 @@ export class QuestionController {
     @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
     @Param(
-      'examId',
+      'questionId',
       new ParseUUIDPipe({
         version: '4',
         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
       }),
     )
-    examId: string,
-  ): Promise<PaginatedQuestionResponseDto> {
-    return await this.questionService.findQuestionByExamId(
+    questionId: string,
+  ): Promise<PaginatedExamAnswerResponseDto> {
+    return await this.examAnswerService.findExamAnswerByQuestionId(
       request.user.id,
       request.user.role,
-      examId,
+      questionId,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
+  }
+
+  @Get('selectedOption/:selectedOptionId')
+  @Roles(Role.TEACHER)
+  @Roles(Role.ADMIN)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all exam answer in selectedOption',
+    type: PaginatedExamAnswerResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findQuestionByselectedOptionId(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+    @Param(
+      'selectedOptionId',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    selectedOptionId: string,
+  ): Promise<PaginatedExamAnswerResponseDto> {
+    return await this.examAnswerService.findExamAnswerBySelectedOptionId(
+      request.user.id,
+      request.user.role,
+      selectedOptionId,
       {
         page: query.page,
         limit: query.limit,
@@ -153,26 +210,26 @@ export class QuestionController {
   @Roles(Role.TEACHER)
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Create an question',
-    type: QuestionResponseDto,
+    description: 'Create an exam answer',
+    type: ExamAnswerResponseDto,
   })
   @HttpCode(HttpStatus.CREATED)
-  async createQuestion(
-    @Body() createQuestionDto: CreateQuestionDto,
-  ): Promise<QuestionResponseDto> {
-    const question =
-      await this.questionService.createQuestion(createQuestionDto);
-    return new QuestionResponseDto(question);
+  async createExamAnswer(
+    @Body() createExamAnswerDto: CreateExamAnswerDto,
+  ): Promise<ExamAnswerResponseDto> {
+    const examAnswer =
+      await this.examAnswerService.createExamAnswer(createExamAnswerDto);
+    return new ExamAnswerResponseDto(examAnswer);
   }
 
   @Patch(':id')
   @Roles(Role.TEACHER)
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Update an question',
-    type: QuestionResponseDto,
+    description: 'Update an exam answer',
+    type: ExamAnswerResponseDto,
   })
-  async updateQuestion(
+  async updateExamAnswer(
     @Req() request: AuthenticatedRequest,
     @Param(
       'id',
@@ -182,15 +239,15 @@ export class QuestionController {
       }),
     )
     id: string,
-    @Body() updateQuestionDto: UpdateQuestionDto,
-  ): Promise<QuestionResponseDto> {
-    const question = await this.questionService.updateQuestion(
+    @Body() updateExamAnswerDto: UpdateExamAnswerDto,
+  ): Promise<ExamAnswerResponseDto> {
+    const examAnswer = await this.examAnswerService.updateExamAnswer(
       request.user.id,
       request.user.role,
       id,
-      updateQuestionDto,
+      updateExamAnswerDto,
     );
-    return new QuestionResponseDto(question);
+    return new ExamAnswerResponseDto(examAnswer);
   }
 
   @Delete(':id')
@@ -198,7 +255,7 @@ export class QuestionController {
   @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
-    description: 'Delete an question',
+    description: 'Delete an exam',
   })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteExam(
@@ -212,7 +269,7 @@ export class QuestionController {
     )
     id: string,
   ): Promise<void> {
-    await this.questionService.deleteQuestion(
+    await this.examAnswerService.deleteExamAnswer(
       request.user.id,
       request.user.role,
       id,

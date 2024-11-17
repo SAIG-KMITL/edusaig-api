@@ -17,6 +17,7 @@ import { UserStreak } from 'src/user-streak/user-streak.entity';
 import { User } from 'src/user/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { GLOBAL_CONFIG } from '../constants/global-config.constant';
+import { ExamAnswer } from 'src/exam-answer/exam-answer.entity';
 import { Reward } from 'src/reward/reward.entity';
 import { UserReward } from 'src/userReward/user-reward.entity';
 
@@ -51,6 +52,7 @@ export const databaseConfig: DataSourceOptions = {
     ExamAttempt,
     Question,
     QuestionOption,
+    ExamAnswer,
     UserOccupation,
     UserBackgroundTopic,
     UserBackground,

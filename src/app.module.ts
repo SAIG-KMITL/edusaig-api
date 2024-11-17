@@ -28,6 +28,7 @@ import { UserBackgroundModule } from './user-background/user-background.module';
 import { UserOccupationModule } from './user-occupation/user-occupation.module';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { UserModule } from './user/user.module';
+import { ExamAnswerModule } from './exam-answer/exam-answer.module';
 import { RewardModule } from './reward/reward.module';
 import { UserRewardModule } from './userReward/user-reward.module';
 import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
@@ -68,6 +69,7 @@ import { QuestionModule } from './question/question.module';
     ExamAttemptModule,
     QuestionModule,
     QuestionOptionModule,
+    ExamAnswerModule,
     UserOccupationModule,
     UserBackgroundTopicModule,
     UserBackgroundModule,
