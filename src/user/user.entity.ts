@@ -1,13 +1,15 @@
-import { Entity, OneToMany } from 'typeorm';
+import { Course } from 'src/course/course.entity';
+import { Enrollment } from 'src/enrollment/enrollment.entity';
+import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
+import { Role } from 'src/shared/enums/roles.enum';
 import {
   Column,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Role } from 'src/shared/enums/roles.enum';
-import { Course } from 'src/course/course.entity';
-
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -47,6 +49,11 @@ export class User {
   @OneToMany(() => Course, (course) => course.teacher)
   courses: Course[];
 
+  @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.exam, {
+    cascade: true,
+  })
+  examAttempt: ExamAttempt[];
+
   @CreateDateColumn({
     type: 'timestamp with time zone',
     nullable: false,
@@ -58,4 +65,9 @@ export class User {
     nullable: false,
   })
   updatedAt: Date;
+
+  @Column({
+    nullable: true,
+  })
+  profileKey: string;
 }

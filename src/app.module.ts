@@ -12,6 +12,9 @@ import { ChapterModule } from './chapter/chapter.module';
 import { CourseModuleModule } from './course-module/course-module.module';
 import { CourseModule } from './course/course.module';
 import { DatabaseModule } from './database/database.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
+import { ExamModule } from './exam/exam.module';
+import { FileModule } from './file/file.module';
 import { databaseConfig } from './shared/configs/database.config';
 import { dotenvConfig } from './shared/configs/dotenv.config';
 import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
@@ -20,7 +23,8 @@ import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
-import { ExamModule } from './exam/exam.module';
+import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
+import { QuestionModule } from './question/question.module';
 import { Course } from './course/course.entity';
 import { CourseModule as CourseModuleEntity } from './course-module/course-module.entity';
 import { Chapter } from './chapter/chapter.entity';
@@ -49,6 +53,7 @@ const forFeatures = TypeOrmModule.forFeature([
         migrations: ['dist/database/migrations/*.js'],
         migrationsRun: true,
         synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
+        autoLoadEntities: true,
       }),
       inject: [ConfigService],
     }),
@@ -62,7 +67,12 @@ const forFeatures = TypeOrmModule.forFeature([
     CourseModule,
     CourseModuleModule,
     ChapterModule,
-    ExamModule
+    FileModule,
+    ExamModule,
+    EnrollmentModule,
+
+    ExamAttemptModule,
+    QuestionModule,
   ],
   controllers: [AppController],
   providers: [
@@ -81,4 +91,4 @@ const forFeatures = TypeOrmModule.forFeature([
     }
   ],
 })
-export class AppModule { }
+export class AppModule {}
