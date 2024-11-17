@@ -50,8 +50,8 @@ export class ExamService {
       },
     }).run();
 
-    return exam;
-  }
+        return new PaginatedExamResponseDto(exam.data, exam.meta.total, exam.meta.pageSize, exam.meta.currentPage);
+    }
 
   private validateAndCreateCondition(
     request: AuthenticatedRequest,
@@ -121,7 +121,6 @@ export class ExamService {
   async createExam(createExamDto: CreateExamDto): Promise<Exam> {
     const courseModule = await this.courseModuleRepository.findOne({
       where: { id: createExamDto.courseModuleId },
-      relations: ['courseModule'],
       select: this.selectPopulateCourseModule(),
     });
 
