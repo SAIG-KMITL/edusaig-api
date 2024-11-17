@@ -10,13 +10,21 @@ import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
 import { ChapterModule } from './chapter/chapter.module';
 import { CourseModuleModule } from './course-module/course-module.module';
-import { Course } from './course/course.entity';
 import { CourseModule } from './course/course.module';
 import { DatabaseModule } from './database/database.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
+import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
+import { ExamModule } from './exam/exam.module';
+import { FileModule } from './file/file.module';
+import { ProgressModule } from './progress/progress.module';
+import { QuestionOptionModule } from './question-option/question-option.module';
+import { QuestionModule } from './question/question.module';
 import { databaseConfig } from './shared/configs/database.config';
 import { dotenvConfig } from './shared/configs/dotenv.config';
 import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
 import { RolesGuard } from './shared/guards/role.guard';
+import { UserBackgroundTopicModule } from './user-background-topic/user-background-topic.module';
+import { UserOccupationModule } from './user-occupation/user-occupation.module';
 import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { User } from './user/user.entity';
@@ -41,6 +49,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
         migrations: ['dist/database/migrations/*.js'],
         migrationsRun: true,
         synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
+        autoLoadEntities: true,
       }),
       inject: [ConfigService],
     }),
@@ -54,6 +63,15 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
     CourseModule,
     CourseModuleModule,
     ChapterModule,
+    FileModule,
+    ExamModule,
+    EnrollmentModule,
+    ProgressModule,
+    ExamAttemptModule,
+    QuestionModule,
+    QuestionOptionModule,
+    UserOccupationModule,
+    UserBackgroundTopicModule,
     RewardModule,
     UserRewardModule,
   ],

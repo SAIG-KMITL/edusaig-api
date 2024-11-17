@@ -1,5 +1,6 @@
 import { Chapter } from 'src/chapter/chapter.entity';
 import { Course } from 'src/course/course.entity';
+import { Exam } from 'src/exam/exam.entity';
 import {
   Column,
   CreateDateColumn,
@@ -7,6 +8,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -46,6 +48,11 @@ export class CourseModule {
 
   @Column({ name: 'course_id' })
   courseId: string;
+
+  @OneToOne(() => Exam, (exam) => exam.courseModule, {
+    cascade: true,
+  })
+  exam: Exam;
 
   @CreateDateColumn({
     type: 'timestamp',
