@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   FindOneOptions,
@@ -200,7 +201,8 @@ export class ExamAttemptService {
       id,
       updateExamAttemptDto,
     );
-    if (!examAttempt) throw new NotFoundException("Can't update exam-attempt");
+    if (!examAttempt)
+      throw new BadRequestException("Can't update exam-attempt");
     return await this.examAttemptRepository.findOne({
       where: { id },
       relations: ['exam', 'user'],
@@ -217,9 +219,8 @@ export class ExamAttemptService {
     id: string,
   ): Promise<void> {
     try {
-      if (await this.findOne(userId, role, { where: { id } })) {
-        await this.examAttemptRepository.delete(id);
-      }
+      const examAttempt = await this.findOne(userId, role, { where: { id } });
+      await this.examAttemptRepository.delete(id);
     } catch (error) {
       if (error instanceof Error)
         throw new NotFoundException('Exam-attempt not found');

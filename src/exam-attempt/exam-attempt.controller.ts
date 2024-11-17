@@ -191,12 +191,11 @@ export class ExamAttemptController {
       }),
     )
     id: string,
-  ): Promise<{ massage: string }> {
+  ): Promise<void> {
     await this.examAttemptService.deleteExamAttempt(
       request.user.id,
       request.user.role,
       id,
     );
-    return { massage: 'Exam-attempt deleted successfully' };
   }
 }

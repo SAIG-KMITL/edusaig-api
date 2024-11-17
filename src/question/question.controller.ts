@@ -62,11 +62,15 @@ export class QuestionController {
     @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
   ): Promise<PaginatedQuestionResponseDto> {
-    return await this.questionService.findAll(request, {
-      page: query.page,
-      limit: query.limit,
-      search: query.search,
-    });
+    return await this.questionService.findAll(
+      request.user.id,
+      request.user.role,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
   }
 
   @Get(':id')
@@ -86,9 +90,13 @@ export class QuestionController {
     )
     id: string,
   ): Promise<QuestionResponseDto> {
-    const question = await this.questionService.findOne(request, {
-      where: { id },
-    });
+    const question = await this.questionService.findOne(
+      request.user.id,
+      request.user.role,
+      {
+        where: { id },
+      },
+    );
     return new QuestionResponseDto(question);
   }
 
@@ -129,11 +137,16 @@ export class QuestionController {
     )
     examId: string,
   ): Promise<PaginatedQuestionResponseDto> {
-    return await this.questionService.findQuestionByExamId(request, examId, {
-      page: query.page,
-      limit: query.limit,
-      search: query.search,
-    });
+    return await this.questionService.findQuestionByExamId(
+      request.user.id,
+      request.user.role,
+      examId,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
   }
 
   @Post()
@@ -172,7 +185,8 @@ export class QuestionController {
     @Body() updateQuestionDto: UpdateQuestionDto,
   ): Promise<QuestionResponseDto> {
     const question = await this.questionService.updateQuestion(
-      request,
+      request.user.id,
+      request.user.role,
       id,
       updateQuestionDto,
     );
@@ -197,8 +211,11 @@ export class QuestionController {
       }),
     )
     id: string,
-  ): Promise<{ massage: string }> {
-    await this.questionService.deleteQuestion(request, id);
-    return { massage: 'Question deleted successfully' };
+  ): Promise<void> {
+    await this.questionService.deleteQuestion(
+      request.user.id,
+      request.user.role,
+      id,
+    );
   }
 }

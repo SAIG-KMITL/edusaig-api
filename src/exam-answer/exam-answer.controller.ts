@@ -64,11 +64,15 @@ export class ExamAnswerController {
     @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
   ): Promise<PaginatedExamAnswerResponseDto> {
-    return await this.examAnswerService.findAll(request, {
-      page: query.page,
-      limit: query.limit,
-      search: query.search,
-    });
+    return await this.examAnswerService.findAll(
+      request.user.id,
+      request.user.role,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
   }
 
   @Get(':id')
@@ -90,9 +94,13 @@ export class ExamAnswerController {
     )
     id: string,
   ): Promise<ExamAnswerResponseDto> {
-    const examAnswer = await this.examAnswerService.findOne(request, {
-      where: { id },
-    });
+    const examAnswer = await this.examAnswerService.findOne(
+      request.user.id,
+      request.user.role,
+      {
+        where: { id },
+      },
+    );
     return new ExamAnswerResponseDto(examAnswer);
   }
 
@@ -136,7 +144,8 @@ export class ExamAnswerController {
     questionId: string,
   ): Promise<PaginatedExamAnswerResponseDto> {
     return await this.examAnswerService.findExamAnswerByQuestionId(
-      request,
+      request.user.id,
+      request.user.role,
       questionId,
       {
         page: query.page,
@@ -186,7 +195,8 @@ export class ExamAnswerController {
     selectedOptionId: string,
   ): Promise<PaginatedExamAnswerResponseDto> {
     return await this.examAnswerService.findExamAnswerBySelectedOptionId(
-      request,
+      request.user.id,
+      request.user.role,
       selectedOptionId,
       {
         page: query.page,
@@ -232,7 +242,8 @@ export class ExamAnswerController {
     @Body() updateExamAnswerDto: UpdateExamAnswerDto,
   ): Promise<ExamAnswerResponseDto> {
     const examAnswer = await this.examAnswerService.updateExamAnswer(
-      request,
+      request.user.id,
+      request.user.role,
       id,
       updateExamAnswerDto,
     );
@@ -257,8 +268,11 @@ export class ExamAnswerController {
       }),
     )
     id: string,
-  ): Promise<{ massage: string }> {
-    await this.examAnswerService.deleteExamAnswer(request, id);
-    return { massage: 'Exam answer deleted successfully' };
+  ): Promise<void> {
+    await this.examAnswerService.deleteExamAnswer(
+      request.user.id,
+      request.user.role,
+      id,
+    );
   }
 }

@@ -69,7 +69,7 @@ export class ExamController {
     @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
   ): Promise<PaginatedExamResponseDto> {
-    return await this.examService.findAll(request, {
+    return await this.examService.findAll(request.user.id, request.user.role, {
       page: query.page,
       limit: query.limit,
       search: query.search,
@@ -93,7 +93,11 @@ export class ExamController {
     )
     id: string,
   ): Promise<ExamResponseDto> {
-    const exam = await this.examService.findOne(request, { where: { id } });
+    const exam = await this.examService.findOne(
+      request.user.id,
+      request.user.role,
+      { where: { id } },
+    );
     return new ExamResponseDto(exam);
   }
 
@@ -131,7 +135,12 @@ export class ExamController {
     id: string,
     @Body() updateExamDto: UpdateExamDto,
   ): Promise<ExamResponseDto> {
-    const exam = await this.examService.updateExam(request, id, updateExamDto);
+    const exam = await this.examService.updateExam(
+      request.user.id,
+      request.user.role,
+      id,
+      updateExamDto,
+    );
     return new ExamResponseDto(exam);
   }
 
@@ -153,8 +162,7 @@ export class ExamController {
       }),
     )
     id: string,
-  ): Promise<{ massage: string }> {
-    await this.examService.deleteExam(request, id);
-    return { massage: 'Exam deleted successfully' };
+  ): Promise<void> {
+    await this.examService.deleteExam(request.user.id, request.user.role, id);
   }
 }

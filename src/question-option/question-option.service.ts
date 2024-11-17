@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import {
   FindOneOptions,
@@ -29,7 +30,8 @@ export class QuestionOptionService {
   ) {}
 
   async findAll(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     {
       page = 1,
       limit = 20,
@@ -45,7 +47,11 @@ export class QuestionOptionService {
       limit,
     });
 
-    const whereCondition = this.validateAndCreateCondition(request, search);
+    const whereCondition = this.validateAndCreateCondition(
+      userId,
+      role,
+      search,
+    );
     const question = await find({
       where: whereCondition,
       relations: ['question'],
@@ -58,10 +64,11 @@ export class QuestionOptionService {
   }
 
   async findOne(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     options: FindOneOptions<QuestionOption> = {},
   ): Promise<QuestionOption> {
-    const whereCondition = this.validateAndCreateCondition(request, '');
+    const whereCondition = this.validateAndCreateCondition(userId, role, '');
 
     const where = Array.isArray(whereCondition)
       ? [
@@ -87,7 +94,8 @@ export class QuestionOptionService {
   }
 
   async findQuestionOptionByQuestionId(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     questionId: string,
     {
       page = 1,
@@ -104,7 +112,11 @@ export class QuestionOptionService {
       limit,
     });
 
-    const whereCondition = this.validateAndCreateCondition(request, search);
+    const whereCondition = this.validateAndCreateCondition(
+      userId,
+      role,
+      search,
+    );
     whereCondition['question'] = { id: questionId };
 
     const question = await this.questionRepository.findOne({
@@ -126,12 +138,13 @@ export class QuestionOptionService {
   }
 
   private validateAndCreateCondition(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     search: string,
   ): FindOptionsWhere<QuestionOption> {
     const baseSearch = search ? { optionText: ILike(`%${search}%`) } : {};
 
-    if (request.user.role === Role.STUDENT) {
+    if (role === Role.STUDENT) {
       return {
         ...baseSearch,
         question: {
@@ -142,7 +155,7 @@ export class QuestionOptionService {
       };
     }
 
-    if (request.user.role === Role.TEACHER) {
+    if (role === Role.TEACHER) {
       return {
         ...baseSearch,
         question: {
@@ -153,7 +166,7 @@ export class QuestionOptionService {
             {
               courseModule: {
                 course: {
-                  teacher: { id: request.user.id },
+                  teacher: { id: userId },
                 },
               },
             },
@@ -162,7 +175,7 @@ export class QuestionOptionService {
       };
     }
 
-    if (request.user.role === Role.ADMIN) {
+    if (role === Role.ADMIN) {
       return { ...baseSearch };
     }
 
@@ -198,11 +211,16 @@ export class QuestionOptionService {
   }
 
   async updateQuestionOption(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     id: string,
     updateQuestionOptionDto: UpdateQuestionOptionDto,
   ): Promise<QuestionOption> {
-    await this.findOne(request, { where: { id } });
+    const questionOptionInData = await this.findOne(userId, role, {
+      where: { id },
+    });
+    if (this.checkPermission(userId, role, questionOptionInData) === false)
+      throw new ForbiddenException('Can not change this question option');
     let question = null;
     if (updateQuestionOptionDto.questionId) {
       question = await this.questionRepository.findOne({
@@ -221,7 +239,7 @@ export class QuestionOptionService {
       updateQuestionOption,
     );
     if (!questionOption)
-      throw new NotFoundException("Can't update question option");
+      throw new BadRequestException("Can't update question option");
     return await this.questionOptionRepository.findOne({
       where: { id },
       relations: ['question'],
@@ -232,11 +250,16 @@ export class QuestionOptionService {
   }
 
   async deleteQuestionOption(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     id: string,
   ): Promise<void> {
     try {
-      await this.findOne(request, { where: { id } });
+      const questionOption = await this.findOne(userId, role, {
+        where: { id },
+      });
+      if (this.checkPermission(userId, role, questionOption) === false)
+        throw new ForbiddenException('Can not change this question option');
       await this.questionOptionRepository.delete(id);
     } catch (error) {
       if (error instanceof Error)
@@ -252,5 +275,23 @@ export class QuestionOptionService {
       points: true,
       orderIndex: true,
     };
+  }
+
+  private checkPermission(
+    userId: string,
+    role: Role,
+    questionOption: QuestionOption,
+  ): boolean {
+    switch (role) {
+      case Role.ADMIN:
+        return true;
+      case Role.TEACHER:
+        return (
+          questionOption.question?.exam?.courseModule?.course?.teacher?.id ===
+          userId
+        );
+      case Role.STUDENT:
+        return false;
+    }
   }
 }

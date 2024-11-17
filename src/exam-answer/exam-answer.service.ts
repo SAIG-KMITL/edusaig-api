@@ -38,7 +38,8 @@ export class ExamAnswerService {
   ) {}
 
   async findAll(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     {
       page = 1,
       limit = 20,
@@ -54,7 +55,11 @@ export class ExamAnswerService {
       limit,
     });
 
-    const whereCondition = this.validateAndCreateCondition(request, search);
+    const whereCondition = this.validateAndCreateCondition(
+      userId,
+      role,
+      search,
+    );
     const exam = await find({
       where: whereCondition,
       relations: ['examAttempt', 'question', 'selectedOption'],
@@ -69,12 +74,13 @@ export class ExamAnswerService {
   }
 
   private validateAndCreateCondition(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     search: string,
   ): FindOptionsWhere<ExamAnswer> | FindOptionsWhere<ExamAnswer>[] {
     const baseSearch = search ? { answerText: ILike(`%${search}%`) } : {};
 
-    if (request.user.role === Role.TEACHER) {
+    if (role === Role.TEACHER) {
       return [
         {
           ...baseSearch,
@@ -83,7 +89,7 @@ export class ExamAnswerService {
               courseModule: {
                 course: {
                   teacher: {
-                    id: request.user.id,
+                    id: userId,
                   },
                 },
               },
@@ -93,7 +99,7 @@ export class ExamAnswerService {
       ];
     }
 
-    if (request.user.role === Role.ADMIN) {
+    if (role === Role.ADMIN) {
       return { ...baseSearch };
     }
 
@@ -105,7 +111,7 @@ export class ExamAnswerService {
             courseModule: {
               course: {
                 teacher: {
-                  id: request.user.id,
+                  id: userId,
                 },
               },
             },
@@ -116,10 +122,11 @@ export class ExamAnswerService {
   }
 
   async findOne(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     options: FindOneOptions<ExamAnswer> = {},
   ): Promise<ExamAnswer> {
-    const whereCondition = this.validateAndCreateCondition(request, '');
+    const whereCondition = this.validateAndCreateCondition(userId, role, '');
 
     const where = Array.isArray(whereCondition)
       ? [
@@ -147,7 +154,8 @@ export class ExamAnswerService {
   }
 
   async findExamAnswerByQuestionId(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     questionId: string,
     {
       page = 1,
@@ -164,7 +172,11 @@ export class ExamAnswerService {
       limit,
     });
 
-    const whereCondition = this.validateAndCreateCondition(request, search);
+    const whereCondition = this.validateAndCreateCondition(
+      userId,
+      role,
+      search,
+    );
     whereCondition['question'] = { id: questionId };
 
     const question = await this.questionRepository.findOne({
@@ -187,7 +199,8 @@ export class ExamAnswerService {
   }
 
   async findExamAnswerBySelectedOptionId(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     selectedOptionId: string,
     {
       page = 1,
@@ -204,7 +217,11 @@ export class ExamAnswerService {
       limit,
     });
 
-    const whereCondition = this.validateAndCreateCondition(request, search);
+    const whereCondition = this.validateAndCreateCondition(
+      userId,
+      role,
+      search,
+    );
     whereCondition['selectedOption'] = { id: selectedOptionId };
 
     const selectedOption = await this.questionOptionRepository.findOne({
@@ -273,14 +290,19 @@ export class ExamAnswerService {
   }
 
   async updateExamAnswer(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     id: string,
     updateExamAnswerDto: UpdateExamAnswerDto,
   ): Promise<ExamAnswer> {
-    const examAnswerInData = await this.findOne(request, { where: { id } });
+    const examAnswerInData = await this.findOne(userId, role, {
+      where: { id },
+    });
     if (!examAnswerInData) throw new NotFoundException('Exam answer not found');
 
     let examAttempt = null;
+    let selectedOption = null;
+    let question = null;
     if (updateExamAnswerDto.examAttemptId) {
       examAttempt = await this.examAttemptRepository.findOne({
         where: { id: updateExamAnswerDto.examAttemptId },
@@ -290,10 +312,6 @@ export class ExamAnswerService {
         throw new NotFoundException('Exam attempt not found');
       }
     }
-
-    let selectedOption = null;
-    let question = null;
-
     if (updateExamAnswerDto.selectedOptionId) {
       selectedOption = await this.questionOptionRepository.findOne({
         where: { id: updateExamAnswerDto.selectedOptionId },
@@ -324,7 +342,7 @@ export class ExamAnswerService {
       id,
       updateExamAnswer,
     );
-    if (!examAnswer) throw new NotFoundException("Can't update exam answer");
+    if (!examAnswer) throw new BadRequestException("Can't update exam answer");
     return await this.examAnswerRepository.findOne({
       where: { id },
       relations: ['examAttempt', 'question', 'selectedOption'],
@@ -337,11 +355,12 @@ export class ExamAnswerService {
   }
 
   async deleteExamAnswer(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     id: string,
   ): Promise<void> {
     try {
-      if (await this.findOne(request, { where: { id } })) {
+      if (await this.findOne(userId, role, { where: { id } })) {
         await this.examAnswerRepository.delete(id);
       }
     } catch (error) {
