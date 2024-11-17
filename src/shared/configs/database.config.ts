@@ -12,6 +12,7 @@ import { GLOBAL_CONFIG } from '../constants/global-config.constant';
 import { Exam } from 'src/exam/exam.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 import { Question } from 'src/question/question.entity';
+import { QuestionOption } from 'src/question-option/question-option.entity';
 
 const configService = new ConfigService();
 
@@ -35,6 +36,7 @@ export const databaseConfig: DataSourceOptions = {
 
     ExamAttempt,
     Question,
+    QuestionOption,
   ],
 };
 
