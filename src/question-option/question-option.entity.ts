@@ -1,3 +1,4 @@
+import { ExamAnswer } from 'src/exam-answer/exam-answer.entity';
 import { Question } from 'src/question/question.entity';
 import {
   Column,
@@ -5,6 +6,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -23,6 +25,11 @@ export class QuestionOption {
 
   @Column({ name: 'question_id' })
   questionId: string;
+
+  @OneToMany(() => ExamAnswer, (examAnswer) => examAnswer.selectedOption, {
+    cascade: true,
+  })
+  examAnswer: ExamAnswer[];
 
   @Column({
     nullable: false,

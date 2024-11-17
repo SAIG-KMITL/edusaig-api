@@ -13,6 +13,7 @@ import { Exam } from 'src/exam/exam.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 import { Question } from 'src/question/question.entity';
 import { QuestionOption } from 'src/question-option/question-option.entity';
+import { ExamAnswer } from 'src/exam-answer/exam-answer.entity';
 
 const configService = new ConfigService();
 
@@ -37,6 +38,7 @@ export const databaseConfig: DataSourceOptions = {
     ExamAttempt,
     Question,
     QuestionOption,
+    ExamAnswer,
   ],
 };
 

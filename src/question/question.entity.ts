@@ -1,3 +1,4 @@
+import { ExamAnswer } from 'src/exam-answer/exam-answer.entity';
 import { Exam } from 'src/exam/exam.entity';
 import { QuestionOption } from 'src/question-option/question-option.entity';
 import { QuestionType } from 'src/shared/enums';
@@ -36,6 +37,11 @@ export class Question {
     },
   )
   questionOption: QuestionOption[];
+
+  @OneToMany(() => ExamAnswer, (examAnswer) => examAnswer.question, {
+    cascade: true,
+  })
+  examAnswer: ExamAnswer[];
 
   @Column({
     nullable: false,

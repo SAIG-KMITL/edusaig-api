@@ -1,3 +1,4 @@
+import { ExamAnswer } from 'src/exam-answer/exam-answer.entity';
 import { Exam } from 'src/exam/exam.entity';
 import { ExamAttemptStatus } from 'src/shared/enums';
 import { User } from 'src/user/user.entity';
@@ -7,6 +8,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -36,6 +38,11 @@ export class ExamAttempt {
 
   @Column({ name: 'user_id' })
   userId: String;
+
+  @OneToMany(() => ExamAnswer, (examAnswer) => examAnswer.examAttempt, {
+    cascade: true,
+  })
+  examAnswer: ExamAnswer[];
 
   @Column({
     nullable: false,
