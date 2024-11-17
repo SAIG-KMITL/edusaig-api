@@ -1,62 +1,77 @@
+import { Course } from 'src/course/course.entity';
+import { Enrollment } from 'src/enrollment/enrollment.entity';
+import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 import { Role } from 'src/shared/enums/roles.enum';
 import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({
-        nullable: false,
-        unique: true,
-    })
-    username: string;
+  @Column({
+    nullable: false,
+    unique: true,
+  })
+  username: string;
 
-    @Column({
-        nullable: false,
-    })
-    fullname: string;
+  @Column({
+    nullable: false,
+  })
+  fullname: string;
 
-    @Column({
-        type: 'enum',
-        enum: Role,
-        nullable: false,
-        default: Role.STUDENT,
-    })
-    role: Role;
+  @Column({
+    type: 'enum',
+    enum: Role,
+    nullable: false,
+    default: Role.STUDENT,
+  })
+  role: Role;
 
-    @Column({
-        nullable: false,
-        unique: true,
-    })
-    password: string;
+  @Column({
+    nullable: false,
+    unique: true,
+  })
+  password: string;
 
-    @Column({
-        nullable: false,
-        unique: true,
-    })
-    email: string;
+  @Column({
+    nullable: false,
+    unique: true,
+  })
+  email: string;
 
-    @CreateDateColumn({
-        type: 'timestamp with time zone',
-        nullable: false,
-    })
-    createdAt: Date;
+  @OneToMany(() => Course, (course) => course.teacher)
+  courses: Course[];
 
-    @UpdateDateColumn({
-        type: 'timestamp with time zone',
-        nullable: false,
-    })
-    updatedAt: Date;
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.user)
+  enrollments: Enrollment[];
 
-    @Column({
-        nullable: true,
-    })
-    profileKey: string;
+  @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.exam, {
+    cascade: true,
+  })
+  examAttempt: ExamAttempt[];
+
+  @CreateDateColumn({
+    type: 'timestamp with time zone',
+    nullable: false,
+  })
+  createdAt: Date;
+
+  @UpdateDateColumn({
+    type: 'timestamp with time zone',
+    nullable: false,
+  })
+  updatedAt: Date;
+
+  @Column({
+    nullable: true,
+  })
+  profileKey: string;
 }
