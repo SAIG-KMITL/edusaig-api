@@ -14,7 +14,6 @@ import {
   Repository,
 } from 'typeorm';
 import { ExamAttempt } from './exam-attempt.entity';
-import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { PaginatedExamAttemptResponseDto } from './dtos/exam-attempt-response.dto';
 import { createPagination } from 'src/shared/pagination';
 import { ExamAttemptStatus, ExamStatus, Role } from 'src/shared/enums';
@@ -35,7 +34,8 @@ export class ExamAttemptService {
   ) {}
 
   async findAll(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     {
       page = 1,
       limit = 20,
@@ -51,7 +51,11 @@ export class ExamAttemptService {
       limit,
     });
 
-    const whereCondition = this.validateAndCreateCondition(request, search);
+    const whereCondition = this.validateAndCreateCondition(
+      userId,
+      role,
+      search,
+    );
     const exam = await find({
       where: whereCondition,
       relations: ['exam', 'user'],
@@ -65,46 +69,34 @@ export class ExamAttemptService {
   }
 
   private validateAndCreateCondition(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     search: string,
   ): FindOptionsWhere<ExamAttempt> | FindOptionsWhere<ExamAttempt>[] {
     const baseSearch = search ? { id: ILike(`%${search}%`) } : {};
 
-    if (request.user.role === Role.ADMIN) {
+    if (role === Role.ADMIN) {
       return { ...baseSearch };
     }
 
-    if (request.user.role === Role.STUDENT) {
-      return [
-        {
-          ...baseSearch,
-          submittedAt: Not(IsNull()),
-          status: ExamAttemptStatus.FAILED,
-          userId: request.user.id,
-          exam: {
-            status: ExamStatus.PUBLISHED,
-          },
+    if (role === Role.STUDENT) {
+      return {
+        ...baseSearch,
+        userId: userId,
+        exam: {
+          status: ExamStatus.PUBLISHED,
         },
-        {
-          ...baseSearch,
-          submittedAt: Not(IsNull()),
-          status: ExamAttemptStatus.PASSED,
-          userId: request.user.id,
-          exam: {
-            status: ExamStatus.PUBLISHED,
-          },
-        },
-      ];
+      };
     }
 
-    if (request.user.role === Role.TEACHER) {
+    if (role === Role.TEACHER) {
       return {
         ...baseSearch,
         exam: {
           courseModule: {
             course: {
               teacher: {
-                id: request.user.id,
+                id: userId,
               },
             },
           },
@@ -114,27 +106,30 @@ export class ExamAttemptService {
 
     return {
       ...baseSearch,
+      userId: userId,
       exam: {
-        courseModule: {
-          course: {
-            teacher: {
-              id: request.user.id,
-            },
-          },
-        },
+        status: ExamStatus.PUBLISHED,
       },
     };
   }
 
   async findOne(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     options: FindOneOptions<ExamAttempt> = {},
   ): Promise<ExamAttempt> {
-    const whereCondition = this.validateAndCreateCondition(request, '');
+    const whereCondition = this.validateAndCreateCondition(userId, role, '');
+
+    const where = Array.isArray(whereCondition)
+      ? [
+          { ...whereCondition[0], ...options.where },
+          { ...whereCondition[1], ...options.where },
+        ]
+      : { ...whereCondition, ...options.where };
 
     const exam = await this.examAttemptRepository.findOne({
       ...options,
-      where: whereCondition,
+      where,
       relations: ['exam', 'user'],
       select: {
         user: this.selectPopulateUser(),
@@ -150,6 +145,7 @@ export class ExamAttemptService {
   }
 
   async createExamAttempt(
+    userId: string,
     createExamAttemptDto: CreateExamAttemptDto,
   ): Promise<ExamAttempt> {
     const exam = await this.examRepository.findOne({
@@ -160,7 +156,7 @@ export class ExamAttemptService {
       throw new NotFoundException('Exam not found.');
     }
     const user = await this.userRepository.findOne({
-      where: { id: createExamAttemptDto.userId },
+      where: { id: userId },
       select: this.selectPopulateUser(),
     });
     if (!user) {
@@ -169,10 +165,8 @@ export class ExamAttemptService {
     if (user.role != Role.STUDENT)
       throw new ForbiddenException('User is not student.');
     if (
-      (await this.countExamAttempts(
-        createExamAttemptDto.examId,
-        createExamAttemptDto.userId,
-      )) >= exam.maxAttempts
+      (await this.countExamAttempts(createExamAttemptDto.examId, userId)) >=
+      exam.maxAttempts
     )
       throw new ForbiddenException(
         "Can't create exam-attempt more than max attempt",
@@ -188,11 +182,14 @@ export class ExamAttemptService {
   }
 
   async updateExamAttempt(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     id: string,
     updateExamAttemptDto: UpdateExamAttemptDto,
   ): Promise<ExamAttempt> {
-    const examAttemptInData = await this.findOne(request, { where: { id } });
+    const examAttemptInData = await this.findOne(userId, role, {
+      where: { id },
+    });
     if (
       examAttemptInData.status != ExamAttemptStatus.IN_PROGRESS &&
       updateExamAttemptDto.status == ExamAttemptStatus.IN_PROGRESS
@@ -215,11 +212,12 @@ export class ExamAttemptService {
   }
 
   async deleteExamAttempt(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     id: string,
   ): Promise<void> {
     try {
-      if (await this.findOne(request, { where: { id } })) {
+      if (await this.findOne(userId, role, { where: { id } })) {
         await this.examAttemptRepository.delete(id);
       }
     } catch (error) {
@@ -229,16 +227,21 @@ export class ExamAttemptService {
   }
 
   async submittedExam(
-    request: AuthenticatedRequest,
+    userId: string,
+    role: Role,
     id: string,
   ): Promise<ExamAttempt> {
-    const examAttemptInData = await this.findOne(request, { where: { id } });
+    const examAttemptInData = await this.findOne(userId, role, {
+      where: { id },
+    });
 
     examAttemptInData.submittedAt = new Date();
 
     await this.examAttemptRepository.update(id, examAttemptInData);
 
-    const updatedExamAttempt = await this.findOne(request, { where: { id } });
+    const updatedExamAttempt = await this.findOne(userId, role, {
+      where: { id },
+    });
 
     return updatedExamAttempt;
   }

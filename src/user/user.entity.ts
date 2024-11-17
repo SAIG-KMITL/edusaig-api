@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -48,6 +49,9 @@ export class User {
 
   @OneToMany(() => Course, (course) => course.teacher)
   courses: Course[];
+
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.user)
+  enrollments: Enrollment[];
 
   @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.exam, {
     cascade: true,

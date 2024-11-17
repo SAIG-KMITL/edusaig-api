@@ -50,8 +50,8 @@ export class ExamService {
       },
     }).run();
 
-    return exam;
-  }
+        return new PaginatedExamResponseDto(exam.data, exam.meta.total, exam.meta.pageSize, exam.meta.currentPage);
+    }
 
   private validateAndCreateCondition(
     request: AuthenticatedRequest,
@@ -95,9 +95,16 @@ export class ExamService {
   ): Promise<Exam> {
     const whereCondition = this.validateAndCreateCondition(request, '');
 
+    const where = Array.isArray(whereCondition)
+      ? [
+          { ...whereCondition[0], ...options.where },
+          { ...whereCondition[1], ...options.where },
+        ]
+      : { ...whereCondition, ...options.where };
+
     const exam = await this.examRepository.findOne({
       ...options,
-      where: whereCondition,
+      where,
       relations: ['courseModule'],
       select: {
         courseModule: this.selectPopulateCourseModule(),
@@ -114,7 +121,6 @@ export class ExamService {
   async createExam(createExamDto: CreateExamDto): Promise<Exam> {
     const courseModule = await this.courseModuleRepository.findOne({
       where: { id: createExamDto.courseModuleId },
-      relations: ['courseModule'],
       select: this.selectPopulateCourseModule(),
     });
 

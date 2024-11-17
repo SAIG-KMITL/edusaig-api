@@ -1,4 +1,5 @@
 import { Course } from 'src/course/course.entity';
+import { Progress } from 'src/progress/progress.entity';
 import { User } from 'src/user/user.entity';
 import {
   Column,
@@ -6,6 +7,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -23,6 +25,9 @@ export class Enrollment {
   @ManyToOne(() => Course, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'course_id' })
   course: Course;
+
+  @OneToMany(() => Progress, (progress) => progress.enrollment)
+  progresses: Progress[];
 
   @Column({
     type: 'enum',

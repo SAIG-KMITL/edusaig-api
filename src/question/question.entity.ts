@@ -1,4 +1,5 @@
 import { Exam } from 'src/exam/exam.entity';
+import { QuestionOption } from 'src/question-option/question-option.entity';
 import { QuestionType } from 'src/shared/enums';
 import {
   Entity,
@@ -9,6 +10,7 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  OneToMany,
 } from 'typeorm';
 @Entity()
 @Unique(['examId', 'orderIndex'])
@@ -25,6 +27,15 @@ export class Question {
 
   @Column({ name: 'exam_id' })
   examId: string;
+
+  @OneToMany(
+    () => QuestionOption,
+    (questionOption) => questionOption.question,
+    {
+      cascade: true,
+    },
+  )
+  questionOption: QuestionOption[];
 
   @Column({
     nullable: false,

@@ -1,30 +1,32 @@
 import { CourseModule } from 'src/course-module/course-module.entity';
+import { Progress } from 'src/progress/progress.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Chapter {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({
-    type: String,
-    nullable: false,
-  })
-  title: string;
+    @Column({
+        type: String,
+        nullable: false,
+    })
+    title: string;
 
-  @Column({
-    type: String,
-    nullable: false,
-  })
-  description: string;
+    @Column({
+        type: String,
+        nullable: false,
+    })
+    description: string;
 
   @ManyToOne(() => CourseModule, (module) => module.chapters, {
     onDelete: 'CASCADE',
@@ -32,56 +34,58 @@ export class Chapter {
   })
   @JoinColumn({ name: 'module_id' })
   module: CourseModule;
-
   @Column({ name: 'module_id' })
   moduleId: string;
 
-  @Column({
-    type: String,
-    nullable: false,
-  })
-  videoUrl: string;
+  @OneToMany(() => Progress, (progress) => progress.chapter)
+  progresses: Progress[];
 
-  @Column({
-    type: String,
-    nullable: false,
-  })
-  content: string;
+    @Column({
+        type: String,
+        nullable: false,
+    })
+    videoUrl: string;
 
-  @Column({
-    type: String,
-    nullable: false,
-  })
-  summary: string;
+    @Column({
+        type: String,
+        nullable: false,
+    })
+    content: string;
 
-  @Column({
-    type: Number,
-    nullable: false,
-  })
-  duration: number;
+    @Column({
+        type: String,
+        nullable: false,
+    })
+    summary: string;
 
-  @Column({
-    type: Number,
-    nullable: false,
-  })
-  orderIndex: number;
+    @Column({
+        type: Number,
+        nullable: false,
+    })
+    duration: number;
 
-  @Column({
-    type: Boolean,
-    nullable: false,
-    default: true,
-  })
-  isPreview: boolean;
+    @Column({
+        type: Number,
+        nullable: false,
+    })
+    orderIndex: number;
 
-  @CreateDateColumn({
-    type: 'timestamp',
-    name: 'created_at',
-  })
-  createdAt: Date;
+    @Column({
+        type: Boolean,
+        nullable: false,
+        default: true,
+    })
+    isPreview: boolean;
 
-  @UpdateDateColumn({
-    type: 'timestamp',
-    name: 'updated_at',
-  })
-  updatedAt: Date;
+    @CreateDateColumn({
+        type: 'timestamp',
+        name: 'created_at',
+    })
+    createdAt: Date;
+
+    @UpdateDateColumn({
+        type: 'timestamp',
+        name: 'updated_at',
+    })
+    updatedAt: Date;
 }

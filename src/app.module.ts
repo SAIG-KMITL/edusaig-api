@@ -15,13 +15,15 @@ import { DatabaseModule } from './database/database.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
 import { ExamModule } from './exam/exam.module';
 import { FileModule } from './file/file.module';
+import { ProgressModule } from './progress/progress.module';
+import { QuestionOptionModule } from './question-option/question-option.module';
 import { databaseConfig } from './shared/configs/database.config';
 import { dotenvConfig } from './shared/configs/dotenv.config';
 import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
 import { RolesGuard } from './shared/guards/role.guard';
-import { UserStreak } from './user-streak/user-streak.entity';
+import { UserBackgroundTopicModule } from './user-background-topic/user-background-topic.module';
+import { UserOccupationModule } from './user-occupation/user-occupation.module';
 import { UserStreakModule } from './user-streak/user-streak.module';
-import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
 import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
 import { QuestionModule } from './question/question.module';
@@ -29,6 +31,10 @@ import { Course } from './course/course.entity';
 import { CourseModule as CourseModuleEntity } from './course-module/course-module.entity';
 import { Chapter } from './chapter/chapter.entity';
 import { CourseOwnershipGuard } from './shared/guards/course-ownership.guard';
+import { ChatRoomModule } from './chat-room/chat-room.module';
+import { ChatMessageModule } from './chat-message/chat-message.module';
+import { User } from './user/user.entity';
+import { UserStreak } from './user-streak/user-streak.entity';
 
 const forFeatures = TypeOrmModule.forFeature([
   User, 
@@ -38,57 +44,58 @@ const forFeatures = TypeOrmModule.forFeature([
   Chapter
 ]);
 
-@Module({
-  imports: [
-    forFeatures,
-    AuthModule,
-    ConfigModule.forRoot({
-      isGlobal: true,
-      validationSchema: dotenvConfig,
-    }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        ...databaseConfig,
-        migrations: ['dist/database/migrations/*.js'],
-        migrationsRun: true,
-        synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
-        autoLoadEntities: true,
-      }),
-      inject: [ConfigService],
-    }),
-    JwtModule.register({
-      global: true,
-    }),
-    DatabaseModule,
-    UserModule,
-    UserStreakModule,
-    CategoryModule,
-    CourseModule,
-    CourseModuleModule,
-    ChapterModule,
-    FileModule,
-    ExamModule,
-    EnrollmentModule,
 
+@Module({
+    imports: [
+        AuthModule,
+        ConfigModule.forRoot({
+            isGlobal: true,
+            validationSchema: dotenvConfig,
+        }),
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                ...databaseConfig,
+                migrations: ['dist/database/migrations/*.js'],
+                migrationsRun: true,
+                synchronize: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
+                autoLoadEntities: true,
+            }),
+            inject: [ConfigService],
+        }),
+        JwtModule.register({
+            global: true,
+        }),
+        DatabaseModule,
+        UserModule,
+        UserStreakModule,
+        CategoryModule,
+        CourseModule,
+        CourseModuleModule,
+        ChapterModule,
+        FileModule,
+        ExamModule,
+        EnrollmentModule,
+    ProgressModule,
     ExamAttemptModule,
     QuestionModule,
-  ],
-  controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: CourseOwnershipGuard,
-    }
-  ],
+    QuestionOptionModule,
+    UserOccupationModule,
+    UserBackgroundTopicModule,
+        ChatRoomModule,
+        ChatMessageModule,
+    ],
+    controllers: [AppController],
+    providers: [
+        AppService,
+        {
+            provide: APP_GUARD,
+            useClass: AuthGuard,
+        },
+        {
+            provide: APP_GUARD,
+            useClass: RolesGuard,
+        },
+    ],
 })
-export class AppModule {}
+export class AppModule { }
