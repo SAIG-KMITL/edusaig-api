@@ -46,14 +46,15 @@ export class PaginatedUserOccupationResponseDto extends PaginatedResponse(
   UserOccupationResponseDto,
 ) {
   constructor(
-    userOccupations: [UserOccupationResponseDto],
+    userOccupations: UserOccupation[],
     total: number,
     page: number,
     limit: number,
   ) {
     super(
       userOccupations.map(
-        (userOccupation) => new UserOccupationResponseDto(userOccupation),
+        (userOccupation: UserOccupation) =>
+          new UserOccupationResponseDto(userOccupation),
       ),
       total,
       page,

@@ -2,6 +2,7 @@ import { Course } from 'src/course/course.entity';
 import { Enrollment } from 'src/enrollment/enrollment.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 import { Role } from 'src/shared/enums/roles.enum';
+import { UserBackground } from 'src/user-background/user-background.entity';
 import {
   Column,
   CreateDateColumn,
@@ -34,6 +35,9 @@ export class User {
     default: Role.STUDENT,
   })
   role: Role;
+
+  @OneToMany(() => UserBackground, (background) => background.user)
+  backgrounds: UserBackground[];
 
   @Column({
     nullable: false,
