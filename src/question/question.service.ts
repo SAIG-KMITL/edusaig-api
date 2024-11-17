@@ -67,9 +67,16 @@ export class QuestionService {
   ): Promise<Question> {
     const whereCondition = this.validateAndCreateCondition(request, '');
 
+    const where = Array.isArray(whereCondition)
+      ? [
+          { ...whereCondition[0], ...options.where },
+          { ...whereCondition[1], ...options.where },
+        ]
+      : { ...whereCondition, ...options.where };
+
     const question = await this.questionRepository.findOne({
       ...options,
-      where: whereCondition,
+      where,
       relations: ['exam'],
       select: {
         exam: this.selectPopulateExam(),
@@ -287,19 +294,6 @@ export class QuestionService {
       if (error instanceof Error)
         throw new NotFoundException('Question not found');
     }
-  }
-
-  private selectPopulateExamForQuery(): string[] {
-    return [
-      'question.id',
-      'question.title',
-      'question.description',
-      'question.timeLimit',
-      'question.passingScore',
-      'question.maxAttempts',
-      'question.shuffleQuestions',
-      'question.status',
-    ];
   }
 
   private selectPopulateExam(): FindOptionsSelect<Exam> {

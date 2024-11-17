@@ -17,6 +17,7 @@ import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
 import { ExamModule } from './exam/exam.module';
 import { FileModule } from './file/file.module';
 import { ProgressModule } from './progress/progress.module';
+import { QuestionOptionModule } from './question-option/question-option.module';
 import { QuestionModule } from './question/question.module';
 import { databaseConfig } from './shared/configs/database.config';
 import { dotenvConfig } from './shared/configs/dotenv.config';
@@ -64,6 +65,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
     ProgressModule,
     ExamAttemptModule,
     QuestionModule,
+    QuestionOptionModule,
   ],
   controllers: [AppController],
   providers: [

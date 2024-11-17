@@ -8,6 +8,7 @@ import { Enrollment } from 'src/enrollment/enrollment.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 import { Exam } from 'src/exam/exam.entity';
 import { Progress } from 'src/progress/progress.entity';
+import { QuestionOption } from 'src/question-option/question-option.entity';
 import { Question } from 'src/question/question.entity';
 import { UserStreak } from 'src/user-streak/user-streak.entity';
 import { User } from 'src/user/user.entity';
@@ -36,6 +37,7 @@ export const databaseConfig: DataSourceOptions = {
     Progress,
     ExamAttempt,
     Question,
+    QuestionOption,
   ],
 };
 
