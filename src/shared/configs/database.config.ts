@@ -10,6 +10,7 @@ import { Exam } from 'src/exam/exam.entity';
 import { Progress } from 'src/progress/progress.entity';
 import { QuestionOption } from 'src/question-option/question-option.entity';
 import { Question } from 'src/question/question.entity';
+import { UserOccupation } from 'src/user-occupation/user-occupation.entity';
 import { UserStreak } from 'src/user-streak/user-streak.entity';
 import { User } from 'src/user/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
@@ -38,6 +39,7 @@ export const databaseConfig: DataSourceOptions = {
     ExamAttempt,
     Question,
     QuestionOption,
+    UserOccupation,
   ],
 };
 
