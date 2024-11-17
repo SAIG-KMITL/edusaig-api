@@ -23,6 +23,7 @@ import { databaseConfig } from './shared/configs/database.config';
 import { dotenvConfig } from './shared/configs/dotenv.config';
 import { GLOBAL_CONFIG } from './shared/constants/global-config.constant';
 import { RolesGuard } from './shared/guards/role.guard';
+import { UserBackgroundTopicModule } from './user-background-topic/user-background-topic.module';
 import { UserOccupationModule } from './user-occupation/user-occupation.module';
 import { UserStreak } from './user-streak/user-streak.entity';
 import { UserStreakModule } from './user-streak/user-streak.module';
@@ -68,6 +69,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
     QuestionModule,
     QuestionOptionModule,
     UserOccupationModule,
+    UserBackgroundTopicModule,
   ],
   controllers: [AppController],
   providers: [
