@@ -4,13 +4,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { FindOneOptions, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserReward } from './user-reward.entity';
 import { User } from 'src/user/user.entity';
 import { Reward } from 'src/reward/reward.entity';
 import { Status } from 'src/reward/enums/status.enum';
 import { Status as rewardStatus } from './enums/status.enum';
 import { UpdateStatusUserReward } from './dtos/update-status-user-reward.dto';
+import { error } from 'console';
 
 @Injectable()
 export class UserRewardService {
@@ -44,8 +45,8 @@ export class UserRewardService {
     //decrease user points
     this.userRepository.update(userId, { points: user.points - reward.points });
     const newUserReward = new UserReward();
-    newUserReward.userId = user;
-    newUserReward.rewardId = reward;
+    newUserReward.user = user;
+    newUserReward.reward = reward;
     newUserReward.pointsSpent = reward.points;
     newUserReward.status = rewardStatus.PENDING;
     const userRewardRes = await this.userRewardRepository.save(newUserReward);
@@ -54,16 +55,20 @@ export class UserRewardService {
 
   async findAll(): Promise<UserReward[]> {
     return this.userRewardRepository.find({
+      relations: {
+        reward: true,
+        user: true,
+      },
       select: {
         id: true,
         pointsSpent: true,
         status: true,
         createdAt: true,
         updatedAt: true,
-        userId: {
+        user: {
           id: true,
         },
-        rewardId: {
+        reward: {
           id: true,
           name: true,
         },
@@ -74,8 +79,8 @@ export class UserRewardService {
   async findOne(id: string): Promise<UserReward> {
     const userReward = await this.userRewardRepository.findOne({
       relations: {
-        userId: true,
-        rewardId: true,
+        user: true,
+        reward: true,
       },
       where: { id },
       select: {
@@ -84,10 +89,10 @@ export class UserRewardService {
         status: true,
         createdAt: true,
         updatedAt: true,
-        userId: {
+        user: {
           id: true,
         },
-        rewardId: {
+        reward: {
           id: true,
           name: true,
         },
@@ -98,39 +103,35 @@ export class UserRewardService {
   }
 
   async findByUser(id: string): Promise<UserReward[]> {
-    try {
-      const userRewards = await this.userRewardRepository.find({
-        relations: {
-          userId: true,
-          rewardId: true,
+    const userRewards = await this.userRewardRepository.find({
+      relations: {
+        user: true,
+        reward: true,
+      },
+      where: {
+        user: {
+          id,
         },
-        where: {
-          userId: {
-            id,
-          },
-        },
-        select: {
+      },
+      select: {
+        id: true,
+        pointsSpent: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        user: {
           id: true,
-          pointsSpent: true,
-          status: true,
-          createdAt: true,
-          updatedAt: true,
-          userId: {
-            id: true,
-          },
-          rewardId: {
-            id: true,
-            name: true,
-          },
         },
-      });
-      if (userRewards.length <= 0) {
-        throw new NotFoundException("user doesn't have reward yet");
-      }
-      return userRewards;
-    } catch (error) {
-      if (error instanceof Error) throw new NotFoundException('user not exist');
+        reward: {
+          id: true,
+          name: true,
+        },
+      },
+    });
+    if (userRewards.length <= 0) {
+      throw new NotFoundException("user doesn't have reward yet");
     }
+    return userRewards;
   }
 
   async updateStatus(
@@ -138,16 +139,18 @@ export class UserRewardService {
     userReward: UpdateStatusUserReward,
   ): Promise<UserReward> {
     try {
-      await this.userRewardRepository.update(id, { status: userReward.status });
+      const userRewardRes = await this.userRewardRepository.update(id, {
+        status: userReward.status,
+      });
+      if (userRewardRes.affected == 0)
+        throw new NotFoundException('user reward not found');
       return this.userRewardRepository.findOne({
         relations: {
-          userId: true,
-          rewardId: true,
+          user: true,
+          reward: true,
         },
         where: {
-          userId: {
-            id,
-          },
+          id,
         },
         select: {
           id: true,
@@ -155,10 +158,10 @@ export class UserRewardService {
           status: true,
           createdAt: true,
           updatedAt: true,
-          userId: {
+          user: {
             id: true,
           },
-          rewardId: {
+          reward: {
             id: true,
             name: true,
           },
@@ -171,11 +174,8 @@ export class UserRewardService {
   }
 
   async delete(id: string): Promise<void> {
-    try {
-      await this.userRewardRepository.softDelete(id);
-    } catch (error) {
-      if (error instanceof Error)
-        throw new NotFoundException('user-reward not found');
-    }
+    const deleteResult = await this.userRewardRepository.delete(id);
+    if (deleteResult.affected == 0)
+      throw new NotFoundException('user-reward not found');
   }
 }

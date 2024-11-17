@@ -15,11 +15,15 @@ export class UserReward {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, (user) => user.rewards)
-  userId: User;
+  @ManyToOne(() => User, (user) => user.rewards, {
+    onDelete: 'CASCADE',
+  })
+  user: User;
 
-  @ManyToOne(() => Reward, (reward) => reward.userReward)
-  rewardId: Reward;
+  @ManyToOne(() => Reward, (reward) => reward.userReward, {
+    onDelete: 'CASCADE',
+  })
+  reward: Reward;
 
   @Column({
     nullable: false,

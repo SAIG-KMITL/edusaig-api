@@ -52,7 +52,7 @@ export class Reward {
   })
   status: Status;
 
-  @OneToMany(() => UserReward, (userReward) => userReward.rewardId)
+  @OneToMany(() => UserReward, (userReward) => userReward.reward)
   userReward: UserReward;
 
   @CreateDateColumn({

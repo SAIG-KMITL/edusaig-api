@@ -54,7 +54,7 @@ export class User {
   @OneToMany(() => Course, (course) => course.teacher)
   courses: Course[];
 
-  @OneToMany(() => UserReward, (userReward) => userReward.userId)
+  @OneToMany(() => UserReward, (userReward) => userReward.user)
   rewards: UserReward[];
 
   @CreateDateColumn({

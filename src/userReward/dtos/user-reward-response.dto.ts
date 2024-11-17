@@ -15,14 +15,14 @@ export class UserRewardResponseDto {
     type: Object,
     example: { id: '4a3522e7-3080-46a6-83ff-778ce829e8ef' },
   })
-  userId: { id: string };
+  user: { id: string };
 
   @ApiProperty({
     description: 'reward matched by id',
     type: Object,
     example: { id: '4a3522e7-3080-46a6-83ff-778ce829e8ef', name: 'reward' },
   })
-  rewardId: { id: string; name: string };
+  reward: { id: string; name: string };
 
   @ApiProperty({
     description: 'how many points user spent on this reward',
@@ -62,8 +62,8 @@ export class UserRewardResponseDto {
 
   constructor(userReward: UserReward) {
     this.id = userReward.id;
-    this.userId = userReward.userId;
-    this.rewardId = userReward.rewardId;
+    this.user = userReward.user;
+    this.reward = userReward.reward;
     this.pointsSpent = userReward.pointsSpent;
     this.status = userReward.status;
     this.redeemedAt = userReward.redeemedAt;

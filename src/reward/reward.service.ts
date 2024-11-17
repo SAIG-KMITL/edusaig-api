@@ -28,6 +28,8 @@ export class RewardService {
 
   async create(CreateRewardDto: CreateRewardDto): Promise<Reward> {
     try {
+      if (CreateRewardDto.points < 0)
+        throw new BadRequestException('points should not be less than zero');
       return this.rewardRepository.save(CreateRewardDto);
     } catch (error) {
       if (error instanceof Error) {
@@ -38,6 +40,8 @@ export class RewardService {
 
   async update(id: string, UpdateRewardDto: UpdateRewardDto): Promise<Reward> {
     try {
+      if (UpdateRewardDto.points < 0)
+        throw new BadRequestException('points should not be less than zero');
       await this.rewardRepository.update(id, UpdateRewardDto);
       return this.rewardRepository.findOne({ where: { id } });
     } catch (error) {
