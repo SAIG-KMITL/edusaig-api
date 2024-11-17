@@ -12,6 +12,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { UserReward } from 'src/userReward/user-reward.entity';
+
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -51,6 +53,12 @@ export class User {
   })
   email: string;
 
+  @Column({
+    nullable: false,
+    default: 0,
+  })
+  points: number;
+
   @OneToMany(() => Course, (course) => course.teacher)
   courses: Course[];
 
@@ -61,6 +69,9 @@ export class User {
     cascade: true,
   })
   examAttempt: ExamAttempt[];
+
+  @OneToMany(() => UserReward, (userReward) => userReward.user)
+  rewards: UserReward[];
 
   @CreateDateColumn({
     type: 'timestamp with time zone',

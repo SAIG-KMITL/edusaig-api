@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsString,
   IsStrongPassword,
+  IsNumber,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -33,6 +34,15 @@ export class CreateUserDto {
     example: 'John Doe',
   })
   fullname: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'points for reward',
+    type: Number,
+    example: '200',
+  })
+  points: number;
 
   @IsStrongPassword()
   @IsNotEmpty()

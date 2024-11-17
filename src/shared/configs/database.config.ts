@@ -17,6 +17,8 @@ import { UserStreak } from 'src/user-streak/user-streak.entity';
 import { User } from 'src/user/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { GLOBAL_CONFIG } from '../constants/global-config.constant';
+import { Reward } from 'src/reward/reward.entity';
+import { UserReward } from 'src/userReward/user-reward.entity';
 
 const configService = new ConfigService();
 
@@ -30,11 +32,19 @@ export const databaseConfig: DataSourceOptions = {
   logging: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
   entities: [
     User,
+
     UserStreak,
+
     Category,
+
     Course,
+
     CourseModule,
+
     Chapter,
+    Reward,
+    UserReward,
+    ,
     Enrollment,
     Exam,
     Progress,
