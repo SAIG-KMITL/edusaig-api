@@ -95,9 +95,16 @@ export class ExamService {
   ): Promise<Exam> {
     const whereCondition = this.validateAndCreateCondition(request, '');
 
+    const where = Array.isArray(whereCondition)
+      ? [
+          { ...whereCondition[0], ...options.where },
+          { ...whereCondition[1], ...options.where },
+        ]
+      : { ...whereCondition, ...options.where };
+
     const exam = await this.examRepository.findOne({
       ...options,
-      where: whereCondition,
+      where,
       relations: ['courseModule'],
       select: {
         courseModule: this.selectPopulateCourseModule(),
