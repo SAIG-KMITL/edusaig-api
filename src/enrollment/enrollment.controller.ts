@@ -4,6 +4,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpCode,
     HttpStatus,
     Injectable,
     Param,
@@ -72,7 +73,7 @@ export class EnrollmentController {
         )
         id: string,
     ): Promise<EnrollmentResponseDto> {
-        return this.enrollmentService.findOne(id, { where: { id } });
+        return await this.enrollmentService.findOne({ id });
     }
 
     @Post()
@@ -86,7 +87,7 @@ export class EnrollmentController {
         @Body() createEnrollmentDto: CreateEnrollmentDto,
         @Req() req: AuthenticatedRequest,
     ): Promise<EnrollmentResponseDto> {
-        return this.enrollmentService.create(createEnrollmentDto);
+        return await this.enrollmentService.create(createEnrollmentDto);
     }
 
     @Patch(':id')
@@ -105,7 +106,7 @@ export class EnrollmentController {
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateEnrollmentDto: UpdateEnrollmentDto,
     ): Promise<EnrollmentResponseDto> {
-        return this.enrollmentService.update(id, updateEnrollmentDto);
+        return await this.enrollmentService.update(id, updateEnrollmentDto);
     }
 
     @Delete(':id')
@@ -116,10 +117,11 @@ export class EnrollmentController {
         description: 'Enrollment ID',
     })
     @ApiResponse({
-        status: HttpStatus.OK,
+        status: HttpStatus.NO_CONTENT,
         description: 'Delete enrollment by ID',
     })
+    @HttpCode(HttpStatus.NO_CONTENT)
     async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-        return this.enrollmentService.remove(id);
+        return await this.enrollmentService.remove(id);
     }
 }

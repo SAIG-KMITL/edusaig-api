@@ -42,23 +42,19 @@ export class EnrollmentService {
     }
 
     async findOne(
-        id: string,
-        options: FindOneOptions<Enrollment>,
+        where: FindOptionsWhere<Enrollment>,
     ): Promise<Enrollment> {
-        const baseWhere = options.where as FindOptionsWhere<Enrollment>;
-        const whereCondition = { ...baseWhere, id };
-
-        const enrollment = await this.enrollmentRepository.findOne({
-            where: whereCondition,
-            relations: {
+        const options: FindOneOptions<Enrollment> = {
+            where, relations: {
                 user: true,
                 course: true,
-            },
-        });
+            }
+        };
 
-        if (!enrollment) {
+        const enrollment = await this.enrollmentRepository.findOne(options);
+
+        if (!enrollment) 
             throw new NotFoundException('Enrollment not found');
-        }
 
         return enrollment;
     }
@@ -74,18 +70,17 @@ export class EnrollmentService {
         id: string,
         updateEnrollmentDto: UpdateEnrollmentDto,
     ): Promise<Enrollment> {
-        const enrollment = await this.findOne(id, {
-            where: { status: EnrollmentStatus.ACTIVE },
+        const enrollment = await this.findOne({
+            status: EnrollmentStatus.ACTIVE, id,
         });
         this.enrollmentRepository.merge(enrollment, updateEnrollmentDto);
         await this.enrollmentRepository.save(enrollment);
-
         return enrollment;
     }
 
     async remove(id: string): Promise<void> {
-        const enrollment = await this.findOne(id, {
-            where: { id },
+        const enrollment = await this.findOne({
+            id,
         });
         await this.enrollmentRepository.remove(enrollment);
     }
