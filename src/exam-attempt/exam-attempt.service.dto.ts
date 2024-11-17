@@ -184,7 +184,7 @@ export class ExamAttemptService {
       throw new ForbiddenException(
         "Can't create exam-attempt more than max attempt",
       );
-    const examAttempt = this.examAttemptRepository.create({
+    const examAttempt = await this.examAttemptRepository.create({
       ...createExamAttemptDto,
       exam,
       user,

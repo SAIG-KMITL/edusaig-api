@@ -232,10 +232,11 @@ export class QuestionService {
     if (!exam) {
       throw new NotFoundException('Exam not found.');
     }
-    const question = this.questionRepository.create({
+    const question = await this.questionRepository.create({
       ...createQuestionDto,
       exam,
     });
+    if (!question) throw new BadRequestException('Can not create question');
     try {
       await this.questionRepository.save(question);
       return question;
@@ -257,11 +258,21 @@ export class QuestionService {
     updateQuestionDto: UpdateQuestionDto,
   ): Promise<Question> {
     await this.findOne(request, { where: { id } });
+    let exam = null;
+    if (updateQuestionDto.examId) {
+      exam = await this.examRepository.findOne({
+        where: { id: updateQuestionDto.examId },
+        select: this.selectPopulateExam(),
+      });
+
+      if (!exam) throw new NotFoundException('Exam Not Found');
+    }
+    const updateQuestion = {
+      ...updateQuestionDto,
+      ...(exam ? { examId: exam.id } : {}),
+    };
     try {
-      const question = await this.questionRepository.update(
-        id,
-        updateQuestionDto,
-      );
+      const question = await this.questionRepository.update(id, updateQuestion);
       if (!question) throw new NotFoundException("Can't update question");
       return await this.questionRepository.findOne({
         where: { id },

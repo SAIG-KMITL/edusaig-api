@@ -186,7 +186,7 @@ export class QuestionOptionService {
     if (!question) {
       throw new NotFoundException('Question option not found.');
     }
-    const questionOption = this.questionOptionRepository.create({
+    const questionOption = await this.questionOptionRepository.create({
       ...createQuestionOptionDto,
       question,
     });
@@ -203,9 +203,22 @@ export class QuestionOptionService {
     updateQuestionOptionDto: UpdateQuestionOptionDto,
   ): Promise<QuestionOption> {
     await this.findOne(request, { where: { id } });
+    let question = null;
+    if (updateQuestionOptionDto.questionId) {
+      question = await this.questionRepository.findOne({
+        where: { id: updateQuestionOptionDto.questionId },
+        select: this.selectPopulateQuestion(),
+      });
+
+      if (!question) throw new NotFoundException('Question Not Found');
+    }
+    const updateQuestionOption = {
+      ...updateQuestionOptionDto,
+      ...(question ? { questionId: question.id } : {}),
+    };
     const questionOption = await this.questionOptionRepository.update(
       id,
-      updateQuestionOptionDto,
+      updateQuestionOption,
     );
     if (!questionOption)
       throw new NotFoundException("Can't update question option");

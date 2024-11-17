@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import {
   Repository,
   FindOneOptions,
@@ -124,10 +129,15 @@ export class ExamService {
       select: this.selectPopulateCourseModule(),
     });
 
-    const exam = this.examRepository.create({ ...createExamDto, courseModule });
+    if (!courseModule) throw new NotFoundException('Course Module not found');
 
-    await this.examRepository.save(exam);
+    const exam = await this.examRepository.create({
+      ...createExamDto,
+      courseModule,
+    });
+
     if (!exam) throw new NotFoundException("Can't create exam");
+    await this.examRepository.save(exam);
     return exam;
   }
 
@@ -143,7 +153,21 @@ export class ExamService {
     ) {
       throw new NotFoundException("Can't change status to draft");
     }
-    const exam = await this.examRepository.update(id, updateExamDto);
+    let courseModule = null;
+    if (updateExamDto.courseModuleId) {
+      courseModule = await this.courseModuleRepository.findOne({
+        where: { id: updateExamDto.courseModuleId },
+        select: this.selectPopulateCourseModule(),
+      });
+
+      if (!courseModule) throw new NotFoundException('CourseModule Not Found');
+    }
+    const updateExam = {
+      ...updateExamDto,
+      ...(courseModule ? { examAttemptId: courseModule.id } : {}),
+    };
+
+    const exam = await this.examRepository.update(id, updateExam);
     if (!exam) throw new NotFoundException("Can't update exam");
     return await this.examRepository.findOne({
       where: { id },
