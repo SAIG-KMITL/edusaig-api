@@ -1,22 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsNotEmpty } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateExamAnswerDto {
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty({
     description: 'Exam Attempt ID',
     type: String,
     example: '8d4887aa-28e7-4d0e-844c-28a8ccead003',
   })
-  examAttemptId: string;
-
-  @IsNotEmpty()
-  @ApiProperty({
-    description: 'Question ID',
-    type: String,
-    example: '8d4887aa-28e7-4d0e-844c-28a8ccead003',
-  })
-  questionId: string;
+  examAttemptId?: string;
 
   @IsNotEmpty()
   @ApiProperty({

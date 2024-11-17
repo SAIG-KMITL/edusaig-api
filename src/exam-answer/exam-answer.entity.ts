@@ -8,22 +8,24 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
+@Unique(['selectedOptionId', 'questionId'])
 export class ExamAnswer {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ManyToOne(() => ExamAttempt, (examAttempt) => examAttempt.examAnswer, {
     onDelete: 'CASCADE',
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn({ name: 'exam_attempt_id' })
   examAttempt: ExamAttempt;
 
-  @Column({ name: 'exam_attempt_id' })
+  @Column({ name: 'exam_attempt_id', nullable: true })
   examAttemptId: string;
 
   @ManyToOne(() => Question, (question) => question.examAnswer, {

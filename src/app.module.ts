@@ -26,7 +26,7 @@ import { UserModule } from './user/user.module';
 import { ExamAttemptModule } from './exam-attempt/exam-attempt.module';
 import { QuestionModule } from './question/question.module';
 import { QuestionOptionModule } from './question-option/question-option.module';
-import { ExamAnswer } from './exam-answer/exam-answer.entity';
+import { ExamAnswerModule } from './exam-answer/exam-answer.module';
 
 const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
 
@@ -66,7 +66,7 @@ const forFeatures = TypeOrmModule.forFeature([User, UserStreak]);
     ExamAttemptModule,
     QuestionModule,
     QuestionOptionModule,
-    ExamAnswer,
+    ExamAnswerModule,
   ],
   controllers: [AppController],
   providers: [
