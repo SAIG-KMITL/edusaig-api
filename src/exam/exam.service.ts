@@ -121,7 +121,6 @@ export class ExamService {
   async createExam(createExamDto: CreateExamDto): Promise<Exam> {
     const courseModule = await this.courseModuleRepository.findOne({
       where: { id: createExamDto.courseModuleId },
-      relations: ['courseModule'],
       select: this.selectPopulateCourseModule(),
     });
 

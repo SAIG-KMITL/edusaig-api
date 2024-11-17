@@ -62,11 +62,15 @@ export class ExamAttemptController {
     @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
   ): Promise<PaginatedExamAttemptResponseDto> {
-    return await this.examAttemptService.findAll(request, {
-      page: query.page,
-      limit: query.limit,
-      search: query.search,
-    });
+    return await this.examAttemptService.findAll(
+      request.user.id,
+      request.user.role,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
   }
 
   @Get(':id')
@@ -86,14 +90,18 @@ export class ExamAttemptController {
     )
     id: string,
   ): Promise<ExamAttemptResponseDto> {
-    const exam = await this.examAttemptService.findOne(request, {
-      where: { id },
-    });
+    const exam = await this.examAttemptService.findOne(
+      request.user.id,
+      request.user.role,
+      {
+        where: { id },
+      },
+    );
     return new ExamAttemptResponseDto(exam);
   }
 
   @Post()
-  @Roles(Role.TEACHER)
+  @Roles(Role.STUDENT)
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Create an exam-attempt',
@@ -101,15 +109,18 @@ export class ExamAttemptController {
   })
   @HttpCode(HttpStatus.CREATED)
   async createExamAttempt(
+    @Req() request: AuthenticatedRequest,
     @Body() createExamAttemptDto: CreateExamAttemptDto,
   ): Promise<ExamAttemptResponseDto> {
-    const exam =
-      await this.examAttemptService.createExamAttempt(createExamAttemptDto);
+    const exam = await this.examAttemptService.createExamAttempt(
+      request.user.id,
+      createExamAttemptDto,
+    );
     return new ExamAttemptResponseDto(exam);
   }
 
   @Patch(':id')
-  @Roles(Role.TEACHER)
+  @Roles(Role.STUDENT)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Update an exam-attempt',
@@ -128,7 +139,8 @@ export class ExamAttemptController {
     @Body() updateExamAttemptDto: UpdateExamAttemptDto,
   ): Promise<ExamAttemptResponseDto> {
     const exam = await this.examAttemptService.updateExamAttempt(
-      request,
+      request.user.id,
+      request.user.role,
       id,
       updateExamAttemptDto,
     );
@@ -136,7 +148,7 @@ export class ExamAttemptController {
   }
 
   @Patch('/submit/:id')
-  @Roles(Role.TEACHER)
+  @Roles(Role.STUDENT)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Update an exam-attempt',
@@ -153,7 +165,11 @@ export class ExamAttemptController {
     )
     id: string,
   ): Promise<ExamAttemptResponseDto> {
-    const exam = await this.examAttemptService.submittedExam(request, id);
+    const exam = await this.examAttemptService.submittedExam(
+      request.user.id,
+      request.user.role,
+      id,
+    );
     return new ExamAttemptResponseDto(exam);
   }
 
@@ -176,7 +192,11 @@ export class ExamAttemptController {
     )
     id: string,
   ): Promise<{ massage: string }> {
-    await this.examAttemptService.deleteExamAttempt(request, id);
+    await this.examAttemptService.deleteExamAttempt(
+      request.user.id,
+      request.user.role,
+      id,
+    );
     return { massage: 'Exam-attempt deleted successfully' };
   }
 }
