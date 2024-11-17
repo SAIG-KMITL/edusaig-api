@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Status } from '../enums/status.enum';
 import { UserReward } from '../user-reward.entity';
+import { UserRewardStatus } from '../enums/user-reward-status.enum';
 
 export class UserRewardResponseDto {
   @ApiProperty({
@@ -34,10 +34,10 @@ export class UserRewardResponseDto {
   @ApiProperty({
     description: 'status of reward',
     type: String,
-    enum: Status,
-    example: Status.DELIVERED,
+    enum: UserRewardStatus,
+    example: UserRewardStatus.DELIVERED,
   })
-  status: Status;
+  status: UserRewardStatus;
 
   @ApiProperty({
     description: 'redeem date',

@@ -18,7 +18,7 @@ import { UserRewardService } from './user-reward.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRewardResponseDto } from './dtos/user-reward-response.dto';
 import { UpdateStatusUserReward } from './dtos/update-status-user-reward.dto';
-import { Status } from './enums/status.enum';
+import { UserRewardStatus } from './enums/user-reward-status.enum';
 
 @Controller('user-reward')
 @Injectable()
@@ -65,7 +65,24 @@ export class UserRewardController {
     return userReward;
   }
 
-  @Get('findOne/:id')
+  @Get('user')
+  @Roles(Role.STUDENT)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: UserRewardResponseDto,
+    isArray: true,
+    description: "get all user reward by user's id",
+  })
+  async findByUser(
+    @Req() request: AuthenticatedRequest,
+  ): Promise<UserRewardResponseDto[]> {
+    const userRewards = await this.userRewardService.findByUser(
+      request.user.id,
+    );
+    return userRewards;
+  }
+
+  @Get(':id')
   @Roles(Role.STUDENT)
   @ApiResponse({
     status: HttpStatus.OK,
@@ -86,29 +103,12 @@ export class UserRewardController {
     return userReward;
   }
 
-  @Get('user')
-  @Roles(Role.STUDENT)
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: UserRewardResponseDto,
-    isArray: true,
-    description: "get all user reward by user's id",
-  })
-  async findByUser(
-    @Req() request: AuthenticatedRequest,
-  ): Promise<UserRewardResponseDto[]> {
-    const userRewards = await this.userRewardService.findByUser(
-      request.user.id,
-    );
-    return userRewards;
-  }
-
   @Patch(':id')
   @Roles(Role.STUDENT)
   @ApiResponse({
     status: HttpStatus.OK,
     type: UserRewardResponseDto,
-    description: `update status (${Status.PENDING} ${Status.DELIVERED} or ${Status.EXPIRED})`,
+    description: `update status (${UserRewardStatus.PENDING} ${UserRewardStatus.DELIVERED} or ${UserRewardStatus.EXPIRED})`,
   })
   async updateStatus(
     @Param(

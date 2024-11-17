@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
 } from 'typeorm';
-import { Status } from './enums/status.enum';
+import { UserRewardStatus } from './enums/user-reward-status.enum';
 import { User } from 'src/user/user.entity';
 import { Reward } from 'src/reward/reward.entity';
 
@@ -33,9 +33,9 @@ export class UserReward {
   @Column({
     nullable: false,
     type: 'enum',
-    enum: Status,
+    enum: UserRewardStatus,
   })
-  status: Status;
+  status: UserRewardStatus;
 
   //redeemed at
   @CreateDateColumn({

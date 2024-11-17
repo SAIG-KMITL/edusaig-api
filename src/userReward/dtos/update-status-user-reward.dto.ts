@@ -1,17 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Status } from '../enums/status.enum';
+import { UserRewardStatus } from '../enums/user-reward-status.enum';
 import { IsEnum, IsNotEmpty } from 'class-validator';
 
 export class UpdateStatusUserReward {
   @ApiProperty({
     description: 'status of user-reward',
     type: String,
-    example: Status.EXPIRED,
-    enum: Status,
+    example: UserRewardStatus.EXPIRED,
+    enum: UserRewardStatus,
   })
   @IsNotEmpty()
-  @IsEnum(Status, {
-    message: `status should be either ${Status.DELIVERED} ${Status.EXPIRED} or ${Status.PENDING}`,
+  @IsEnum(UserRewardStatus, {
+    message: `status should be either ${UserRewardStatus.DELIVERED} ${UserRewardStatus.EXPIRED} or ${UserRewardStatus.PENDING}`,
   })
-  status: Status;
+  status: UserRewardStatus;
 }

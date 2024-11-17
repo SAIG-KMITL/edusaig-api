@@ -9,9 +9,8 @@ import { UserReward } from './user-reward.entity';
 import { User } from 'src/user/user.entity';
 import { Reward } from 'src/reward/reward.entity';
 import { Status } from 'src/reward/enums/status.enum';
-import { Status as rewardStatus } from './enums/status.enum';
+import { UserRewardStatus } from './enums/user-reward-status.enum';
 import { UpdateStatusUserReward } from './dtos/update-status-user-reward.dto';
-import { error } from 'console';
 
 @Injectable()
 export class UserRewardService {
@@ -48,7 +47,7 @@ export class UserRewardService {
     newUserReward.user = user;
     newUserReward.reward = reward;
     newUserReward.pointsSpent = reward.points;
-    newUserReward.status = rewardStatus.PENDING;
+    newUserReward.status = UserRewardStatus.PENDING;
     const userRewardRes = await this.userRewardRepository.save(newUserReward);
     return userRewardRes;
   }
