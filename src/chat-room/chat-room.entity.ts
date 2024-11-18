@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToOne } from "typeorm";
 import { Chapter } from "src/chapter/chapter.entity";
 import { ChatRoomType, ChatRoomStatus } from "./enums";
 
@@ -7,7 +7,7 @@ export class ChatRoom {
     @PrimaryGeneratedColumn("uuid")
     id: string;
 
-    @OneToOne(() => Chapter, {
+    @ManyToOne(() => Chapter, (chapter) => chapter.chatRooms, {
         onDelete: "CASCADE",
         nullable: false,
         eager: true,
@@ -42,7 +42,6 @@ export class ChatRoom {
     createdAt: Date;
 
     @Column({
-        nullable: false,
         default: 0,
         type: "int",
     })

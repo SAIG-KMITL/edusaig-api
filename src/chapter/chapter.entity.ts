@@ -1,3 +1,4 @@
+import { ChatRoom } from 'src/chat-room/chat-room.entity';
 import { CourseModule } from 'src/course-module/course-module.entity';
 import { Progress } from 'src/progress/progress.entity';
 import {
@@ -36,6 +37,9 @@ export class Chapter {
     module: CourseModule;
     @Column({ name: 'module_id' })
     moduleId: string;
+
+    @OneToMany(() => ChatRoom, (chatRoom) => chatRoom.chapter)
+    chatRooms: ChatRoom[];
 
     @OneToMany(() => Progress, (progress) => progress.chapter)
     progresses: Progress[];

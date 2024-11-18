@@ -6,11 +6,11 @@ export class CreateChatRoomDto {
     @IsString()
     @IsNotEmpty()
     @ApiProperty({
-        description: 'ChatRoom name',
+        description: 'ChatRoom title',
         type: String,
         example: 'Chat Room 1',
     })
-    name: string;
+    title: string;
 
     @IsEnum(ChatRoomType)
     @ApiProperty({
