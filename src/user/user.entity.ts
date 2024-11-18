@@ -1,8 +1,10 @@
 import { Course } from 'src/course/course.entity';
 import { Enrollment } from 'src/enrollment/enrollment.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
+import { Roadmap } from 'src/roadmap/roadmap.entity';
 import { Role } from 'src/shared/enums/roles.enum';
 import { UserBackground } from 'src/user-background/user-background.entity';
+import { UserReward } from 'src/userReward/user-reward.entity';
 import {
   Column,
   CreateDateColumn,
@@ -11,7 +13,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserReward } from 'src/userReward/user-reward.entity';
 
 @Entity()
 export class User {
@@ -39,6 +40,9 @@ export class User {
 
   @OneToMany(() => UserBackground, (background) => background.user)
   backgrounds: UserBackground[];
+
+  @OneToMany(() => Roadmap, (roadmap) => roadmap.user)
+  roadmaps: Roadmap[];
 
   @Column({
     nullable: false,
