@@ -1,6 +1,6 @@
-import { Role } from "src/shared/enums/roles.enum";
+import { Role } from 'src/shared/enums/roles.enum';
 
 export class JwtPayloadDto {
-    id: string;
-    role: Role;
+  id: string;
+  role: Role;
 }
