@@ -11,7 +11,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
 import { UserReward } from 'src/userReward/user-reward.entity';
 
 @Entity()
@@ -54,23 +53,30 @@ export class User {
   email: string;
 
   @Column({
-    nullable: false,
+    nullable: true,
     default: 0,
   })
   points: number;
 
-  @OneToMany(() => Course, (course) => course.teacher)
+  @OneToMany(() => Course, (course) => course.teacher, {
+    nullable: true,
+  })
   courses: Course[];
 
-  @OneToMany(() => Enrollment, (enrollment) => enrollment.user)
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.user, {
+    nullable: true,
+  })
   enrollments: Enrollment[];
 
   @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.exam, {
     cascade: true,
+    nullable: true,
   })
   examAttempt: ExamAttempt[];
 
-  @OneToMany(() => UserReward, (userReward) => userReward.user)
+  @OneToMany(() => UserReward, (userReward) => userReward.user, {
+    nullable: true,
+  })
   rewards: UserReward[];
 
   @CreateDateColumn({
