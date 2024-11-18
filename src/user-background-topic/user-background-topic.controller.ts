@@ -1,23 +1,23 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpStatus,
-    Injectable,
-    Param,
-    ParseUUIDPipe,
-    Patch,
-    Post,
-    Query,
-    Req,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Injectable,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
 } from '@nestjs/common';
 import {
-    ApiBearerAuth,
-    ApiParam,
-    ApiQuery,
-    ApiResponse,
-    ApiTags,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { Roles } from 'src/shared/decorators/role.decorator';
@@ -26,8 +26,8 @@ import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto'
 import { CreateUserBackgroundTopicDto } from './dtos/create-user-background-topic.dto';
 import { UpdateUserBackgroundTopicDto } from './dtos/update-user-background-topic.dto';
 import {
-    PaginatedUserBackgroundTopicResponseDto,
-    UserBackgroundTopicResponseDto,
+  PaginatedUserBackgroundTopicResponseDto,
+  UserBackgroundTopicResponseDto,
 } from './dtos/user-background-response.dto';
 import { UserBackgroundTopicService } from './user-background-topic.service';
 

@@ -1,7 +1,7 @@
 import {
-    BadRequestException,
-    Injectable,
-    NotFoundException,
+  BadRequestException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createPagination } from 'src/shared/pagination';
@@ -16,42 +16,42 @@ import { ChatRoomStatus, ChatRoomType } from 'src/chat-room/enums';
 
 @Injectable()
 export class ChapterService {
-    constructor(
-        @InjectRepository(Chapter)
-        private readonly chapterRepository: Repository<Chapter>,
-        private readonly chatRoomService: ChatRoomService,
-    ) { }
+  constructor(
+    @InjectRepository(Chapter)
+    private readonly chapterRepository: Repository<Chapter>,
+    private readonly chatRoomService: ChatRoomService,
+  ) {}
 
-    async findAll({
-        page = 1,
-        limit = 20,
-        search = '',
+  async findAll({
+    page = 1,
+    limit = 20,
+    search = '',
     userId,
     role,
-    }: {
-        page?: number;
-        limit?: number;
-        search?: string;
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
     userId: string;
     role: Role;
-    }): Promise<PaginatedChapterResponseDto> {
-        const { find } = await createPagination(this.chapterRepository, {
-            page,
-            limit,
-        });
+  }): Promise<PaginatedChapterResponseDto> {
+    const { find } = await createPagination(this.chapterRepository, {
+      page,
+      limit,
+    });
 
     const baseSearch = search ? { title: ILike(`%${search}%`) } : {};
     const whereCondition = this.buildWhereCondition(userId, role, baseSearch);
 
-        const chapters = await find({
-            where: whereCondition,
-            relations: {
-                module: true,
-            },
-        }).run();
+    const chapters = await find({
+      where: whereCondition,
+      relations: {
+        module: true,
+      },
+    }).run();
 
-        return chapters;
-    }
+    return chapters;
+  }
 
   async findOne(
     userId: string,
@@ -61,74 +61,74 @@ export class ChapterService {
     const baseWhere = options.where as FindOptionsWhere<Chapter>;
     const whereCondition = this.buildWhereCondition(userId, role, baseWhere);
 
-        const chapter = await this.chapterRepository.findOne({
-            where: whereCondition,
-            relations: {
-                module: true,
-            },
-        });
+    const chapter = await this.chapterRepository.findOne({
+      where: whereCondition,
+      relations: {
+        module: true,
+      },
+    });
 
-        if (!chapter) {
-            throw new NotFoundException('Chapter not found');
-        }
-
-        return chapter;
+    if (!chapter) {
+      throw new NotFoundException('Chapter not found');
     }
 
-    async validateAndGetNextOrderIndex(moduleId: string): Promise<number> {
-        const existingChapter = await this.chapterRepository.find({
-            where: { moduleId },
-            order: { orderIndex: 'DESC' },
-        });
+    return chapter;
+  }
 
-        const nextOrderIndex = existingChapter.map((chapter) => chapter.orderIndex);
-        const hasDuplicates =
-            new Set(nextOrderIndex).size !== nextOrderIndex.length;
+  async validateAndGetNextOrderIndex(moduleId: string): Promise<number> {
+    const existingChapter = await this.chapterRepository.find({
+      where: { moduleId },
+      order: { orderIndex: 'DESC' },
+    });
 
-        if (hasDuplicates) {
-            throw new BadRequestException('Order index is duplicated');
-        }
+    const nextOrderIndex = existingChapter.map((chapter) => chapter.orderIndex);
+    const hasDuplicates =
+      new Set(nextOrderIndex).size !== nextOrderIndex.length;
 
-        return nextOrderIndex.length ? nextOrderIndex[0] + 1 : 1;
+    if (hasDuplicates) {
+      throw new BadRequestException('Order index is duplicated');
     }
+
+    return nextOrderIndex.length ? nextOrderIndex[0] + 1 : 1;
+  }
 
   async create(createChapterDto: CreateChapterDto): Promise<Chapter> {
-
     let orderIndex = await this.validateAndGetNextOrderIndex(
       createChapterDto.moduleId,
     );
 
+    const createdChapter = this.chapterRepository.create({
+      ...createChapterDto,
+      orderIndex: orderIndex,
+    });
+    const savedChapter = await this.chapterRepository.save(createdChapter);
+    await this.chatRoomService.create({
+      title: `${savedChapter.title} Questions`,
+      type: ChatRoomType.QUESTION,
+      chapterId: savedChapter.id,
+      status: ChatRoomStatus.ACTIVE,
+    });
+    await this.chatRoomService.create({
+      title: `${savedChapter.title} Discussion`,
+      type: ChatRoomType.DISCUSSION,
+      chapterId: savedChapter.id,
+      status: ChatRoomStatus.ACTIVE,
+    });
+    return savedChapter;
+  }
 
-    const chapter = this.chapterRepository.create({...createChapterDto, orderIndex: orderIndex});
+  async reorderModules(moduleId: string): Promise<void> {
+    const modulesToReorder = await this.chapterRepository.find({
+      where: { moduleId },
+      order: { orderIndex: 'ASC' },
+    });
 
-        await this.chapterRepository.save(chapter);
-        await this.chatRoomService.create({
-            name: `${chapter.title} Questions`,
-            type: ChatRoomType.QUESTION,
-            chapterId: chapter.id,
-            status: ChatRoomStatus.ACTIVE,
-        });
-        await this.chatRoomService.create({
-            name: `${chapter.title} Discussion`,
-            type: ChatRoomType.DISCUSSION,
-            chapterId: chapter.id,
-            status: ChatRoomStatus.ACTIVE,
-        });
-        return chapter;
+    for (let i = 0; i < modulesToReorder.length; i++) {
+      modulesToReorder[i].orderIndex = i + 1;
     }
 
-    async reorderModules(moduleId: string): Promise<void> {
-        const modulesToReorder = await this.chapterRepository.find({
-            where: { moduleId },
-            order: { orderIndex: 'ASC' },
-        });
-
-        for (let i = 0; i < modulesToReorder.length; i++) {
-            modulesToReorder[i].orderIndex = i + 1;
-        }
-
-        await this.chapterRepository.save(modulesToReorder);
-    }
+    await this.chapterRepository.save(modulesToReorder);
+  }
 
   async update(
     id: string,
@@ -140,44 +140,53 @@ export class ChapterService {
       throw new NotFoundException('Chapter not found');
     }
     if (updateChapterDto.orderIndex != null) {
-      await this.validateOrderIndex(chapter.moduleId, updateChapterDto.orderIndex); 
+      await this.validateOrderIndex(
+        chapter.moduleId,
+        updateChapterDto.orderIndex,
+      );
     }
     if (
       updateChapterDto.orderIndex &&
       updateChapterDto.orderIndex !== chapter.orderIndex
     ) {
       const existingChapter = await this.chapterRepository.findOne({
-        where: { 
+        where: {
           moduleId: chapter.moduleId,
-          orderIndex: updateChapterDto.orderIndex },
+          orderIndex: updateChapterDto.orderIndex,
+        },
       });
 
       if (existingChapter) {
-        await this.chapterRepository.update(existingChapter.id, { orderIndex: chapter.orderIndex });
+        await this.chapterRepository.update(existingChapter.id, {
+          orderIndex: chapter.orderIndex,
+        });
       }
     }
 
     Object.assign(chapter, updateChapterDto);
     await this.chapterRepository.save(chapter);
 
-        return chapter;
-    }
+    return chapter;
+  }
 
   async remove(id: string): Promise<Chapter> {
     const chapter = await this.chapterRepository.findOne({ where: { id } });
 
-        if (!chapter) {
-            throw new BadRequestException('Chapter not found');
-        }
+    if (!chapter) {
+      throw new BadRequestException('Chapter not found');
+    }
 
-        const result = await this.chapterRepository.remove(chapter);
+    const result = await this.chapterRepository.remove(chapter);
 
-        await this.reorderModules(chapter.moduleId);
+    await this.reorderModules(chapter.moduleId);
 
     return result;
   }
 
-  private async validateOrderIndex(moduleId: string, orderIndex: number): Promise<void> {
+  private async validateOrderIndex(
+    moduleId: string,
+    orderIndex: number,
+  ): Promise<void> {
     const existingModules = await this.chapterRepository.find({
       where: { moduleId },
       order: { orderIndex: 'ASC' },
@@ -185,7 +194,7 @@ export class ChapterService {
     if (existingModules.length === 0) {
       if (orderIndex !== 1) {
         throw new BadRequestException(
-          'Order index should be 1 when there are no modules in the course'
+          'Order index should be 1 when there are no modules in the course',
         );
       }
       return;
@@ -195,22 +204,24 @@ export class ChapterService {
 
     if (orderIndex < minIndex || orderIndex > maxIndex) {
       throw new BadRequestException(
-        `Order index must be between ${minIndex} and ${maxIndex}`
+        `Order index must be between ${minIndex} and ${maxIndex}`,
       );
     }
   }
   async validateOwnership(id: string, userId: string): Promise<void> {
-    const chapter = await this.chapterRepository.findOne({ where: { id }, relations: { module: { course: { teacher: true } } } });
-    if(!chapter) throw new NotFoundException('Chapter not found');
+    const chapter = await this.chapterRepository.findOne({
+      where: { id },
+      relations: { module: { course: { teacher: true } } },
+    });
+    if (!chapter) throw new NotFoundException('Chapter not found');
     if (chapter.module.course.teacher.id !== userId)
       throw new BadRequestException('You can only access your own courses');
   }
   private buildWhereCondition(
     userId: string,
     role: Role,
-    baseCondition: FindOptionsWhere<Chapter> = {}
-  )
-  {
+    baseCondition: FindOptionsWhere<Chapter> = {},
+  ) {
     const conditions: Record<
       Role,
       () => FindOptionsWhere<Chapter> | FindOptionsWhere<Chapter>[]
@@ -254,5 +265,4 @@ export class ChapterService {
 
     return buildCondition();
   }
-
 }

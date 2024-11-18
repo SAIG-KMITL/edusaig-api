@@ -18,7 +18,6 @@ export class CreateCourseModuleDto {
   })
   description: string;
 
-
   @IsNotEmpty()
   @IsUUID(4)
   @ApiProperty({

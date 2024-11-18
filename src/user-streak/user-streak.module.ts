@@ -7,10 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserStreak } from './user-streak.entity';
 
 @Module({
-  imports: [
-    DatabaseModule,
-    TypeOrmModule.forFeature([UserStreak]),
-],
+  imports: [DatabaseModule, TypeOrmModule.forFeature([UserStreak])],
   controllers: [UserStreakController],
   providers: [...userStreakProviders, UserStreakService],
   exports: [UserStreakService],

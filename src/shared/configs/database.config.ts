@@ -20,6 +20,8 @@ import { GLOBAL_CONFIG } from '../constants/global-config.constant';
 import { ExamAnswer } from 'src/exam-answer/exam-answer.entity';
 import { Reward } from 'src/reward/reward.entity';
 import { UserReward } from 'src/userReward/user-reward.entity';
+import { ChatRoom } from 'src/chat-room/chat-room.entity';
+import { ChatMessage } from 'src/chat-message/chat-message.entity';
 
 const configService = new ConfigService();
 
@@ -33,19 +35,13 @@ export const databaseConfig: DataSourceOptions = {
   logging: configService.get<boolean>(GLOBAL_CONFIG.IS_DEVELOPMENT),
   entities: [
     User,
-
     UserStreak,
-
     Category,
-
     Course,
-
     CourseModule,
-
     Chapter,
     Reward,
     UserReward,
-    ,
     Enrollment,
     Exam,
     Progress,
@@ -56,6 +52,8 @@ export const databaseConfig: DataSourceOptions = {
     UserOccupation,
     UserBackgroundTopic,
     UserBackground,
+    ChatRoom,
+    ChatMessage,
   ],
 };
 

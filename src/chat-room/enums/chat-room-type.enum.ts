@@ -1,4 +1,4 @@
 export enum ChatRoomType {
-    QUESTION = 'question',
-    DISCUSSION = 'discussion',
+  QUESTION = 'question',
+  DISCUSSION = 'discussion',
 }

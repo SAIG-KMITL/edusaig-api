@@ -43,7 +43,7 @@ export class CourseController {
   constructor(
     private readonly courseService: CourseService,
     private readonly categoryService: CategoryService,
-  ) { }
+  ) {}
   @Get()
   @ApiResponse({
     status: HttpStatus.OK,
@@ -139,7 +139,7 @@ export class CourseController {
   }
 
   @Patch(':id')
-  @CourseOwnership({adminDraftOnly: true})
+  @CourseOwnership({ adminDraftOnly: true })
   @ApiParam({
     name: 'id',
     type: String,
@@ -159,7 +159,8 @@ export class CourseController {
         version: '4',
         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
       }),
-    )id: string,
+    )
+    id: string,
   ): Promise<CourseResponseDto> {
     const category = await this.categoryService.findOne({
       where: { id: updateCourseDto.categoryId },
@@ -169,10 +170,7 @@ export class CourseController {
       throw new BadRequestException('Category not found');
     }
 
-    const course = await this.courseService.update(
-      id,
-      updateCourseDto,
-    );
+    const course = await this.courseService.update(id, updateCourseDto);
 
     return new CourseResponseDto(course);
   }
@@ -194,7 +192,8 @@ export class CourseController {
         version: '4',
         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
       }),
-    ) id: string,
+    )
+    id: string,
   ): Promise<void> {
     await this.courseService.delete(id);
   }

@@ -41,7 +41,10 @@ import { Course } from 'src/course/course.entity';
 @ApiBearerAuth()
 @Injectable()
 export class ChapterController {
-  constructor(private readonly chapterService: ChapterService, private readonly courseModuleService: CourseModuleService) { }
+  constructor(
+    private readonly chapterService: ChapterService,
+    private readonly courseModuleService: CourseModuleService,
+  ) {}
 
   @Get()
   @ApiResponse({
@@ -90,7 +93,9 @@ export class ChapterController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ChapterResponseDto> {
-    return this.chapterService.findOne(request.user.id, request.user.role, { where: { id } });
+    return this.chapterService.findOne(request.user.id, request.user.role, {
+      where: { id },
+    });
   }
 
   @Post()
@@ -105,13 +110,16 @@ export class ChapterController {
     @Body() createChapterDto: CreateChapterDto,
   ): Promise<ChapterResponseDto> {
     if (createChapterDto.moduleId != null) {
-      await this.courseModuleService.validateOwnership(createChapterDto.moduleId, request.user.id);
+      await this.courseModuleService.validateOwnership(
+        createChapterDto.moduleId,
+        request.user.id,
+      );
     }
     return this.chapterService.create(createChapterDto);
   }
 
   @Patch(':id')
-  @CourseOwnership({adminDraftOnly: true})
+  @CourseOwnership({ adminDraftOnly: true })
   @ApiResponse({
     status: HttpStatus.OK,
     type: ChapterResponseDto,
@@ -128,7 +136,10 @@ export class ChapterController {
     @Body() updateChapterDto: UpdateChapterDto,
   ): Promise<ChapterResponseDto> {
     if (updateChapterDto.moduleId != null) {
-      await this.courseModuleService.validateOwnership(updateChapterDto.moduleId, request.user.id);
+      await this.courseModuleService.validateOwnership(
+        updateChapterDto.moduleId,
+        request.user.id,
+      );
     }
     return this.chapterService.update(id, updateChapterDto);
   }
@@ -151,5 +162,3 @@ export class ChapterController {
     return this.chapterService.remove(id);
   }
 }
-
-
