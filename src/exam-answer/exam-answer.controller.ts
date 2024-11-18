@@ -26,7 +26,7 @@ import { Role } from 'src/shared/enums';
 import { CreateExamAnswerDto } from './dtos/create-exam-answer.dto';
 import { UpdateExamAnswerDto } from './dtos/update-exam-answer.dto';
 
-@Controller('examAnswer')
+@Controller('exam-answer')
 @ApiTags('ExamAnswer')
 @ApiBearerAuth()
 @Injectable()
@@ -155,7 +155,7 @@ export class ExamAnswerController {
     );
   }
 
-  @Get('selectedOption/:selectedOptionId')
+  @Get('selected-option/:selectedOptionId')
   @Roles(Role.TEACHER)
   @Roles(Role.ADMIN)
   @ApiResponse({

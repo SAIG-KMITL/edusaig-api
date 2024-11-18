@@ -26,7 +26,7 @@ import { Role } from 'src/shared/enums';
 import { CreateQuestionOptionDto } from './dtos/create-question-option.dto';
 import { UpdateQuestionOptionDto } from './dtos/update-question-option.dto';
 
-@Controller('questionOption')
+@Controller('question-option')
 @Injectable()
 @ApiTags('QuestionOption')
 @ApiBearerAuth()
