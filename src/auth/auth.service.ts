@@ -15,6 +15,7 @@ import { JwtPayloadDto } from './dtos/jwt-payload.dto';
 import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
 import { UserResponseDto } from 'src/user/dtos/user-response.dto';
 import { UserStreakService } from 'src/user-streak/user-streak.service';
+import { Role } from 'src/shared/enums';
 
 @Injectable()
 export class AuthService {
@@ -38,7 +39,8 @@ export class AuthService {
         role: user.role,
       });
       const refreshToken = this.generateRefreshToken();
-      await this.userStreakService.update(user.id);
+      if (user.role === Role.STUDENT)
+        await this.userStreakService.update(user.id);
       return {
         accessToken,
         refreshToken,
@@ -66,7 +68,8 @@ export class AuthService {
         role: createdUser.role,
       });
       const refreshToken = this.generateRefreshToken();
-      await this.userStreakService.create(createdUser.id);
+      if (createdUser.role === Role.STUDENT)
+        await this.userStreakService.create(createdUser.id);
       return {
         accessToken,
         refreshToken,
@@ -74,7 +77,7 @@ export class AuthService {
       };
     } catch (error) {
       if (error instanceof Error) {
-        await this.userService.delete(createdUser.id);
+        await this.userService.delete({ id: createdUser.id });
         throw new InternalServerErrorException(error.message);
       }
     }
