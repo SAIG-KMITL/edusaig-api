@@ -1,6 +1,7 @@
 import { Category } from 'src/category/category.entity';
 import { CourseModule } from 'src/course-module/course-module.entity';
 import { Enrollment } from 'src/enrollment/enrollment.entity';
+import { Roadmap } from 'src/roadmap/roadmap.entity';
 import { CourseLevel } from 'src/shared/enums/course-level.enum';
 import { CourseStatus } from 'src/shared/enums/course-status.enum';
 import { User } from 'src/user/user.entity';
@@ -9,6 +10,8 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -37,6 +40,9 @@ export class Course {
   @ManyToOne(() => Category)
   @JoinColumn({ name: 'category_id' })
   category: Category;
+
+  @ManyToMany(() => Roadmap, (roadmap) => roadmap.courses)
+  roadmaps: Roadmap[];
 
   @OneToMany(() => CourseModule, (courseModule) => courseModule.course, {
     cascade: true,
