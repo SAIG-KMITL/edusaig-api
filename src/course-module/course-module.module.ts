@@ -7,13 +7,13 @@ import { CourseModule } from 'src/course/course.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        CourseModule,
-        TypeOrmModule.forFeature([CourseModule]),
-    ],
-    controllers: [CourseModuleController],
-    providers: [...courseModuleProviders, CourseModuleService],
-    exports: [CourseModuleService],
+  imports: [
+    DatabaseModule,
+    CourseModule,
+    TypeOrmModule.forFeature([CourseModule]),
+  ],
+  controllers: [CourseModuleController],
+  providers: [...courseModuleProviders, CourseModuleService],
+  exports: [CourseModuleService],
 })
-export class CourseModuleModule { }
+export class CourseModuleModule {}

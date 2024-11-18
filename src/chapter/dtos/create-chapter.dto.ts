@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateChapterDto {
   @IsNotEmpty()
@@ -55,7 +61,6 @@ export class CreateChapterDto {
     example: 10,
   })
   duration: number;
-
 
   @IsNotEmpty()
   @IsUUID(4)

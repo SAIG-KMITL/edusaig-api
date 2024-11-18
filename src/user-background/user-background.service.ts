@@ -79,9 +79,8 @@ export class UserBackgroundService {
       occupationId: data.occupationId,
     });
 
-    const savedUserBackground = await this.userBackgroundRepository.save(
-      userBackground,
-    );
+    const savedUserBackground =
+      await this.userBackgroundRepository.save(userBackground);
     return savedUserBackground;
   }
 
@@ -99,9 +98,8 @@ export class UserBackgroundService {
     };
 
     this.userBackgroundRepository.merge(userBackground, updateData);
-    const savedUserBackground = await this.userBackgroundRepository.save(
-      userBackground,
-    );
+    const savedUserBackground =
+      await this.userBackgroundRepository.save(userBackground);
 
     return savedUserBackground;
   }

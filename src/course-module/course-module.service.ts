@@ -17,7 +17,7 @@ export class CourseModuleService {
   constructor(
     @Inject('CourseModuleRepository')
     private readonly courseModuleRepository: Repository<CourseModule>,
-  ) { }
+  ) {}
 
   async findAll({
     page = 1,
@@ -104,8 +104,13 @@ export class CourseModuleService {
   async create(
     createCourseModuleDto: CreateCourseModuleDto,
   ): Promise<CourseModule> {
-    let orderIndex = await this.validateAndGetNextOrderIndex(createCourseModuleDto.courseId);
-    const courseModule = this.courseModuleRepository.create({ ...createCourseModuleDto, orderIndex: orderIndex });
+    let orderIndex = await this.validateAndGetNextOrderIndex(
+      createCourseModuleDto.courseId,
+    );
+    const courseModule = this.courseModuleRepository.create({
+      ...createCourseModuleDto,
+      orderIndex: orderIndex,
+    });
     await this.courseModuleRepository.save(courseModule);
 
     return courseModule;
@@ -136,7 +141,10 @@ export class CourseModuleService {
       throw new BadRequestException('Course module not found');
     }
     if (updateCourseModuleDto.orderIndex != null) {
-      await this.validateOrderIndex(courseModule.courseId, updateCourseModuleDto.orderIndex);
+      await this.validateOrderIndex(
+        courseModule.courseId,
+        updateCourseModuleDto.orderIndex,
+      );
     }
     if (
       updateCourseModuleDto.orderIndex &&
@@ -150,7 +158,9 @@ export class CourseModuleService {
       });
 
       if (existingModule) {
-        await this.courseModuleRepository.update(existingModule.id, { orderIndex: courseModule.orderIndex });
+        await this.courseModuleRepository.update(existingModule.id, {
+          orderIndex: courseModule.orderIndex,
+        });
       }
     }
 
@@ -175,7 +185,10 @@ export class CourseModuleService {
 
     return result;
   }
-  private async validateOrderIndex(courseId: string, orderIndex: number): Promise<void> {
+  private async validateOrderIndex(
+    courseId: string,
+    orderIndex: number,
+  ): Promise<void> {
     const existingModules = await this.courseModuleRepository.find({
       where: { courseId },
       order: { orderIndex: 'ASC' },
@@ -183,7 +196,7 @@ export class CourseModuleService {
     if (existingModules.length === 0) {
       if (orderIndex !== 1) {
         throw new BadRequestException(
-          'Order index should be 1 when there are no modules in the course'
+          'Order index should be 1 when there are no modules in the course',
         );
       }
       return;
@@ -192,23 +205,23 @@ export class CourseModuleService {
     const maxIndex = existingModules[existingModules.length - 1].orderIndex;
 
     if (orderIndex < minIndex || orderIndex > maxIndex) {
-      throw new BadRequestException(
-        `Order index is invalid`
-      );
+      throw new BadRequestException(`Order index is invalid`);
     }
   }
   async validateOwnership(id: string, userId: string): Promise<void> {
-    const courseModule = await this.courseModuleRepository.findOne({ where: { id }, relations: { course: { teacher: true } } });
-    if(!courseModule) throw new NotFoundException('Course Module not found');
+    const courseModule = await this.courseModuleRepository.findOne({
+      where: { id },
+      relations: { course: { teacher: true } },
+    });
+    if (!courseModule) throw new NotFoundException('Course Module not found');
     if (courseModule.course.teacher.id !== userId)
       throw new BadRequestException('You can only access your own courses');
   }
   private buildWhereCondition(
     userId: string,
     role: Role,
-    baseCondition: FindOptionsWhere<CourseModule> = {}
-  )
-  {
+    baseCondition: FindOptionsWhere<CourseModule> = {},
+  ) {
     const conditions: Record<
       Role,
       () => FindOptionsWhere<CourseModule> | FindOptionsWhere<CourseModule>[]

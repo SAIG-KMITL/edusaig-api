@@ -1,55 +1,55 @@
-import { 
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    OneToOne,
-    ManyToOne,
-    JoinColumn
-} from "typeorm";
-import { ChatMessageType } from "./enums/chat-message-type.enum";
-import { ChatRoom } from "src/chat-room/chat-room.entity";
-import { User } from "src/user/user.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { ChatMessageType } from './enums/chat-message-type.enum';
+import { ChatRoom } from 'src/chat-room/chat-room.entity';
+import { User } from 'src/user/user.entity';
 
 @Entity()
 export class ChatMessage {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({
-        nullable: false,
-    })
-    content: string;
+  @Column({
+    nullable: false,
+  })
+  content: string;
 
-    @OneToOne(() => ChatMessage, {
-        nullable: true,
-        onDelete: 'CASCADE',
-    })
-    @JoinColumn({ name: 'reply' })
-    reply?: ChatMessage;
+  @OneToOne(() => ChatMessage, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'reply' })
+  reply?: ChatMessage;
 
-    @Column({
-        nullable: false,
-        default: false,
-    })
-    isEdited: boolean;
+  @Column({
+    nullable: false,
+    default: false,
+  })
+  isEdited: boolean;
 
-    @Column({
-        type: 'enum',
-        enum: ChatMessageType,
-        nullable: false,
-    })
-    type: ChatMessageType;
+  @Column({
+    type: 'enum',
+    enum: ChatMessageType,
+    nullable: false,
+  })
+  type: ChatMessageType;
 
-    @ManyToOne(() => ChatRoom, {
-        nullable: false,
-        onDelete: 'CASCADE',
-    })
-    chatRoom: ChatRoom;
+  @ManyToOne(() => ChatRoom, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  chatRoom: ChatRoom;
 
-    @ManyToOne(() => User, {
-        nullable: false,
-        onDelete: 'CASCADE',
-        eager: true,
-    })
-    user: User;
+  @ManyToOne(() => User, {
+    nullable: false,
+    onDelete: 'CASCADE',
+    eager: true,
+  })
+  user: User;
 }

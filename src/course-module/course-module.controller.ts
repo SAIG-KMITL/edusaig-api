@@ -37,7 +37,10 @@ import { Roles } from 'src/shared/decorators/role.decorator';
 @ApiTags('Course Modules')
 @ApiBearerAuth()
 export class CourseModuleController {
-  constructor(private readonly courseModuleService: CourseModuleService, private readonly courseService: CourseService) { }
+  constructor(
+    private readonly courseModuleService: CourseModuleService,
+    private readonly courseService: CourseService,
+  ) {}
 
   @Get()
   @ApiResponse({
@@ -92,7 +95,11 @@ export class CourseModuleController {
     @Req() request: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<CourseModuleResponseDto> {
-    return this.courseModuleService.findOne(request.user.id, request.user.role, {where: { id }});
+    return this.courseModuleService.findOne(
+      request.user.id,
+      request.user.role,
+      { where: { id } },
+    );
   }
 
   @Get('course/:courseId')
@@ -127,7 +134,10 @@ export class CourseModuleController {
     @Body() createCourseModuleDto: CreateCourseModuleDto,
   ): Promise<CourseModuleResponseDto> {
     if (createCourseModuleDto.courseId != null) {
-      await this.courseService.validateOwnership(createCourseModuleDto.courseId, request.user.id);
+      await this.courseService.validateOwnership(
+        createCourseModuleDto.courseId,
+        request.user.id,
+      );
     }
 
     return this.courseModuleService.create(createCourseModuleDto);
@@ -139,7 +149,7 @@ export class CourseModuleController {
     type: String,
     description: 'Course Module ID',
   })
-  @CourseOwnership({adminDraftOnly: true})
+  @CourseOwnership({ adminDraftOnly: true })
   async update(
     @Req() request: AuthenticatedRequest,
     @Param(
@@ -153,7 +163,10 @@ export class CourseModuleController {
     @Body() updateCourseModuleDto: UpdateCourseModuleDto,
   ): Promise<CourseModuleResponseDto> {
     if (updateCourseModuleDto.courseId != null) {
-      await this.courseService.validateOwnership(updateCourseModuleDto.courseId, request.user.id);
+      await this.courseService.validateOwnership(
+        updateCourseModuleDto.courseId,
+        request.user.id,
+      );
     }
     return this.courseModuleService.update(id, updateCourseModuleDto);
   }

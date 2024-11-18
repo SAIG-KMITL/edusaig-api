@@ -19,7 +19,7 @@ export class CourseService {
   constructor(
     @Inject('CourseRepository')
     private readonly courseRepository: Repository<Course>,
-  ) { }
+  ) {}
 
   async findAll({
     page = 1,
@@ -94,10 +94,7 @@ export class CourseService {
       }
     }
   }
-  async update(
-    id: string,
-    updateCourseDto: UpdateCourseDto,
-  ): Promise<Course> {
+  async update(id: string, updateCourseDto: UpdateCourseDto): Promise<Course> {
     const existingCourse = await this.courseRepository.findOne({
       where: { id },
       relations: {
@@ -183,8 +180,11 @@ export class CourseService {
     }
   }
   async validateOwnership(id: string, userId: string): Promise<void> {
-    const course = await this.courseRepository.findOne({ where: { id }, relations: { teacher: true } });
-    if(!course) throw new NotFoundException('Course not found');
+    const course = await this.courseRepository.findOne({
+      where: { id },
+      relations: { teacher: true },
+    });
+    if (!course) throw new NotFoundException('Course not found');
     if (course.teacher.id !== userId)
       throw new BadRequestException('You can only access your own courses');
   }
