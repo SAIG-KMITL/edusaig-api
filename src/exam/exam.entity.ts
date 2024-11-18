@@ -31,7 +31,8 @@ export class Exam {
   @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.exam, {
     cascade: true,
   })
-  examAttempt: ExamAttempt;
+  examAttempt: ExamAttempt[];
+
   @OneToMany(() => Question, (question) => question.exam, {
     cascade: true,
   })

@@ -2,6 +2,7 @@ import { Course } from 'src/course/course.entity';
 import { Enrollment } from 'src/enrollment/enrollment.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 import { Role } from 'src/shared/enums/roles.enum';
+import { UserBackground } from 'src/user-background/user-background.entity';
 import {
   Column,
   CreateDateColumn,
@@ -10,6 +11,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { UserReward } from 'src/userReward/user-reward.entity';
 
 @Entity()
 export class User {
@@ -35,6 +38,9 @@ export class User {
   })
   role: Role;
 
+  @OneToMany(() => UserBackground, (background) => background.user)
+  backgrounds: UserBackground[];
+
   @Column({
     nullable: false,
     unique: true,
@@ -47,6 +53,12 @@ export class User {
   })
   email: string;
 
+  @Column({
+    nullable: false,
+    default: 0,
+  })
+  points: number;
+
   @OneToMany(() => Course, (course) => course.teacher)
   courses: Course[];
 
@@ -57,6 +69,9 @@ export class User {
     cascade: true,
   })
   examAttempt: ExamAttempt[];
+
+  @OneToMany(() => UserReward, (userReward) => userReward.user)
+  rewards: UserReward[];
 
   @CreateDateColumn({
     type: 'timestamp with time zone',

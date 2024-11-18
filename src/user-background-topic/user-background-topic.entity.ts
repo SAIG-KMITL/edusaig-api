@@ -1,7 +1,10 @@
+import { UserBackground } from 'src/user-background/user-background.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -31,6 +34,9 @@ export class UserBackgroundTopic {
     default: UserBackgroundTopicLevel.BEGINNER,
   })
   level: UserBackgroundTopicLevel;
+
+  @ManyToMany(() => UserBackground, (background) => background.topics)
+  userBackgrounds: UserBackground[];
 
   @CreateDateColumn({
     type: 'timestamp',

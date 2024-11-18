@@ -1,7 +1,9 @@
+import { UserBackground } from 'src/user-background/user-background.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -22,6 +24,9 @@ export class UserOccupation {
     nullable: false,
   })
   description: string;
+
+  @OneToMany(() => UserBackground, (background) => background.occupation)
+  backgrounds: UserBackground[];
 
   @CreateDateColumn({
     name: 'created_at',

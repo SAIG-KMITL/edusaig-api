@@ -62,11 +62,15 @@ export class QuestionOptionController {
     @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
   ): Promise<PaginatedQuestionOptionResponseDto> {
-    return await this.questionOptionService.findAll(request, {
-      page: query.page,
-      limit: query.limit,
-      search: query.search,
-    });
+    return await this.questionOptionService.findAll(
+      request.user.id,
+      request.user.role,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
   }
 
   @Get(':id')
@@ -86,9 +90,13 @@ export class QuestionOptionController {
     )
     id: string,
   ): Promise<QuestionOptionResponseDto> {
-    const questionOption = await this.questionOptionService.findOne(request, {
-      where: { id },
-    });
+    const questionOption = await this.questionOptionService.findOne(
+      request.user.id,
+      request.user.role,
+      {
+        where: { id },
+      },
+    );
     return new QuestionOptionResponseDto(questionOption);
   }
 
@@ -130,7 +138,8 @@ export class QuestionOptionController {
     questionId: string,
   ): Promise<PaginatedQuestionOptionResponseDto> {
     return await this.questionOptionService.findQuestionOptionByQuestionId(
-      request,
+      request.user.id,
+      request.user.role,
       questionId,
       {
         page: query.page,
@@ -179,7 +188,8 @@ export class QuestionOptionController {
   ): Promise<QuestionOptionResponseDto> {
     const questionOption =
       await this.questionOptionService.updateQuestionOption(
-        request,
+        request.user.id,
+        request.user.role,
         id,
         updateQuestionOptionDto,
       );
@@ -204,8 +214,11 @@ export class QuestionOptionController {
       }),
     )
     id: string,
-  ): Promise<{ massage: string }> {
-    await this.questionOptionService.deleteQuestionOption(request, id);
-    return { massage: 'Question option deleted successfully' };
+  ): Promise<void> {
+    await this.questionOptionService.deleteQuestionOption(
+      request.user.id,
+      request.user.role,
+      id,
+    );
   }
 }
