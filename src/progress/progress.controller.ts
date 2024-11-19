@@ -66,7 +66,6 @@ export class ProgressController {
   async findAll(
     @Query() query: PaginateQueryDto,
   ): Promise<PaginatedProgressResponseDto> {
-    console.log(query);
     return this.progressService.findAll(query);
   }
 
@@ -93,7 +92,6 @@ export class ProgressController {
     @Body() createProgressDto: CreateProgressDto,
     @Req() req: AuthenticatedRequest,
   ): Promise<ProgressResponseDto> {
-    console.log(createProgressDto);
     return this.progressService.create(createProgressDto);
   }
 

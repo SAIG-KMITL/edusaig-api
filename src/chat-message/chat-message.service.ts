@@ -25,7 +25,6 @@ export class ChatMessageService {
         createChatMessageDto: CreateChatMessageDto,
     ): Promise<ChatMessage> {
         try {
-            console.log(createChatMessageDto.chatRoomId);
             return await this.chatMessageRepository.save({
                 ...createChatMessageDto,
                 user: { id: userId },

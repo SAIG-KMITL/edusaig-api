@@ -115,9 +115,6 @@ export class CourseOwnershipGuard implements CanActivate {
   }
 
   private validateTeacherAccess(userId: string, course: Course): boolean {
-    console.log(course.teacher.id);
-    console.log(course);
-    console.log(userId);
     if (course.teacher.id !== userId) {
       throw new UnauthorizedException('You can only access your own courses');
     }
