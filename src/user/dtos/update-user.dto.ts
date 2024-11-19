@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsStrongPassword } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsStrongPassword,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserDto {
@@ -20,4 +26,14 @@ export class UpdateUserDto {
     example: 'P@ssw0rd!',
   })
   password?: string;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  @ApiProperty({
+    description: 'User points',
+    type: Number,
+    example: 100,
+  })
+  points?: number;
 }

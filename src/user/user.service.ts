@@ -1,22 +1,44 @@
 import {
-    BadRequestException,
-    Inject,
-    Injectable,
-    NotFoundException,
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { createPagination } from 'src/shared/pagination';
-import { FindOneOptions, ILike, Repository } from 'typeorm';
+import { FindOneOptions, ILike, Repository, FindOptionsWhere } from 'typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { PaginatedUserResponseDto } from './dtos/user-response.dto';
 import { User } from './user.entity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { ConfigService } from '@nestjs/config';
+import { Role } from 'src/shared/enums';
+import { hash } from 'argon2';
 
 @Injectable()
-export class UserService {
-    constructor(
-        @Inject('UserRepository')
-        private readonly userRepository: Repository<User>,
-    ) { }
+export class UserService implements OnModuleInit {
+  constructor(
+    @Inject('UserRepository')
+    private readonly userRepository: Repository<User>,
+    private readonly configService: ConfigService,
+  ) {}
+
+  async onModuleInit() {
+    const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
+    const adminPassword = this.configService.get<string>('ADMIN_PASSWORD');
+    const admin = await this.userRepository.findOne({
+      where: { email: adminEmail },
+    });
+    if (!admin) {
+      await this.userRepository.save({
+        email: adminEmail,
+        password: await hash(adminPassword),
+        fullname: 'Admin',
+        role: Role.ADMIN,
+        username: 'admin',
+      });
+    }
+  }
 
     async findAll({
         page = 1,
@@ -39,19 +61,17 @@ export class UserService {
         return users;
     }
 
-    async findOne(options: FindOneOptions<User>): Promise<User> {
-        const user = this.userRepository.findOne(options);
-        if (!user) throw new NotFoundException('User not found');
-        return user;
-    }
+  async findOne(options: FindOneOptions<User>): Promise<User> {
+    return await this.userRepository.findOne(options);
+  }
 
-    async create(createUserDto: CreateUserDto): Promise<User> {
-        try {
-            return this.userRepository.save(createUserDto);
-        } catch (error) {
-            if (error instanceof Error) throw new BadRequestException(error.message);
-        }
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    try {
+      return await this.userRepository.save(createUserDto);
+    } catch (error) {
+      if (error instanceof Error) throw new BadRequestException(error.message);
     }
+  }
 
     async update(
         id: string,
@@ -65,11 +85,11 @@ export class UserService {
         }
     }
 
-    async delete(id: string): Promise<void> {
-        try {
-            await this.userRepository.delete(id);
-        } catch (error) {
-            if (error instanceof Error) throw new NotFoundException('User not found');
-        }
+  async delete(criteria: FindOptionsWhere<User>): Promise<void> {
+    try {
+      await this.userRepository.delete(criteria);
+    } catch (error) {
+      if (error instanceof Error) throw new NotFoundException('User not found');
     }
+  }
 }

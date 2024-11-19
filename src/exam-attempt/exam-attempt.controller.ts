@@ -26,7 +26,7 @@ import { Role } from 'src/shared/enums';
 import { CreateExamAttemptDto } from './dtos/create-exam-attempt.dto';
 import { UpdateExamAttemptDto } from './dtos/update-exam-attempt.dto';
 
-@Controller('examAttempt')
+@Controller('exam-attempt')
 @ApiTags('ExamAttempt')
 @ApiBearerAuth()
 @Injectable()

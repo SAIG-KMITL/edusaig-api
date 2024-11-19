@@ -1,8 +1,10 @@
 import { Course } from 'src/course/course.entity';
 import { Enrollment } from 'src/enrollment/enrollment.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
+import { Roadmap } from 'src/roadmap/roadmap.entity';
 import { Role } from 'src/shared/enums/roles.enum';
 import { UserBackground } from 'src/user-background/user-background.entity';
+import { UserReward } from 'src/userReward/user-reward.entity';
 import {
   Column,
   CreateDateColumn,
@@ -11,8 +13,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-import { UserReward } from 'src/userReward/user-reward.entity';
 
 @Entity()
 export class User {
@@ -41,6 +41,9 @@ export class User {
   @OneToMany(() => UserBackground, (background) => background.user)
   backgrounds: UserBackground[];
 
+  @OneToMany(() => Roadmap, (roadmap) => roadmap.user)
+  roadmaps: Roadmap[];
+
   @Column({
     nullable: false,
     unique: true,
@@ -54,23 +57,30 @@ export class User {
   email: string;
 
   @Column({
-    nullable: false,
+    nullable: true,
     default: 0,
   })
   points: number;
 
-  @OneToMany(() => Course, (course) => course.teacher)
+  @OneToMany(() => Course, (course) => course.teacher, {
+    nullable: true,
+  })
   courses: Course[];
 
-  @OneToMany(() => Enrollment, (enrollment) => enrollment.user)
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.user, {
+    nullable: true,
+  })
   enrollments: Enrollment[];
 
   @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.exam, {
     cascade: true,
+    nullable: true,
   })
   examAttempt: ExamAttempt[];
 
-  @OneToMany(() => UserReward, (userReward) => userReward.user)
+  @OneToMany(() => UserReward, (userReward) => userReward.user, {
+    nullable: true,
+  })
   rewards: UserReward[];
 
   @CreateDateColumn({

@@ -4,8 +4,9 @@ import {
   IsNotEmpty,
   IsString,
   IsStrongPassword,
-  IsNumber,
+  IsEnum,
 } from 'class-validator';
+import { AvailableRoles, Role } from 'src/shared/enums';
 
 export class CreateUserDto {
   @IsEmail()
@@ -35,15 +36,6 @@ export class CreateUserDto {
   })
   fullname: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  @ApiProperty({
-    description: 'points for reward',
-    type: Number,
-    example: '200',
-  })
-  points: number;
-
   @IsStrongPassword()
   @IsNotEmpty()
   @ApiProperty({
@@ -52,4 +44,14 @@ export class CreateUserDto {
     example: 'P@ssw0rd!',
   })
   password: string;
+
+  @IsEnum(AvailableRoles)
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'User role',
+    type: String,
+    example: AvailableRoles.STUDENT,
+    enum: AvailableRoles,
+  })
+  role: Role;
 }

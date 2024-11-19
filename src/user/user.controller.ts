@@ -250,7 +250,7 @@ export class UserController {
   async delete(
     @Req() request: AuthenticatedRequest,
   ): Promise<{ massage: string }> {
-    await this.userService.delete(request.user.id);
+    await this.userService.delete({ id: request.user.id });
     return { massage: 'User deleted successfully' };
   }
 }
