@@ -1,7 +1,7 @@
 import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
+    BadRequestException,
+    Injectable,
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createPagination } from 'src/shared/pagination';
@@ -14,73 +14,73 @@ import { EnrollmentStatus } from './enums/enrollment-status.enum';
 
 @Injectable()
 export class EnrollmentService {
-  constructor(
-    @InjectRepository(Enrollment)
-    private readonly enrollmentRepository: Repository<Enrollment>,
-  ) {}
+    constructor(
+        @InjectRepository(Enrollment)
+        private readonly enrollmentRepository: Repository<Enrollment>,
+    ) { }
 
-  async findAll({
-    page = 1,
-    limit = 20,
-  }: {
-    page?: number;
-    limit?: number;
-  }): Promise<PaginatedEnrollmentResponseDto> {
-    const { find } = await createPagination(this.enrollmentRepository, {
-      page,
-      limit,
-    });
+    async findAll({
+        page = 1,
+        limit = 20,
+    }: {
+        page?: number;
+        limit?: number;
+    }): Promise<PaginatedEnrollmentResponseDto> {
+        const { find } = await createPagination(this.enrollmentRepository, {
+            page,
+            limit,
+        });
 
-    const enrollments = await find({
-      relations: {
-        user: true,
-        course: true,
-      },
-    }).run();
+        const enrollments = await find({
+            relations: {
+                user: true,
+                course: true,
+            },
+        }).run();
 
-    return enrollments;
-  }
+        return enrollments;
+    }
 
-  async findOne(where: FindOptionsWhere<Enrollment>): Promise<Enrollment> {
-    const options: FindOneOptions<Enrollment> = {
-      where,
-      relations: {
-        user: true,
-        course: true,
-      },
-    };
+    async findOne(where: FindOptionsWhere<Enrollment>): Promise<Enrollment> {
+        const options: FindOneOptions<Enrollment> = {
+            where,
+            relations: {
+                user: true,
+                course: true,
+            },
+        };
 
-    const enrollment = await this.enrollmentRepository.findOne(options);
+        const enrollment = await this.enrollmentRepository.findOne(options);
 
-    if (!enrollment) throw new NotFoundException('Enrollment not found');
+        if (!enrollment) throw new NotFoundException('Enrollment not found');
 
-    return enrollment;
-  }
+        return enrollment;
+    }
 
-  async create(createEnrollmentDto: CreateEnrollmentDto): Promise<Enrollment> {
-    const enrollment = this.enrollmentRepository.create(createEnrollmentDto);
-    await this.enrollmentRepository.save(enrollment);
+    async create(createEnrollmentDto: CreateEnrollmentDto): Promise<Enrollment> {
+        const enrollment = this.enrollmentRepository.create(createEnrollmentDto);
+        await this.enrollmentRepository.save(enrollment);
 
-    return enrollment;
-  }
+        return enrollment;
+    }
 
-  async update(
-    id: string,
-    updateEnrollmentDto: UpdateEnrollmentDto,
-  ): Promise<Enrollment> {
-    const enrollment = await this.findOne({
-      status: EnrollmentStatus.ACTIVE,
-      id,
-    });
-    this.enrollmentRepository.merge(enrollment, updateEnrollmentDto);
-    await this.enrollmentRepository.save(enrollment);
-    return enrollment;
-  }
+    async update(
+        id: string,
+        updateEnrollmentDto: UpdateEnrollmentDto,
+    ): Promise<Enrollment> {
+        const enrollment = await this.findOne({
+            status: EnrollmentStatus.ACTIVE,
+            id,
+        });
+        this.enrollmentRepository.merge(enrollment, updateEnrollmentDto);
+        await this.enrollmentRepository.save(enrollment);
+        return enrollment;
+    }
 
-  async remove(id: string): Promise<void> {
-    const enrollment = await this.findOne({
-      id,
-    });
-    await this.enrollmentRepository.remove(enrollment);
-  }
+    async remove(id: string): Promise<void> {
+        const enrollment = await this.findOne({
+            id,
+        });
+        await this.enrollmentRepository.remove(enrollment);
+    }
 }

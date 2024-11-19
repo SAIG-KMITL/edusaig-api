@@ -5,10 +5,17 @@ import { ChatMessage } from './chat-message.entity';
 import { ChatMessageController } from './chat-message.controller';
 import { ChatMessageService } from './chat-message.service';
 import { chatMessageProviders } from './chat-message.providers';
+import { ChatRoomModule } from 'src/chat-room/chat-room.module';
+import { EnrollmentModule } from 'src/enrollment/enrollment.module';
 
 @Module({
-  imports: [DatabaseModule, TypeOrmModule.forFeature([ChatMessage])],
-  controllers: [ChatMessageController],
-  providers: [...chatMessageProviders, ChatMessageService],
+    imports: [
+        DatabaseModule,
+        TypeOrmModule.forFeature([ChatMessage]),
+        ChatRoomModule,
+        EnrollmentModule,
+    ],
+    controllers: [ChatMessageController],
+    providers: [...chatMessageProviders, ChatMessageService],
 })
-export class ChatMessageModule {}
+export class ChatMessageModule { }
