@@ -17,15 +17,23 @@ export class QuestionResponseDto {
     description: 'Exam Data',
     type: ExamResponseDto,
     example: {
-      id: 'ce2fd59a-28ea-4192-bfc6-c2347450ab7e',
-      courseModuleId: 'b88d68fc-7437-4812-b4f6-e08f18bc09d1',
+      id: 'e20ffe51-2514-4f14-9bea-4bb28bb97fdd',
       title: 'Biology',
       description: 'This course is an introduction to biology',
       timeLimit: 20,
       passingScore: 50,
       maxAttempts: 1,
-      shuffleQuestions: true,
-      status: 'draft',
+      shuffleQuestions: false,
+      status: 'published',
+      courseModule: {
+        id: '7093a5ae-cc1d-4017-8445-cba7ea978b22',
+        course: {
+          id: 'b7634715-9536-46be-ae06-650dc0d719fb',
+          teacher: {
+            id: '75af7b82-d765-40a3-82aa-bc4f572c492c',
+          },
+        },
+      },
     },
   })
   exam: Exam;
