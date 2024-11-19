@@ -31,7 +31,7 @@ export class RewardController {
   @Public()
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Reward,
+    type: RewardResponseDto,
     description: 'get all reward',
     isArray: true,
   })
@@ -44,7 +44,7 @@ export class RewardController {
   @Public()
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Reward,
+    type: RewardResponseDto,
     description: 'get reward',
   })
   async findOne(

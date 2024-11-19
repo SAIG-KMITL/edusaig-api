@@ -7,25 +7,30 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Injectable,
+  Get,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { categoryResponseDto } from './dtos/category-response.dto';
-import { Get } from '@nestjs/common';
 import { CreateCategoryDto } from './dtos/create-cateory.dto';
 import { updateCategoryDto } from './dtos/update-category.dto';
 import { Public } from 'src/shared/decorators/public.decorator';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Category } from './category.entity';
+import { Roles } from 'src/shared/decorators/role.decorator';
+import { Role } from 'src/shared/enums';
 
 @Controller('category')
+@Injectable()
 @ApiTags('Category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
+  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Category,
+    type: categoryResponseDto,
     description: 'create category',
   })
   @ApiBearerAuth()
@@ -39,7 +44,7 @@ export class CategoryController {
   @Public()
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Category,
+    type: categoryResponseDto,
     isArray: true,
     description: 'get all categories',
   })
@@ -52,7 +57,7 @@ export class CategoryController {
   @Public()
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Category,
+    type: categoryResponseDto,
     description: 'get one category',
   })
   async findOne(
@@ -70,10 +75,12 @@ export class CategoryController {
   }
 
   @Patch(':id')
+  @Roles(Role.ADMIN)
   @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'edit category',
+    type: categoryResponseDto,
   })
   async update(
     @Param(
@@ -90,6 +97,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
+  @Roles(Role.ADMIN)
   @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
