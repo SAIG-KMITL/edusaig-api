@@ -1,8 +1,8 @@
 import {
-    BadRequestException,
-    Injectable,
-    InternalServerErrorException,
-    NotFoundException,
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createPagination } from 'src/shared/pagination';
@@ -15,84 +15,86 @@ import { EnrollmentStatus } from './enums/enrollment-status.enum';
 
 @Injectable()
 export class EnrollmentService {
-    constructor(
-        @InjectRepository(Enrollment)
-        private readonly enrollmentRepository: Repository<Enrollment>,
-    ) { }
+  constructor(
+    @InjectRepository(Enrollment)
+    private readonly enrollmentRepository: Repository<Enrollment>,
+  ) {}
 
-    async findAll({
-        page = 1,
-        limit = 20,
-    }: {
-        page?: number;
-        limit?: number;
-    }): Promise<PaginatedEnrollmentResponseDto> {
-        const { find } = await createPagination(this.enrollmentRepository, {
-            page,
-            limit,
-        });
+  async findAll({
+    page = 1,
+    limit = 20,
+  }: {
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedEnrollmentResponseDto> {
+    const { find } = await createPagination(this.enrollmentRepository, {
+      page,
+      limit,
+    });
 
-        const enrollments = await find({
-            relations: {
-                user: true,
-                course: true,
-            },
-        }).run();
+    const enrollments = await find({
+      relations: {
+        user: true,
+        course: true,
+      },
+    }).run();
 
-        return enrollments;
+    return enrollments;
+  }
+
+  async findOne(where: FindOptionsWhere<Enrollment>): Promise<Enrollment> {
+    const options: FindOneOptions<Enrollment> = {
+      where,
+      relations: {
+        user: true,
+        course: true,
+      },
+    };
+
+    const enrollment = await this.enrollmentRepository.findOne(options);
+
+    if (!enrollment) throw new NotFoundException('Enrollment not found');
+
+    return enrollment;
+  }
+
+  async create(createEnrollmentDto: CreateEnrollmentDto): Promise<Enrollment> {
+    try {
+      const enrollment = await this.findOne({
+        user: { id: createEnrollmentDto.userId },
+        course: { id: createEnrollmentDto.courseId },
+      });
+      if (enrollment)
+        throw new BadRequestException('Enrollment already exists');
+      const createdEnrollment =
+        this.enrollmentRepository.create(createEnrollmentDto);
+      return await this.enrollmentRepository.save({
+        ...createdEnrollment,
+        user: { id: createEnrollmentDto.userId },
+        course: { id: createEnrollmentDto.courseId },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
     }
+  }
 
-    async findOne(where: FindOptionsWhere<Enrollment>): Promise<Enrollment> {
-        const options: FindOneOptions<Enrollment> = {
-            where,
-            relations: {
-                user: true,
-                course: true,
-            },
-        };
+  async update(
+    id: string,
+    updateEnrollmentDto: UpdateEnrollmentDto,
+  ): Promise<Enrollment> {
+    const enrollment = await this.findOne({
+      status: EnrollmentStatus.ACTIVE,
+      id,
+    });
+    this.enrollmentRepository.merge(enrollment, updateEnrollmentDto);
+    await this.enrollmentRepository.save(enrollment);
+    return enrollment;
+  }
 
-        const enrollment = await this.enrollmentRepository.findOne(options);
-
-        if (!enrollment) throw new NotFoundException('Enrollment not found');
-
-        return enrollment;
-    }
-
-    async create(createEnrollmentDto: CreateEnrollmentDto): Promise<Enrollment> {
-        try {
-            const enrollment = await this.findOne({
-                user: { id: createEnrollmentDto.userId },
-                course: { id: createEnrollmentDto.courseId },
-            });
-            if (enrollment) throw new BadRequestException('Enrollment already exists');
-            const createdEnrollment = this.enrollmentRepository.create(createEnrollmentDto);
-            return await this.enrollmentRepository.save({
-                ...createdEnrollment,
-                user: { id: createEnrollmentDto.userId },
-                course: { id: createEnrollmentDto.courseId },
-            });
-        } catch (error) {
-            throw new InternalServerErrorException(error.message);
-        }
-    }
-
-    async update(
-        id: string,
-        updateEnrollmentDto: UpdateEnrollmentDto,
-    ): Promise<Enrollment> {
-        const enrollment = await this.findOne({
-            status: EnrollmentStatus.ACTIVE,
-            id,
-        });
-        this.enrollmentRepository.merge(enrollment, updateEnrollmentDto);
-        await this.enrollmentRepository.save(enrollment);
-        return enrollment;
-    }
-
-    async remove(id: string): Promise<void> {
-        const enrollment = await this.findOne({
-            id,
-        });
-        await this.enrollmentRepository.remove(enrollment);
-    }
+  async remove(id: string): Promise<void> {
+    const enrollment = await this.findOne({
+      id,
+    });
+    await this.enrollmentRepository.remove(enrollment);
+  }
 }

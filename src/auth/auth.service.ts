@@ -1,8 +1,8 @@
 import {
-    Injectable,
-    NotFoundException,
-    BadRequestException,
-    InternalServerErrorException,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -19,12 +19,12 @@ import { Role } from 'src/shared/enums';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private readonly configService: ConfigService,
-        private readonly jwtService: JwtService,
-        private readonly userService: UserService,
-        private readonly userStreakService: UserStreakService,
-    ) { }
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+    private readonly userService: UserService,
+    private readonly userStreakService: UserStreakService,
+  ) {}
 
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const user = await this.userService.findOne({
@@ -83,26 +83,26 @@ export class AuthService {
     }
   }
 
-    private generateAccessToken(payload: JwtPayloadDto): string {
-        return this.jwtService.sign(payload, {
-            secret: this.configService.get<string>(GLOBAL_CONFIG.JWT_ACCESS_SECRET),
-            expiresIn: this.configService.get<string>(
-                GLOBAL_CONFIG.JWT_ACCESS_EXPIRATION,
-            ),
-        });
-    }
+  private generateAccessToken(payload: JwtPayloadDto): string {
+    return this.jwtService.sign(payload, {
+      secret: this.configService.get<string>(GLOBAL_CONFIG.JWT_ACCESS_SECRET),
+      expiresIn: this.configService.get<string>(
+        GLOBAL_CONFIG.JWT_ACCESS_EXPIRATION,
+      ),
+    });
+  }
 
-    private generateRefreshToken(): string {
-        return this.jwtService.sign(
-            {},
-            {
-                secret: this.configService.get<string>(
-                    GLOBAL_CONFIG.JWT_REFRESH_SECRET,
-                ),
-                expiresIn: this.configService.get<string>(
-                    GLOBAL_CONFIG.JWT_REFRESH_EXPIRATION,
-                ),
-            },
-        );
-    }
+  private generateRefreshToken(): string {
+    return this.jwtService.sign(
+      {},
+      {
+        secret: this.configService.get<string>(
+          GLOBAL_CONFIG.JWT_REFRESH_SECRET,
+        ),
+        expiresIn: this.configService.get<string>(
+          GLOBAL_CONFIG.JWT_REFRESH_EXPIRATION,
+        ),
+      },
+    );
+  }
 }

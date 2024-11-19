@@ -9,14 +9,14 @@ import { ChatRoomModule } from 'src/chat-room/chat-room.module';
 import { EnrollmentModule } from 'src/enrollment/enrollment.module';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        TypeOrmModule.forFeature([ChatMessage]),
-        forwardRef(() => ChatRoomModule),
-        EnrollmentModule,
-    ],
-    controllers: [ChatMessageController],
-    providers: [...chatMessageProviders, ChatMessageService],
-    exports: [ChatMessageService],
+  imports: [
+    DatabaseModule,
+    TypeOrmModule.forFeature([ChatMessage]),
+    forwardRef(() => ChatRoomModule),
+    EnrollmentModule,
+  ],
+  controllers: [ChatMessageController],
+  providers: [...chatMessageProviders, ChatMessageService],
+  exports: [ChatMessageService],
 })
-export class ChatMessageModule { }
+export class ChatMessageModule {}
