@@ -1,6 +1,7 @@
 import {
     BadRequestException,
     Injectable,
+    InternalServerErrorException,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -58,10 +59,21 @@ export class EnrollmentService {
     }
 
     async create(createEnrollmentDto: CreateEnrollmentDto): Promise<Enrollment> {
-        const enrollment = this.enrollmentRepository.create(createEnrollmentDto);
-        await this.enrollmentRepository.save(enrollment);
-
-        return enrollment;
+        try {
+            const enrollment = await this.findOne({
+                user: { id: createEnrollmentDto.userId },
+                course: { id: createEnrollmentDto.courseId },
+            });
+            if (enrollment) throw new BadRequestException('Enrollment already exists');
+            const createdEnrollment = this.enrollmentRepository.create(createEnrollmentDto);
+            return await this.enrollmentRepository.save({
+                ...createdEnrollment,
+                user: { id: createEnrollmentDto.userId },
+                course: { id: createEnrollmentDto.courseId },
+            });
+        } catch (error) {
+            throw new InternalServerErrorException(error.message);
+        }
     }
 
     async update(

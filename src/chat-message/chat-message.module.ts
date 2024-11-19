@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { DatabaseModule } from 'src/database/database.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatMessage } from './chat-message.entity';
@@ -12,10 +12,11 @@ import { EnrollmentModule } from 'src/enrollment/enrollment.module';
     imports: [
         DatabaseModule,
         TypeOrmModule.forFeature([ChatMessage]),
-        ChatRoomModule,
+        forwardRef(() => ChatRoomModule),
         EnrollmentModule,
     ],
     controllers: [ChatMessageController],
     providers: [...chatMessageProviders, ChatMessageService],
+    exports: [ChatMessageService],
 })
 export class ChatMessageModule { }

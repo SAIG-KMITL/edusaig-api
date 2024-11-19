@@ -14,7 +14,7 @@ import { Role } from 'src/shared/enums';
 export class ChatRoomOwnershipGuard implements CanActivate {
     constructor(
         private readonly chatRoomService: ChatRoomService,
-        private readonly enrollmentRepository: EnrollmentService,
+        private readonly enrollmentService: EnrollmentService,
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,9 +25,16 @@ export class ChatRoomOwnershipGuard implements CanActivate {
             case Role.STUDENT:
                 const chatRoom = await this.chatRoomService.findOne({
                     where: { id: chatRoomId },
+                    relations: {
+                        chapter: {
+                            module: {
+                                course: true,
+                            },
+                        },
+                    }
                 });
                 const course = chatRoom.chapter.module.course;
-                const enrollment = await this.enrollmentRepository.findOne({
+                const enrollment = await this.enrollmentService.findOne({
                     user: { id: request.user.id },
                     course: { id: course.id },
                 });

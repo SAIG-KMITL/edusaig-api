@@ -33,13 +33,65 @@ import { CreateChatRoomDto } from './dtos/create-chat-room.dto';
 import { UpdateChatRoomDto } from './dtos/update-chat-room.dto';
 import { ChatRoomOwnershipGuard } from './guards/chat-room-ownership.guard';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
+import { PaginatedChatMessageResponseDto } from 'src/chat-message/dtos';
+import { ChatMessageService } from 'src/chat-message/chat-message.service';
 
 @Controller('chat-room')
 @Injectable()
 @ApiTags('Chat Room')
 @ApiBearerAuth()
 export class ChatRoomController {
-    constructor(private readonly chatRoomService: ChatRoomService) { }
+    constructor(
+        private readonly chatRoomService: ChatRoomService,
+        private readonly chatMessageService: ChatMessageService,
+    ) { }
+
+    @Get(':id/messages')
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Get chat room messages',
+        type: PaginatedChatMessageResponseDto,
+    })
+    @ApiParam({
+        name: 'id',
+        type: String,
+        required: true,
+    })
+    @Roles(Role.STUDENT)
+    @UseGuards(ChatRoomOwnershipGuard)
+    @ApiQuery({
+        name: 'page',
+        type: Number,
+        required: false,
+    })
+    @ApiQuery({
+        name: 'limit',
+        type: Number,
+        required: false,
+    })
+    @ApiQuery({
+        name: 'search',
+        type: String,
+        required: false,
+    })
+    async findMessages(
+        @Param(
+            'id',
+            new ParseUUIDPipe({
+                version: '4',
+                errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+            }),
+        )
+        id: string,
+        @Query() query: PaginateQueryDto,
+    ) {
+        return await this.chatMessageService.findAll({
+            ...query,
+            where: {
+                chatRoom: { id },
+            }
+        })
+    }
 
     @Get()
     @ApiResponse({

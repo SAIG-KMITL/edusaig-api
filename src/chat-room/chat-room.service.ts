@@ -12,7 +12,6 @@ import {
     PaginatedChatRoomResponseDto,
     CreateChatRoomDto,
 } from './dtos';
-import { Role } from 'src/shared/enums';
 
 @Injectable()
 export class ChatRoomService {
@@ -71,11 +70,9 @@ export class ChatRoomService {
     }
 
     async findOne(options: FindOneOptions<ChatRoom>): Promise<ChatRoom> {
-        try {
-            return await this.chatRoomRepository.findOne(options);
-        } catch (error) {
-            if (error instanceof Error) throw new NotFoundException(error.message);
-        }
+        const chatRoom = await this.chatRoomRepository.findOne(options);
+        if (!chatRoom) throw new NotFoundException('Chat room not found');
+        return chatRoom;
     }
 
     async update(

@@ -16,38 +16,20 @@ import {
 } from '@nestjs/common';
 import { ChatMessageService } from './chat-message.service';
 import { ApiTags, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
 import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
 import { CreateChatMessageDto, ChatMessageResponseDto } from './dtos';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { CreateChatMessageGuard } from './guards/create-chat-message.guard';
-import { Public } from 'src/shared/decorators/public.decorator';
 
 @Controller('chat-message')
 @Injectable()
 @ApiTags('Chat Message')
 @ApiBearerAuth()
 export class ChatMessageController {
-    constructor(private readonly chatMessageService: ChatMessageService) { }
-
-    @Get()
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Returns all chat messages',
-        type: ChatMessageResponseDto,
-        isArray: true,
-    })
-    @Roles(Role.ADMIN)
-    async findAll(
-        @Query() query: PaginateQueryDto,
-        @Req() request: AuthenticatedRequest,
-    ) {
-        return await this.chatMessageService.findAll({
-            userId: request.user.id,
-            ...query,
-        });
-    }
+    constructor(
+        private readonly chatMessageService: ChatMessageService,
+    ) { }
 
     @Get(':id')
     @ApiResponse({
@@ -70,7 +52,6 @@ export class ChatMessageController {
     }
 
     @Post()
-    @Public()
     @ApiResponse({
         status: HttpStatus.CREATED,
         description: 'Creates a chat message',
@@ -78,14 +59,16 @@ export class ChatMessageController {
     })
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(CreateChatMessageGuard)
+    @Roles(Role.STUDENT, Role.ADMIN)
     async create(
         @Body() createChatMessageDto: CreateChatMessageDto,
         @Req() request: AuthenticatedRequest,
     ) {
-        return await this.chatMessageService.create(
+        const chatMessage = await this.chatMessageService.create(
             request.user.id,
             createChatMessageDto,
         );
+        return new ChatMessageResponseDto(chatMessage);
     }
 
     @Patch(':id')
@@ -105,7 +88,8 @@ export class ChatMessageController {
         id: string,
         @Body() updateChatMessageDto: CreateChatMessageDto,
     ) {
-        return await this.chatMessageService.update({ id }, updateChatMessageDto);
+        const chatMessage = await this.chatMessageService.update({ id }, updateChatMessageDto);
+        return new ChatMessageResponseDto(chatMessage);
     }
 
     @Delete(':id')

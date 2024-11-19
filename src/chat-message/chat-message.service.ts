@@ -25,10 +25,11 @@ export class ChatMessageService {
         createChatMessageDto: CreateChatMessageDto,
     ): Promise<ChatMessage> {
         try {
+            console.log(createChatMessageDto.chatRoomId);
             return await this.chatMessageRepository.save({
                 ...createChatMessageDto,
                 user: { id: userId },
-                chatRoomId: { id: createChatMessageDto.chatRoomId },
+                chatRoom: { id: createChatMessageDto.chatRoomId },
                 reply: createChatMessageDto.replyId
                     ? { id: createChatMessageDto.replyId }
                     : null,
@@ -40,22 +41,24 @@ export class ChatMessageService {
     }
 
     async findAll({
-        userId,
+        where,
         page = 1,
         limit = 20,
-        search = '',
     }: {
-        userId: string;
+        where: FindOptionsWhere<ChatMessage>;
         page?: number;
         limit?: number;
-        search?: string;
     }): Promise<PaginatedChatMessageResponseDto> {
         const { find } = await createPagination(this.chatMessageRepository, {
             page,
             limit,
         });
         const chatMessages = await find({
-            where: { content: search, user: { id: userId } },
+            where,
+            relations: {
+                user: true,
+                chatRoom: true,
+            }
         }).run();
         return new PaginatedChatMessageResponseDto(
             chatMessages.data,
