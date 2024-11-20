@@ -28,14 +28,6 @@ export class CreateCourseDto {
 
   @IsNotEmpty()
   @ApiProperty({
-    description: 'Course thumbnail',
-    type: String,
-    example: 'https://www.example.com/thumbnail.jpg',
-  })
-  thumbnail: string;
-
-  @IsNotEmpty()
-  @ApiProperty({
     description: 'Course duration',
     type: Number,
     example: 60,
