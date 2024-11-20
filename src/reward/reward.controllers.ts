@@ -10,38 +10,80 @@ import {
   Post,
   Patch,
   Delete,
+  Query,
+  UploadedFile,
+  ParseFilePipeBuilder,
+  StreamableFile,
+  UseInterceptors,
+  Req,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+  ApiQuery,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { RewardService } from './reward.service';
 import { Roles } from 'src/shared/decorators/role.decorator';
-import { RewardResponseDto } from './dtos/reward-response.dto';
+import {
+  PaginatedRewardResponseDto,
+  RewardResponseDto,
+} from './dtos/reward-response.dto';
 import { CreateRewardDto } from './dtos/create-reward.dto';
 import { Role } from 'src/shared/enums/roles.enum';
 import { UpdateRewardDto } from './dtos/update-reward.dto';
-import { Public } from 'src/shared/decorators/public.decorator';
-import { Reward } from './reward.entity';
+import { FileService } from 'src/file/file.service';
+import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
+import { Folder } from 'src/file/enums/folder.enum';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 
 @Controller('reward')
 @Injectable()
 @ApiTags('Reward')
+@ApiBearerAuth()
 export class RewardController {
-  constructor(private readonly rewardService: RewardService) {}
+  constructor(
+    private readonly rewardService: RewardService,
+    private readonly fileService: FileService,
+  ) {}
 
   @Get()
-  @Public()
   @ApiResponse({
     status: HttpStatus.OK,
-    type: RewardResponseDto,
+    type: PaginatedRewardResponseDto,
     description: 'get all reward',
     isArray: true,
   })
-  async findAll(): Promise<RewardResponseDto[]> {
-    const rewards = await this.rewardService.findAll();
-    return rewards.map((reward) => new RewardResponseDto(reward));
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by name',
+  })
+  async findAll(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedRewardResponseDto> {
+    return this.rewardService.findAll(query, request.user.role);
   }
 
   @Get(':id')
-  @Public()
   @ApiResponse({
     status: HttpStatus.OK,
     type: RewardResponseDto,
@@ -56,19 +98,19 @@ export class RewardController {
       }),
     )
     id: string,
+    @Req() request: AuthenticatedRequest,
   ): Promise<RewardResponseDto> {
-    const reward = await this.rewardService.findOne({ where: { id } });
+    const reward = await this.rewardService.findOne(id, request.user.role);
     return new RewardResponseDto(reward);
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @Roles(Role.ADMIN)
-  @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
     type: RewardResponseDto,
-    description: 'create reward',
+    description: 'create new reward',
   })
   async create(
     @Body() CreateRewardDto: CreateRewardDto,
@@ -76,9 +118,84 @@ export class RewardController {
     return this.rewardService.create(CreateRewardDto);
   }
 
+  @Get('thumbnail/:id')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get thumbnail reward',
+    type: StreamableFile,
+  })
+  async getThumbnail(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<any> {
+    const reward = await this.rewardService.findOne(id, request.user.role);
+    const file = await this.fileService.get(Folder.PROFILES, id);
+    return new StreamableFile(file, {
+      disposition: 'inline',
+      type: `image/${reward.thumbnail.split('.').pop()}`,
+    });
+  }
+
+  @Patch('thumbnail/:id')
+  @Roles(Role.ADMIN)
+  @UseInterceptors(FileInterceptor('file'))
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiResponse({
+    description: 'upload file thumbnail of reward',
+    status: HttpStatus.NO_CONTENT,
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  async uploadThumbnail(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({ fileType: 'image/*' })
+        .build({
+          fileIsRequired: false,
+          errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        }),
+    )
+    file: Express.Multer.File,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<void> {
+    const reward = await this.rewardService.findOne(id, request.user.role);
+    if (reward.thumbnail)
+      await this.fileService.update(Folder.REWARD_THUMBNAILS, id, file);
+    else {
+      await this.fileService.upload(Folder.REWARD_THUMBNAILS, id, file);
+      await this.rewardService.update(id, {
+        thumbnail: `${id}.${file.mimetype.split('/').pop()}`,
+      });
+    }
+  }
+
   @Patch(':id')
   @Roles(Role.ADMIN)
-  @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
     type: RewardResponseDto,
@@ -101,9 +218,8 @@ export class RewardController {
 
   @Delete(':id')
   @Roles(Role.ADMIN)
-  @ApiBearerAuth()
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.NO_CONTENT,
     description: 'delete reward',
   })
   async delete(
@@ -115,8 +231,7 @@ export class RewardController {
       }),
     )
     id: string,
-  ): Promise<{ message: string }> {
+  ): Promise<void> {
     await this.rewardService.delete(id);
-    return { message: 'Reward delete successfully' };
   }
 }

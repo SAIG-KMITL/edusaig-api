@@ -4,24 +4,56 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { FindOneOptions, Repository } from 'typeorm';
+import { FindOneOptions, ILike, Repository, FindOptionsWhere } from 'typeorm';
 import { Reward } from './reward.entity';
 import { CreateRewardDto } from './dtos/create-reward.dto';
 import { UpdateRewardDto } from './dtos/update-reward.dto';
+import { ConfigService } from '@nestjs/config';
+import { createPagination } from 'src/shared/pagination';
+import { PaginatedRewardResponseDto } from './dtos/reward-response.dto';
+import { Status } from './enums/status.enum';
+import { Role } from 'src/shared/enums';
 
 @Injectable()
 export class RewardService {
   constructor(
     @Inject('RewardRepository')
     private readonly rewardRepository: Repository<Reward>,
+    private readonly configService: ConfigService,
   ) {}
 
-  async findAll(): Promise<Reward[]> {
-    return this.rewardRepository.find();
+  async findAll(
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+    role?: Role,
+  ): Promise<PaginatedRewardResponseDto> {
+    const { find } = await createPagination(this.rewardRepository, {
+      page,
+      limit,
+    });
+    if (role && role === Role.ADMIN) {
+      const rewards = await find({
+        where: { name: ILike(`%${search}%`) },
+      }).run();
+      return rewards;
+    }
+    const rewards = await find({
+      where: { name: ILike(`%${search}%`), status: Status.ACTIVE },
+    }).run();
+    return rewards;
   }
 
-  async findOne(options: FindOneOptions<Reward>): Promise<Reward> {
-    const reward = await this.rewardRepository.findOne(options);
+  async findOne(id: string, role: Role): Promise<Reward> {
+    const condition =
+      role === Role.ADMIN ? { id } : { id, status: Status.ACTIVE };
+    const reward = await this.rewardRepository.findOne({ where: condition });
     if (!reward) throw new NotFoundException('reward not found');
     return reward;
   }

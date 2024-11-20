@@ -23,7 +23,7 @@ export class UpdateRewardDto {
   @ApiPropertyOptional({
     description: 'description of reward (optional)',
     type: String,
-    example: 'get 15% of in next corse',
+    example: 'get 15% of in next course',
   })
   description?: string;
 
@@ -34,7 +34,7 @@ export class UpdateRewardDto {
     type: String,
     example: 'url.png',
   })
-  thumnail?: string;
+  thumbnail?: string;
 
   @IsEnum(Type, {
     message: `Invalid type. Type should be ${Type.BADGE} ${Type.CERTIFICATE} or ${Type.ITEM}`,
