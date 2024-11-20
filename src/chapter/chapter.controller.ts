@@ -36,6 +36,7 @@ import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorato
 import { CourseModuleService } from 'src/course-module/course-module.service';
 import { ChatRoomResponseDto } from 'src/chat-room/dtos';
 import { ChatRoomService } from 'src/chat-room/chat-room.service';
+import { FileService } from 'src/file/file.service';
 
 @Controller('chapter')
 @ApiTags('Chapters')
@@ -45,7 +46,12 @@ export class ChapterController {
   constructor(
     private readonly chapterService: ChapterService,
     private readonly courseModuleService: CourseModuleService,
+    private readonly fileService: FileService,
   ) {}
+
+  @Get(':id/video')
+  
+
 
   @Get()
   @ApiResponse({
@@ -118,7 +124,7 @@ export class ChapterController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ChapterResponseDto> {
-    return this.chapterService.findOne(request.user.id, request.user.role, {
+    return this.chapterService.findOneWithOwnership(request.user.id, request.user.role, {
       where: { id },
     });
   }

@@ -57,7 +57,14 @@ export class ChapterService {
     return chapters;
   }
 
-  async findOne(
+  async findOne(options: FindOneOptions<Chapter>): Promise<Chapter> {
+    const chapter = await this.chapterRepository.findOne(options);
+    if (!chapter) throw new NotFoundException('Chapter not found');
+    return chapter;
+  }
+
+
+  async findOneWithOwnership(
     userId: string,
     role: Role,
     options: FindOneOptions<Chapter>,
