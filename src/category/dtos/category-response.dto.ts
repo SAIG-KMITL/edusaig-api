@@ -1,6 +1,7 @@
 import { Slug } from 'src/category/enums/slug.enum';
 import { Category } from '../category.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { PaginatedResponse } from 'src/shared/pagination/dtos/paginate-response.dto';
 
 export class categoryResponseDto {
   @ApiProperty({
@@ -53,5 +54,21 @@ export class categoryResponseDto {
     this.slug = category.slug;
     this.createdAt = category.createdAt;
     this.updatedAt = category.updatedAt;
+  }
+}
+
+export class PaginatedCategoryDto extends PaginatedResponse(
+  categoryResponseDto,
+) {
+  constructor(
+    categories: Category[],
+    total: number,
+    pageSize: number,
+    currentPage: number,
+  ) {
+    const categoryDtos = categories.map(
+      (category) => new categoryResponseDto(category),
+    );
+    super(categoryDtos, total, pageSize, currentPage);
   }
 }
