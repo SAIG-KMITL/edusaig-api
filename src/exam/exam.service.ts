@@ -55,7 +55,11 @@ export class ExamService {
     );
     const exam = await find({
       where: whereCondition,
-      relations: ['courseModule'],
+      relations: [
+        'courseModule',
+        'courseModule.course',
+        'courseModule.course.teacher',
+      ],
       select: {
         courseModule: this.selectPopulateCourseModule(),
       },
@@ -123,7 +127,11 @@ export class ExamService {
     const exam = await this.examRepository.findOne({
       ...options,
       where,
-      relations: ['courseModule'],
+      relations: [
+        'courseModule',
+        'courseModule.course',
+        'courseModule.course.teacher',
+      ],
       select: {
         courseModule: this.selectPopulateCourseModule(),
       },
@@ -140,6 +148,7 @@ export class ExamService {
     const courseModule = await this.courseModuleRepository.findOne({
       where: { id: createExamDto.courseModuleId },
       select: this.selectPopulateCourseModule(),
+      relations: ['course', 'course.teacher'],
     });
 
     if (!courseModule) throw new NotFoundException('Course Module not found');
@@ -169,25 +178,16 @@ export class ExamService {
     ) {
       throw new ForbiddenException("Can't change status to draft");
     }
-    let courseModule = null;
-    if (updateExamDto.courseModuleId) {
-      courseModule = await this.courseModuleRepository.findOne({
-        where: { id: updateExamDto.courseModuleId },
-        select: this.selectPopulateCourseModule(),
-      });
 
-      if (!courseModule) throw new NotFoundException('CourseModule Not Found');
-    }
-    const updateExam = {
-      ...updateExamDto,
-      ...(courseModule ? { examAttemptId: courseModule.id } : {}),
-    };
-
-    const exam = await this.examRepository.update(id, updateExam);
+    const exam = await this.examRepository.update(id, updateExamDto);
     if (!exam) throw new BadRequestException("Can't update exam");
     return await this.examRepository.findOne({
       where: { id },
-      relations: ['courseModule'],
+      relations: [
+        'courseModule',
+        'courseModule.course',
+        'courseModule.course.teacher',
+      ],
       select: {
         courseModule: this.selectPopulateCourseModule(),
       },
@@ -206,7 +206,18 @@ export class ExamService {
   }
 
   private selectPopulateCourseModule(): FindOptionsSelect<CourseModule> {
-    return { id: true, title: true, description: true, orderIndex: true };
+    return {
+      id: true,
+      title: true,
+      description: true,
+      orderIndex: true,
+      course: {
+        id: true,
+        teacher: {
+          id: true,
+        },
+      },
+    };
   }
 
   private checkPermission(userId: string, role: Role, exam: Exam): boolean {

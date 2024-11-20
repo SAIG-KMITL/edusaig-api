@@ -15,11 +15,18 @@ export class QuestionOptionResponseDto {
     description: 'Question Data',
     type: Question,
     example: {
-      id: '3a3013bb-b13c-40f0-be93-1ff7ad3e36f0',
-      question: 'What the fick?',
-      type: 'Open question',
-      points: 0,
-      orderIndex: 1,
+      id: 'e20ffe51-2514-4f14-9bea-4bb28bb97fdd',
+      courseModuleId: '7093a5ae-cc1d-4017-8445-cba7ea978b22',
+      courseModule: {
+        id: '7093a5ae-cc1d-4017-8445-cba7ea978b22',
+        courseId: 'b7634715-9536-46be-ae06-650dc0d719fb',
+        course: {
+          id: 'b7634715-9536-46be-ae06-650dc0d719fb',
+          teacher: {
+            id: '75af7b82-d765-40a3-82aa-bc4f572c492c',
+          },
+        },
+      },
     },
   })
   question: Question;
