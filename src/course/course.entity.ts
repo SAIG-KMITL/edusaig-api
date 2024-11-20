@@ -56,7 +56,7 @@ export class Course {
     type: String,
     nullable: true,
   })
-  thumbnail: string;
+  thumbnailKey: string;
 
   @Column({
     type: Number,

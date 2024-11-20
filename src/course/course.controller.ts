@@ -45,7 +45,6 @@ import { FileService } from 'src/file/file.service';
 import { Folder } from 'src/file/enums/folder.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
-import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
 
 @Controller('course')
 @ApiTags('Course')
@@ -84,10 +83,10 @@ export class CourseController {
     const course = await this.courseService.findOne({
       where: { id },
     });
-    const file = await this.fileService.get(Folder.COURSE_THUMBNAILS, course.thumbnail);
+    const file = await this.fileService.get(Folder.COURSE_THUMBNAILS, course.thumbnailKey);
     return new StreamableFile(file, {
       disposition: 'inline',
-      type: `image/${course.thumbnail.split('.').pop()}`,
+      type: `image/${course.thumbnailKey.split('.').pop()}`,
     });
   }
 
@@ -141,7 +140,7 @@ export class CourseController {
     const course = await this.courseService.findOne({
       where: { id },
     });
-    if (course.thumbnail)
+    if (course.thumbnailKey)
       await this.fileService.update(Folder.COURSE_THUMBNAILS, id, file); 
     else {
       await this.fileService.upload(Folder.COURSE_THUMBNAILS, id, file);
