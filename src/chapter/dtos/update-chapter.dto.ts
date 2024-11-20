@@ -11,7 +11,7 @@ export class UpdateChapterDto extends PartialType(CreateChapterDto) {
     type: Number,
     example: 1,
   })
-  orderIndex: number;
+  orderIndex?: number;
   @IsOptional()
   @IsString()
   @ApiProperty({
@@ -19,7 +19,7 @@ export class UpdateChapterDto extends PartialType(CreateChapterDto) {
     type: String,
     example: '8d4887aa-28e7-4d0e-844c-28a8ccead003',
   })
-  videoKey: string;
+  videoKey?: string;
 
 
 }

@@ -4,18 +4,25 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Injectable,
   Param,
+  ParseFilePipeBuilder,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
   Req,
+  StreamableFile,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiParam,
   ApiQuery,
   ApiResponse,
@@ -37,6 +44,9 @@ import { CourseModuleService } from 'src/course-module/course-module.service';
 import { ChatRoomResponseDto } from 'src/chat-room/dtos';
 import { ChatRoomService } from 'src/chat-room/chat-room.service';
 import { FileService } from 'src/file/file.service';
+import { Folder } from 'src/file/enums/folder.enum';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { EnrollmentService } from 'src/enrollment/enrollment.service';
 
 @Controller('chapter')
 @ApiTags('Chapters')
@@ -47,9 +57,101 @@ export class ChapterController {
     private readonly chapterService: ChapterService,
     private readonly courseModuleService: CourseModuleService,
     private readonly fileService: FileService,
+    private readonly enrollmentService: EnrollmentService,
   ) {}
 
   @Get(':id/video')
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Course id',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get chapter video',
+    type: StreamableFile,
+  })
+  async getVideo(
+    @Req() request: AuthenticatedRequest,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+  ): Promise<StreamableFile> {
+    const chapter = await this.chapterService.findOneWithOwnership(
+      request.user.id,
+      request.user.role,
+      { where: { id } },
+    );
+
+    const file = await this.fileService.get(Folder.CHAPTER_VIDEOS, chapter.videoKey);   
+    return new StreamableFile(file, {
+      disposition: 'inline',
+      type: `video/${chapter.videoKey.split('.').pop()}`,
+    });
+  }
+
+
+
+  @Patch(':id/video')
+  @CourseOwnership({ adminDraftOnly: true })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Video updated successfully',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Chapter id',
+  })
+  async uploadVideo(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({ fileType: 'video/*' })
+        .build({
+          fileIsRequired: true,
+          errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        }),
+    )
+    file: Express.Multer.File,
+  ): Promise<void> {
+    const chapter = await this.chapterService.findOne({
+      where: { id },
+    });
+    if (chapter.videoKey)
+      await this.fileService.update(Folder.CHAPTER_VIDEOS, chapter.videoKey, file); 
+    else {
+      await this.fileService.upload(Folder.CHAPTER_VIDEOS, id, file);
+    }
+    await this.chapterService.update(id, { videoKey: `${id}.${file.originalname.split('.').pop()}` });  
+  }
   
 
 

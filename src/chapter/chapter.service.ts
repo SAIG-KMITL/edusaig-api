@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createPagination } from 'src/shared/pagination';
-import { FindOneOptions, FindOptionsWhere, ILike, Repository } from 'typeorm';
+import { FindOneOptions, FindOptionsWhere, ILike, Not, Repository } from 'typeorm';
 import { Chapter } from './chapter.entity';
 import { PaginatedChapterResponseDto } from './dtos/chapter-response.dto';
 import { CreateChapterDto } from './dtos/create-chapter.dto';
@@ -16,6 +16,7 @@ import { ChatRoomService } from 'src/chat-room/chat-room.service';
 import { ChatRoomStatus, ChatRoomType } from 'src/chat-room/enums';
 import { EnrollmentService } from 'src/enrollment/enrollment.service';
 import { ChatRoom } from 'src/chat-room/chat-room.entity';
+import { EnrollmentStatus } from 'src/enrollment/enums/enrollment-status.enum';
 
 @Injectable()
 export class ChapterService {
@@ -24,7 +25,7 @@ export class ChapterService {
     private readonly chapterRepository: Repository<Chapter>,
     private readonly chatRoomService: ChatRoomService,
     private readonly enrollmentService: EnrollmentService,
-  ) {}
+  ) { }
 
   async findAll({
     page = 1,
@@ -257,7 +258,7 @@ export class ChapterService {
     userId: string,
     role: Role,
     baseCondition: FindOptionsWhere<Chapter> = {},
-  ) {
+  ): FindOptionsWhere<Chapter> | FindOptionsWhere<Chapter>[] {
     const conditions: Record<
       Role,
       () => FindOptionsWhere<Chapter> | FindOptionsWhere<Chapter>[]
@@ -267,34 +268,35 @@ export class ChapterService {
         module: {
           course: {
             status: CourseStatus.PUBLISHED,
-          },
-        },
+            enrollments: {
+              user: { id: userId },
+              status: Not(EnrollmentStatus.DROPPED)
+            }
+          }
+        }
       }),
       [Role.TEACHER]: () => [
         {
           ...baseCondition,
           module: {
             course: {
-              status: CourseStatus.PUBLISHED,
-            },
-          },
+              status: CourseStatus.PUBLISHED
+            }
+          }
         },
         {
           ...baseCondition,
           module: {
             course: {
-              teacher: {
-                id: userId,
-              },
-            },
-          },
-        },
+              teacher: { id: userId }
+            }
+          }
+        }
       ],
       [Role.ADMIN]: () => baseCondition,
     };
 
     const buildCondition = conditions[role];
-
     if (!buildCondition) {
       throw new BadRequestException('Invalid role');
     }
