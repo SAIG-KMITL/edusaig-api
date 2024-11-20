@@ -139,11 +139,11 @@ export class CourseController {
       where: { id },
     });
     if (course.thumbnailKey)
-      await this.fileService.update(Folder.COURSE_THUMBNAILS, id, file); 
+      await this.fileService.update(Folder.COURSE_THUMBNAILS, course.thumbnailKey, file); 
     else {
       await this.fileService.upload(Folder.COURSE_THUMBNAILS, id, file);
     }
-    await this.courseService.update(id, { thumbnailKey: `${id}.${file.mimetype.split('/').pop()}` });
+    await this.courseService.update(id, { thumbnailKey: `${id}.${file.originalname.split('.').pop()}` });  
   }
 
 
