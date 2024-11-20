@@ -11,6 +11,6 @@ export class UpdateCourseDto extends PartialType(CreateCourseDto) {
         type: String,
         example: 'https://www.example.com/thumbnail.jpg',
     })
-    thumbnail: string;
+    thumbnailKey: string;
 
 }

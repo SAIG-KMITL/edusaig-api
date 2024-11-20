@@ -44,7 +44,6 @@ import { Public } from 'src/shared/decorators/public.decorator';
 import { FileService } from 'src/file/file.service';
 import { Folder } from 'src/file/enums/folder.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ConfigService } from '@nestjs/config';
 
 @Controller('course')
 @ApiTags('Course')
@@ -55,7 +54,6 @@ export class CourseController {
     private readonly courseService: CourseService,
     private readonly categoryService: CategoryService,
     private readonly fileService: FileService,
-    private readonly configService: ConfigService,
   ) {}
 
   @Get(':id/thumbnail')
@@ -145,7 +143,7 @@ export class CourseController {
     else {
       await this.fileService.upload(Folder.COURSE_THUMBNAILS, id, file);
     }
-    await this.courseService.update(id, { thumbnail: `${id}.${file.mimetype.split('/').pop()}` });
+    await this.courseService.update(id, { thumbnailKey: `${id}.${file.mimetype.split('/').pop()}` });
   }
 
 
