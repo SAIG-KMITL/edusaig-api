@@ -4,7 +4,13 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Repository, FindOneOptions, FindOptionsWhere } from 'typeorm';
+import {
+  Repository,
+  FindOneOptions,
+  FindOptionsWhere,
+  ILike,
+  FindManyOptions,
+} from 'typeorm';
 import { ChatRoom } from './chat-room.entity';
 import { createPagination } from 'src/shared/pagination';
 import {
@@ -32,11 +38,22 @@ export class ChatRoomService {
     }
   }
 
+  async find(criteria: FindManyOptions<ChatRoom>): Promise<ChatRoom[]> {
+    try {
+      return await this.chatRoomRepository.find(criteria);
+    } catch (error) {
+      if (error instanceof Error)
+        throw new NotFoundException('Chat room not found');
+    }
+  }
+
   async findAll({
+    userId,
     page = 1,
     limit = 20,
     search = '',
   }: {
+    userId: string;
     page?: number;
     limit?: number;
     search?: string;
@@ -46,7 +63,10 @@ export class ChatRoomService {
       limit,
     });
     const chatRooms = await find({
-      where: { chapter: { id: search } },
+      where: {
+        title: ILike(`%${search}%`),
+        chapter: { module: { course: { teacher: { id: userId } } } },
+      },
     }).run();
     return new PaginatedChatRoomResponseDto(
       chatRooms.data,
@@ -57,11 +77,9 @@ export class ChatRoomService {
   }
 
   async findOne(options: FindOneOptions<ChatRoom>): Promise<ChatRoom> {
-    try {
-      return await this.chatRoomRepository.findOne(options);
-    } catch (error) {
-      if (error instanceof Error) throw new NotFoundException(error.message);
-    }
+    const chatRoom = await this.chatRoomRepository.findOne(options);
+    if (!chatRoom) throw new NotFoundException('Chat room not found');
+    return chatRoom;
   }
 
   async update(

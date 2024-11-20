@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,6 +14,8 @@ import { UpdateChapterDto } from './dtos/update-chapter.dto';
 import { CourseStatus, Role } from 'src/shared/enums';
 import { ChatRoomService } from 'src/chat-room/chat-room.service';
 import { ChatRoomStatus, ChatRoomType } from 'src/chat-room/enums';
+import { EnrollmentService } from 'src/enrollment/enrollment.service';
+import { ChatRoom } from 'src/chat-room/chat-room.entity';
 
 @Injectable()
 export class ChapterService {
@@ -20,6 +23,7 @@ export class ChapterService {
     @InjectRepository(Chapter)
     private readonly chapterRepository: Repository<Chapter>,
     private readonly chatRoomService: ChatRoomService,
+    private readonly enrollmentService: EnrollmentService,
   ) {}
 
   async findAll({
@@ -217,6 +221,31 @@ export class ChapterService {
     if (chapter.module.course.teacher.id !== userId)
       throw new BadRequestException('You can only access your own courses');
   }
+
+  async getChatRooms(userId: string, chapterId: string): Promise<ChatRoom[]> {
+    try {
+      const chapter = await this.chapterRepository.findOne({
+        where: { id: chapterId },
+        relations: { module: { course: true } },
+      });
+      const courseId = chapter.module.course.id;
+      const enrollments = await this.enrollmentService.findOne({
+        user: { id: userId },
+        course: { id: courseId },
+      });
+      if (!enrollments)
+        throw new ForbiddenException('You are not enrolled in this course');
+      return await this.chatRoomService.find({
+        where: {
+          chapter: { id: chapterId },
+          status: ChatRoomStatus.ACTIVE,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error) throw new NotFoundException(error.message);
+    }
+  }
+
   private buildWhereCondition(
     userId: string,
     role: Role,

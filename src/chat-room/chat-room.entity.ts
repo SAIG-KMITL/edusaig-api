@@ -4,12 +4,13 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToOne,
   JoinColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { Chapter } from 'src/chapter/chapter.entity';
 import { ChatRoomType, ChatRoomStatus } from './enums';
+import { ChatMessage } from 'src/chat-message/chat-message.entity';
 
 @Entity()
 export class ChatRoom {
@@ -60,4 +61,7 @@ export class ChatRoom {
     type: 'timestamp',
   })
   updatedAt: Date;
+
+  @OneToMany(() => ChatMessage, (chatMessage) => chatMessage.chatRoom)
+  chatMessages: ChatMessage[];
 }

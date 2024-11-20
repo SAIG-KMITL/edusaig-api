@@ -8,6 +8,7 @@ import { CourseModuleModule } from 'src/course-module/course-module.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CourseModule } from 'src/course-module/course-module.entity';
 import { ChatRoomModule } from 'src/chat-room/chat-room.module';
+import { EnrollmentModule } from 'src/enrollment/enrollment.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ChatRoomModule } from 'src/chat-room/chat-room.module';
     CourseModuleModule,
     TypeOrmModule.forFeature([Chapter, CourseModule]),
     ChatRoomModule,
+    EnrollmentModule,
   ],
   controllers: [ChapterController],
   providers: [...chapterProviders, ChapterService],

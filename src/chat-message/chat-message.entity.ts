@@ -40,10 +40,11 @@ export class ChatMessage {
   })
   type: ChatMessageType;
 
-  @ManyToOne(() => ChatRoom, {
+  @ManyToOne(() => ChatRoom, (chatRoom) => chatRoom.chatMessages, {
     nullable: false,
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'chat_room_id' })
   chatRoom: ChatRoom;
 
   @ManyToOne(() => User, {
