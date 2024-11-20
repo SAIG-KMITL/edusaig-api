@@ -81,6 +81,6 @@ export class FileService {
     file: Express.Multer.File,
   ): Promise<void> {
     await this.delete(folder, key);
-    await this.upload(folder, key, file);
+    await this.upload(folder, key.split('.')[0], file);
   }
 }
