@@ -6,9 +6,10 @@ import { courseProviders } from './course.provider';
 import { CourseService } from './course.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Course } from './course.entity';
+import { FileModule } from 'src/file/file.module';
 
 @Module({
-  imports: [DatabaseModule, CategoryModule, TypeOrmModule.forFeature([Course])],
+  imports: [DatabaseModule, CategoryModule, TypeOrmModule.forFeature([Course]), FileModule],
   controllers: [CourseController],
   providers: [...courseProviders, CourseService],
   exports: [CourseService],

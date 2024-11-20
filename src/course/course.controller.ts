@@ -4,17 +4,24 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Injectable,
   Param,
+  ParseFilePipeBuilder,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
   Req,
+  StreamableFile,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiParam,
   ApiQuery,
   ApiResponse,
@@ -33,7 +40,10 @@ import {
   UpdateCourseDto,
 } from './dtos/index';
 import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
-import { CourseOwnershipGuard } from 'src/shared/guards/course-ownership.guard';
+import { Public } from 'src/shared/decorators/public.decorator';
+import { FileService } from 'src/file/file.service';
+import { Folder } from 'src/file/enums/folder.enum';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('course')
 @ApiTags('Course')
@@ -43,7 +53,100 @@ export class CourseController {
   constructor(
     private readonly courseService: CourseService,
     private readonly categoryService: CategoryService,
+    private readonly fileService: FileService,
   ) {}
+
+  @Get(':id/thumbnail')
+  @Public()
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Course id',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get course thumbnail',
+    type: StreamableFile,
+  })
+  async getThumbnail(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+  ): Promise<StreamableFile> {
+    const course = await this.courseService.findOne({
+      where: { id },
+    });
+    const file = await this.fileService.get(Folder.COURSE_THUMBNAILS, course.thumbnailKey);
+    return new StreamableFile(file, {
+      disposition: 'inline',
+      type: `image/${course.thumbnailKey.split('.').pop()}`,
+    });
+  }
+
+
+
+  @Patch(':id/thumbnail')
+  @CourseOwnership({ adminDraftOnly: true })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Thumbnail updated successfully',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Course id',
+  })
+  async uploadThumbnail(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({ fileType: 'image/*' })
+        .build({
+          fileIsRequired: true,
+          errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        }),
+    )
+    file: Express.Multer.File,
+  ): Promise<void> {
+    const course = await this.courseService.findOne({
+      where: { id },
+    });
+    if (course.thumbnailKey)
+      await this.fileService.update(Folder.COURSE_THUMBNAILS, course.thumbnailKey, file); 
+    else {
+      await this.fileService.upload(Folder.COURSE_THUMBNAILS, id, file);
+    }
+    await this.courseService.update(id, { thumbnailKey: `${id}.${file.originalname.split('.').pop()}` });  
+  }
+
+
   @Get()
   @ApiResponse({
     status: HttpStatus.OK,
@@ -104,7 +207,7 @@ export class CourseController {
     )
     id: string,
   ): Promise<CourseResponseDto> {
-    const course = await this.courseService.findOne(
+    const course = await this.courseService.findOneWithOwnership(
       request.user.id,
       request.user.role,
       { where: { id } },
