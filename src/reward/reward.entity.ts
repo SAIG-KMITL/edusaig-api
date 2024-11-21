@@ -22,10 +22,15 @@ export class Reward {
   })
   name: string;
 
-  @Column({})
+  @Column({
+    nullable: true,
+  })
   description: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+    default: null,
+  })
   thumbnail: string;
 
   @Column({

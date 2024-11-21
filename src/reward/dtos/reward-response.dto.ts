@@ -31,7 +31,7 @@ export class RewardResponseDto {
     type: String,
     example: 'url.png',
   })
-  thumbnail: string;
+  thumbnail?: string;
 
   @ApiProperty({
     description: 'type of reward',

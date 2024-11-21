@@ -40,6 +40,8 @@ import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto'
 import { Folder } from 'src/file/enums/folder.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
+import { PaginateRewardQueryDto } from './dtos/paginate-reward-query.dto';
+import { Type } from './enums/type.enum';
 
 @Controller('reward')
 @Injectable()
@@ -76,9 +78,15 @@ export class RewardController {
     required: false,
     description: 'Search by name',
   })
+  @ApiQuery({
+    name: 'type',
+    type: String,
+    required: false,
+    description: `search by ${Type.BADGE} ${Type.CERTIFICATE} or ${Type.ITEM}`,
+  })
   async findAll(
     @Req() request: AuthenticatedRequest,
-    @Query() query: PaginateQueryDto,
+    @Query() query: PaginateRewardQueryDto,
   ): Promise<PaginatedRewardResponseDto> {
     return this.rewardService.findAll(query, request.user.role);
   }
@@ -134,9 +142,9 @@ export class RewardController {
     )
     id: string,
     @Req() request: AuthenticatedRequest,
-  ): Promise<any> {
+  ): Promise<StreamableFile> {
     const reward = await this.rewardService.findOne(id, request.user.role);
-    const file = await this.fileService.get(Folder.PROFILES, id);
+    const file = await this.fileService.get(Folder.REWARD_THUMBNAILS, id);
     return new StreamableFile(file, {
       disposition: 'inline',
       type: `image/${reward.thumbnail.split('.').pop()}`,
@@ -145,10 +153,10 @@ export class RewardController {
 
   @Patch('thumbnail/:id')
   @Roles(Role.ADMIN)
-  @UseInterceptors(FileInterceptor('file'))
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UseInterceptors(FileInterceptor('file'))
   @ApiResponse({
-    description: 'upload file thumbnail of reward',
+    description: 'upload file thumbnail of reward successfully',
     status: HttpStatus.NO_CONTENT,
   })
   @ApiConsumes('multipart/form-data')
@@ -168,7 +176,7 @@ export class RewardController {
       new ParseFilePipeBuilder()
         .addFileTypeValidator({ fileType: 'image/*' })
         .build({
-          fileIsRequired: false,
+          fileIsRequired: true,
           errorHttpStatusCode: HttpStatus.BAD_REQUEST,
         }),
     )

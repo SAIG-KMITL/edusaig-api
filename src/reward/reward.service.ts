@@ -13,6 +13,7 @@ import { createPagination } from 'src/shared/pagination';
 import { PaginatedRewardResponseDto } from './dtos/reward-response.dto';
 import { Status } from './enums/status.enum';
 import { Role } from 'src/shared/enums';
+import { Type } from './enums/type.enum';
 
 @Injectable()
 export class RewardService {
@@ -27,10 +28,12 @@ export class RewardService {
       page = 1,
       limit = 20,
       search = '',
+      type = '',
     }: {
       page?: number;
       limit?: number;
       search?: string;
+      type?: Type | '';
     },
     role?: Role,
   ): Promise<PaginatedRewardResponseDto> {
@@ -38,14 +41,23 @@ export class RewardService {
       page,
       limit,
     });
+    const conditionSearch = search ? { name: ILike(`%${search}%`) } : {};
+    const conditionType = type ? { type: type } : {};
     if (role && role === Role.ADMIN) {
       const rewards = await find({
-        where: { name: ILike(`%${search}%`) },
+        where: {
+          ...conditionSearch,
+          ...conditionType,
+        },
       }).run();
       return rewards;
     }
     const rewards = await find({
-      where: { name: ILike(`%${search}%`), status: Status.ACTIVE },
+      where: {
+        ...conditionSearch,
+        ...conditionType,
+        status: Status.ACTIVE,
+      },
     }).run();
     return rewards;
   }
