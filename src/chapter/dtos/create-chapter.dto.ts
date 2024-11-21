@@ -26,14 +26,6 @@ export class CreateChapterDto {
   })
   description: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @ApiProperty({
-    description: 'Chapter video URL',
-    type: String,
-    example: 'https://www.youtube.com/watch?v=8k-9mU5KfBQ',
-  })
-  videoUrl: string;
 
   @IsNotEmpty()
   @IsString()

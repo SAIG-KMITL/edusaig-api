@@ -6,20 +6,21 @@ import {
 } from '@nestjs/common';
 import { CourseStatus, Role } from 'src/shared/enums';
 import { createPagination } from 'src/shared/pagination';
-import { FindOneOptions, FindOptionsWhere, ILike, Repository } from 'typeorm';
+import { FindOneOptions, FindOptionsWhere, ILike, Not, Repository } from 'typeorm';
 import { Course } from './course.entity';
 import {
   CreateCourseDto,
   PaginatedCourseResponeDto,
   UpdateCourseDto,
 } from './dtos/index';
+import { EnrollmentStatus } from 'src/enrollment/enums/enrollment-status.enum';
 
 @Injectable()
 export class CourseService {
   constructor(
     @Inject('CourseRepository')
     private readonly courseRepository: Repository<Course>,
-  ) {}
+  ) { }
 
   async findAll({
     page = 1,
@@ -148,6 +149,10 @@ export class CourseService {
       [Role.STUDENT]: () => ({
         ...baseCondition,
         status: CourseStatus.PUBLISHED,
+        enrollments: {
+          user: { id: userId },
+          status: Not(EnrollmentStatus.DROPPED),
+        },
       }),
       [Role.TEACHER]: () => [
         {

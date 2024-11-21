@@ -46,9 +46,9 @@ export class Chapter {
 
   @Column({
     type: String,
-    nullable: false,
+    nullable: true,
   })
-  videoUrl: string;
+  videoKey: string;
 
   @Column({
     type: String,
