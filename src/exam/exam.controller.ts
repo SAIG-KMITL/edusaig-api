@@ -32,6 +32,7 @@ import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto'
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { UpdateExamDto } from './dtos/update-exam.dto';
 import { PaginatedQuestionResponseDto } from 'src/question/dtos/question-response.dto';
+import { Public } from 'src/shared/decorators/public.decorator';
 
 @Controller('exam')
 @ApiTags('Exam')
@@ -164,5 +165,24 @@ export class ExamController {
     id: string,
   ): Promise<void> {
     await this.examService.deleteExam(request.user.id, request.user.role, id);
+  }
+
+  @Post('generate/:examId')
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Create an question and question option in exam',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async createQuestionAndChoice(
+    @Param(
+      'examId',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    examId: string,
+  ): Promise<void> {
+    return this.examService.createQuestionAndChoice(examId);
   }
 }

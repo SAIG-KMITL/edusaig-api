@@ -16,10 +16,11 @@ import { Exam } from './exam.entity';
 import { CreateExamDto } from './dtos/create-exam.dto';
 import { PaginatedExamResponseDto } from './dtos/exam-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { ExamStatus, Role } from 'src/shared/enums';
-import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
+import { ExamStatus, QuestionType, Role } from 'src/shared/enums';
 import { UpdateExamDto } from './dtos/update-exam.dto';
 import { CourseModule } from 'src/course-module/course-module.entity';
+import { QuestionService } from 'src/question/question.service';
+import { QuestionOptionService } from 'src/question-option/question-option.service';
 
 @Injectable()
 export class ExamService {
@@ -28,6 +29,8 @@ export class ExamService {
     private readonly examRepository: Repository<Exam>,
     @Inject('CourseModuleRepository')
     private readonly courseModuleRepository: Repository<CourseModule>,
+    private readonly questionService: QuestionService,
+    private readonly questionOptionService: QuestionOptionService,
   ) {}
 
   async findAll(
@@ -229,5 +232,79 @@ export class ExamService {
       case Role.STUDENT:
         return false;
     }
+  }
+
+  async fetchData() {
+    return {
+      message: 'Generate comment successful',
+      data: [
+        {
+          question: "What is the purpose of the 'print()' function in Python?",
+          choices: {
+            a: 'To import libraries',
+            b: 'To create a new variable',
+            c: 'To display output on the screen',
+            d: 'To end a loop',
+          },
+          answer: 'c',
+        },
+        {
+          question: 'What data type is represented by the number 5 in Python?',
+          choices: {
+            a: 'String',
+            b: 'Integer',
+            c: 'Float',
+            d: 'Boolean',
+          },
+          answer: 'b',
+        },
+        {
+          question:
+            'What is the difference between a list and a tuple in Python?',
+          choices: {
+            a: 'A list is mutable and a tuple is immutable.',
+            b: 'A list is immutable and a tuple is mutable.',
+            c: 'Both lists and tuples are mutable.',
+            d: 'Both lists and tuples are immutable.',
+          },
+          answer: 'a',
+        },
+      ],
+    };
+  }
+
+  async createQuestionAndChoice(examId: string): Promise<void> {
+    const fetchData = await this.fetchData();
+    let orderIndex = (await this.questionService.getMaxOrderIndex(examId)) + 1;
+    await Promise.all(
+      fetchData.data.map(async (data) => {
+        const createQuestionDto = {
+          examId,
+          question: data.question,
+          type: QuestionType.MULTIPLE_CHOICE,
+          points: 1,
+          orderIndex: orderIndex++,
+        };
+
+        const question = await this.questionService.createQuestion(
+          createQuestionDto,
+        );
+
+        await Promise.all(
+          Object.entries(data.choices).map(([key, value]) => {
+            const createQuestionOptionDto = {
+              questionId: question.id,
+              optionText: `${key}. ${value}`,
+              isCorrect: key === data.answer,
+              explanation: '',
+            };
+
+            return this.questionOptionService.createQuestionOption(
+              createQuestionOptionDto,
+            );
+          }),
+        );
+      }),
+    );
   }
 }
