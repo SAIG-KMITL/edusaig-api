@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Status } from '../enums/status.enum';
 import { Type } from '../enums/type.enum';
 import { Reward } from '../reward.entity';
+import { PaginatedResponse } from 'src/shared/pagination/dtos/paginate-response.dto';
 
 export class RewardResponseDto {
   @ApiProperty({
@@ -21,7 +22,7 @@ export class RewardResponseDto {
   @ApiPropertyOptional({
     description: 'description of reward (optional)',
     type: String,
-    example: 'get 15% of in next corse',
+    example: 'get 15% of in next course',
   })
   description?: string;
 
@@ -30,7 +31,7 @@ export class RewardResponseDto {
     type: String,
     example: 'url.png',
   })
-  thumbnail: string;
+  thumbnail?: string;
 
   @ApiProperty({
     description: 'type of reward',
@@ -87,5 +88,18 @@ export class RewardResponseDto {
     this.status = reward.status;
     this.createdAt = reward.createdAt;
     this.updatedAt = reward.updatedAt;
+  }
+}
+export class PaginatedRewardResponseDto extends PaginatedResponse(
+  RewardResponseDto,
+) {
+  constructor(
+    rewards: Reward[],
+    total: number,
+    pageSize: number,
+    currentPage: number,
+  ) {
+    const rewardDtos = rewards.map((reward) => new RewardResponseDto(reward));
+    super(rewardDtos, total, pageSize, currentPage);
   }
 }
