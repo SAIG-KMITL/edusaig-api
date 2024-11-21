@@ -26,7 +26,7 @@ import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
 import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
 import { Slug } from './enums/slug.enum';
-import { PaginateCategoryQueryDto } from 'src/exam/dtos/paginate-query-slug.dto';
+import { PaginateCategoryQueryDto } from 'src/category/dtos/paginate-query-slug.dto';
 
 @Controller('category')
 @Injectable()

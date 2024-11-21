@@ -144,7 +144,10 @@ export class RewardController {
     @Req() request: AuthenticatedRequest,
   ): Promise<StreamableFile> {
     const reward = await this.rewardService.findOne(id, request.user.role);
-    const file = await this.fileService.get(Folder.REWARD_THUMBNAILS, id);
+    const file = await this.fileService.get(
+      Folder.REWARD_THUMBNAILS,
+      reward.thumbnail,
+    );
     return new StreamableFile(file, {
       disposition: 'inline',
       type: `image/${reward.thumbnail.split('.').pop()}`,
@@ -193,13 +196,17 @@ export class RewardController {
   ): Promise<void> {
     const reward = await this.rewardService.findOne(id, request.user.role);
     if (reward.thumbnail)
-      await this.fileService.update(Folder.REWARD_THUMBNAILS, id, file);
+      await this.fileService.update(
+        Folder.REWARD_THUMBNAILS,
+        reward.thumbnail,
+        file,
+      );
     else {
       await this.fileService.upload(Folder.REWARD_THUMBNAILS, id, file);
-      await this.rewardService.update(id, {
-        thumbnail: `${id}.${file.mimetype.split('/').pop()}`,
-      });
     }
+    await this.rewardService.update(id, {
+      thumbnail: `${id}.${file.originalname.split('.').pop()}`,
+    });
   }
 
   @Patch(':id')

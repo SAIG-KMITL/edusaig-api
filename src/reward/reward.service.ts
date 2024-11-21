@@ -72,6 +72,12 @@ export class RewardService {
 
   async create(CreateRewardDto: CreateRewardDto): Promise<Reward> {
     try {
+      const reward = await this.rewardRepository.findOne({
+        where: {
+          name: CreateRewardDto.name,
+        },
+      });
+      if (reward) throw new BadRequestException('reward already exists');
       if (CreateRewardDto.points < 0)
         throw new BadRequestException('points should not be less than zero');
       return this.rewardRepository.save(CreateRewardDto);
