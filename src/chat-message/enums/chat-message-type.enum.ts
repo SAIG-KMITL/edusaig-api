@@ -1,5 +1,5 @@
 export enum ChatMessageType {
-  TEXT = 'TEXT',
-  CODE = 'CODE',
-  IMAGE = 'IMAGE',
+  TEXT = 'text',
+  CODE = 'code',
+  IMAGE = 'image',
 }

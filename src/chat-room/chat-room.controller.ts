@@ -11,6 +11,7 @@ import {
   Patch,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { Get } from '@nestjs/common';
 import { ChatRoomService } from './chat-room.service';
@@ -31,13 +32,66 @@ import { Role } from 'src/shared/enums';
 import { CreateChatRoomDto } from './dtos/create-chat-room.dto';
 import { UpdateChatRoomDto } from './dtos/update-chat-room.dto';
 import { ChatRoomOwnershipGuard } from './guards/chat-room-ownership.guard';
+import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
+import { PaginatedChatMessageResponseDto } from 'src/chat-message/dtos';
+import { ChatMessageService } from 'src/chat-message/chat-message.service';
 
 @Controller('chat-room')
 @Injectable()
 @ApiTags('Chat Room')
 @ApiBearerAuth()
 export class ChatRoomController {
-  constructor(private readonly chatRoomService: ChatRoomService) {}
+  constructor(
+    private readonly chatRoomService: ChatRoomService,
+    private readonly chatMessageService: ChatMessageService,
+  ) {}
+
+  @Get(':id/messages')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get chat room messages',
+    type: PaginatedChatMessageResponseDto,
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    required: true,
+  })
+  @Roles(Role.STUDENT)
+  @UseGuards(ChatRoomOwnershipGuard)
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+  })
+  async findMessages(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+    @Query() query: PaginateQueryDto,
+  ) {
+    return await this.chatMessageService.findAll({
+      ...query,
+      where: {
+        chatRoom: { id },
+      },
+    });
+  }
 
   @Get()
   @ApiResponse({
@@ -60,9 +114,15 @@ export class ChatRoomController {
     type: String,
     required: false,
   })
-  @Roles(Role.ADMIN)
-  async findAll(@Query() query: PaginateQueryDto) {
-    return await this.chatRoomService.findAll(query);
+  @Roles(Role.TEACHER)
+  async findAll(
+    @Query() query: PaginateQueryDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return await this.chatRoomService.findAll({
+      userId: request.user.id,
+      ...query,
+    });
   }
 
   @Get(':id')
@@ -76,7 +136,7 @@ export class ChatRoomController {
     type: String,
     required: true,
   })
-  @Roles(Role.ADMIN, Role.STUDENT)
+  @Roles(Role.TEACHER, Role.STUDENT)
   @UseGuards(ChatRoomOwnershipGuard)
   async findById(
     @Param(
@@ -139,7 +199,6 @@ export class ChatRoomController {
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Delete chat room',
-    type: ChatRoomResponseDto,
   })
   @ApiParam({
     name: 'id',
@@ -158,6 +217,6 @@ export class ChatRoomController {
     )
     id: string,
   ) {
-    return await this.chatRoomService.delete({ id });
+    await this.chatRoomService.delete({ id });
   }
 }

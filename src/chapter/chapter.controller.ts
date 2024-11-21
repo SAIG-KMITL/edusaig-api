@@ -34,7 +34,8 @@ import { CreateChapterDto } from './dtos/create-chapter.dto';
 import { UpdateChapterDto } from './dtos/update-chapter.dto';
 import { CourseOwnership } from 'src/shared/decorators/course-ownership.decorator';
 import { CourseModuleService } from 'src/course-module/course-module.service';
-import { Course } from 'src/course/course.entity';
+import { ChatRoomResponseDto } from 'src/chat-room/dtos';
+import { ChatRoomService } from 'src/chat-room/chat-room.service';
 
 @Controller('chapter')
 @ApiTags('Chapters')
@@ -76,6 +77,30 @@ export class ChapterController {
       userId: request.user.id,
       role: request.user.role,
     });
+  }
+
+  @Get(':id/chat-rooms')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ChatRoomResponseDto,
+    description: 'Get all chat rooms for a chapter',
+    isArray: true,
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Chapter ID',
+  })
+  @Roles(Role.STUDENT)
+  async getChatRooms(
+    @Req() request: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ChatRoomResponseDto[]> {
+    const chatRooms = await this.chapterService.getChatRooms(
+      request.user.id,
+      id,
+    );
+    return chatRooms.map((chatRoom) => new ChatRoomResponseDto(chatRoom));
   }
 
   @Get(':id')

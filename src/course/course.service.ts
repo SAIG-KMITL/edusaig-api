@@ -53,7 +53,14 @@ export class CourseService {
     return courses;
   }
 
-  async findOne(
+  async findOne(options: FindOneOptions<Course>): Promise<Course> {
+    const course = await this.courseRepository.findOne(options);
+    if (!course) throw new NotFoundException('Course not found');
+    return course;
+  }
+
+
+  async findOneWithOwnership(
     userId: string,
     role: Role,
     options: FindOneOptions<Course>,

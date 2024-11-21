@@ -6,8 +6,11 @@ import {
 } from '@nestjs/common';
 import { CreateCategoryDto } from './dtos/create-cateory.dto';
 import { Category } from './category.entity';
-import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
+import { FindOneOptions, FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { updateCategoryDto } from './dtos/update-category.dto';
+import { Slug } from './enums/slug.enum';
+import { createPagination } from 'src/shared/pagination';
+import { PaginatedCategoryDto } from './dtos/category-response.dto';
 
 @Injectable()
 export class CategoryService {
@@ -16,8 +19,30 @@ export class CategoryService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async findAll(): Promise<Category[]> {
-    return this.categoryRepository.find();
+  async findAll({
+    page = 1,
+    limit = 20,
+    search = '',
+    slug = '',
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    slug?: Slug | '';
+  }): Promise<PaginatedCategoryDto> {
+    const { find } = await createPagination(this.categoryRepository, {
+      page,
+      limit,
+    });
+    const conditionSearch = search ? { title: ILike(`%${search}%`) } : {};
+    const connditionSlug = slug ? { slug: slug } : {};
+    const categories = await find({
+      where: {
+        ...conditionSearch,
+        ...connditionSlug,
+      },
+    }).run();
+    return categories;
   }
 
   async findOne(options: FindOneOptions<Category>): Promise<Category> {

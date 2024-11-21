@@ -80,7 +80,6 @@ export class EnrollmentController {
   })
   async create(
     @Body() createEnrollmentDto: CreateEnrollmentDto,
-    @Req() req: AuthenticatedRequest,
   ): Promise<EnrollmentResponseDto> {
     return await this.enrollmentService.create(createEnrollmentDto);
   }

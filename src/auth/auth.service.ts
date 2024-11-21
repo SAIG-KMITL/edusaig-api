@@ -83,7 +83,7 @@ export class AuthService {
     }
   }
 
-  generateAccessToken(payload: JwtPayloadDto): string {
+  private generateAccessToken(payload: JwtPayloadDto): string {
     return this.jwtService.sign(payload, {
       secret: this.configService.get<string>(GLOBAL_CONFIG.JWT_ACCESS_SECRET),
       expiresIn: this.configService.get<string>(
@@ -92,7 +92,7 @@ export class AuthService {
     });
   }
 
-  generateRefreshToken(): string {
+  private generateRefreshToken(): string {
     return this.jwtService.sign(
       {},
       {

@@ -55,12 +55,6 @@ export class CourseResponseDto {
   })
   category: categoryResponseDto;
 
-  @ApiProperty({
-    description: 'Course thumbnail',
-    type: String,
-    example: 'https://www.example.com/thumbnail.jpg',
-  })
-  thumbnail: string;
 
   @ApiProperty({
     description: 'Course duration',
@@ -111,7 +105,6 @@ export class CourseResponseDto {
     this.title = course.title;
     this.description = course.description;
     this.teacher = new UserResponseDto(course.teacher);
-    this.thumbnail = course.thumbnail;
     this.category = new categoryResponseDto(course.category);
     this.duration = course.duration;
     this.level = course.level;
