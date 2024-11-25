@@ -20,7 +20,7 @@ import { UserBackground } from 'src/user-background/user-background.entity';
 import { UserOccupation } from 'src/user-occupation/user-occupation.entity';
 import { UserStreak } from 'src/user-streak/user-streak.entity';
 import { User } from 'src/user/user.entity';
-import { UserReward } from 'src/userReward/user-reward.entity';
+import { UserReward } from 'src/user-reward/user-reward.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { GLOBAL_CONFIG } from '../constants/global-config.constant';
 

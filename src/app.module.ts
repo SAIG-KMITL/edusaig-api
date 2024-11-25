@@ -33,7 +33,7 @@ import { UserBackgroundModule } from './user-background/user-background.module';
 import { UserOccupationModule } from './user-occupation/user-occupation.module';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { UserModule } from './user/user.module';
-import { UserRewardModule } from './userReward/user-reward.module';
+import { UserRewardModule } from './user-reward/user-reward.module';
 
 @Module({
   imports: [

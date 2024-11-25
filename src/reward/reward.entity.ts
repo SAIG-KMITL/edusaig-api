@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Type } from './enums/type.enum';
 import { Status } from './enums/status.enum';
-import { UserReward } from 'src/userReward/user-reward.entity';
+import { UserReward } from 'src/user-reward/user-reward.entity';
 
 @Entity()
 export class Reward {
@@ -22,10 +22,15 @@ export class Reward {
   })
   name: string;
 
-  @Column({})
+  @Column({
+    nullable: true,
+  })
   description: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+    default: null,
+  })
   thumbnail: string;
 
   @Column({
