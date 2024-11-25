@@ -26,8 +26,35 @@ export class ChapterService {
     private readonly chatRoomService: ChatRoomService,
     private readonly enrollmentService: EnrollmentService,
   ) { }
-
   async findAll({
+    page = 1,
+    limit = 20,
+    search = '',
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<PaginatedChapterResponseDto> {
+    const { find } = await createPagination(this.chapterRepository, {
+      page,
+      limit,
+    });
+    const baseSearch = {
+      isPreview: true,
+      ...(search ? { title: ILike(`%${search}%`) } : {})
+    };
+    const chapters = await find({
+      where: baseSearch,
+      relations: {
+        module: true,
+      },
+
+    }).run();
+    return chapters;
+  }
+
+
+  async findAllWithOwnership({
     page = 1,
     limit = 20,
     search = '',
@@ -64,7 +91,23 @@ export class ChapterService {
     return chapter;
   }
 
-
+  async findByModuleId(moduleId: string): Promise<Chapter[]> {
+    const chapters = await this.chapterRepository.find({
+      where: {
+        module: {
+          id: moduleId,
+          course: {
+            status: CourseStatus.PUBLISHED
+          }
+        }
+      },
+      relations: {
+        module: true,
+      },
+    });
+    if (!chapters) throw new NotFoundException('Chapter not found');
+    return chapters;
+  }
   async findOneWithOwnership(
     userId: string,
     role: Role,
