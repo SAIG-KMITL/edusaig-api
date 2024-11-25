@@ -249,8 +249,8 @@ export class UserController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(
     @Req() request: AuthenticatedRequest,
-  ): Promise<{ massage: string }> {
+  ): Promise<void> {
+    console.log(request.user.id);
     await this.userService.delete({ id: request.user.id });
-    return { massage: 'User deleted successfully' };
   }
 }

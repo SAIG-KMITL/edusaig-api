@@ -4,7 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -14,21 +14,26 @@ export class UserStreak {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User, (user) => user.streaks, {
+    onDelete: 'CASCADE',
+    eager: true,
+  })
   @JoinColumn()
   user: User;
 
   @Column({
-    default: 0,
+    default: new Date(),
     nullable: false,
+    type: 'timestamp with time zone',
   })
-  currentStreak: number;
+  currentStreak: Date;
 
   @Column({
-    default: 0,
+    default: new Date(),
     nullable: false,
+    type: 'timestamp with time zone',
   })
-  longestStreak: number;
+  longestStreak: Date;
 
   @Column({
     type: 'timestamp with time zone',

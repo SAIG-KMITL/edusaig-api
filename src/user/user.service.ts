@@ -89,7 +89,7 @@ export class UserService implements OnModuleInit {
     try {
       await this.userRepository.delete(criteria);
     } catch (error) {
-      if (error instanceof Error) throw new NotFoundException('User not found');
+      if (error instanceof Error) throw new NotFoundException(error.message);
     }
   }
 
