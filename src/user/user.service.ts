@@ -89,7 +89,19 @@ export class UserService implements OnModuleInit {
     try {
       await this.userRepository.delete(criteria);
     } catch (error) {
-      if (error instanceof Error) throw new NotFoundException('User not found');
+      if (error instanceof Error) throw new NotFoundException(error.message);
+    }
+  }
+
+  async increment(
+    where: FindOptionsWhere<User>,
+    propertyPath: string,
+    value: number,
+  ): Promise<void> {
+    try {
+        await this.userRepository.increment(where, propertyPath, value);
+    } catch {
+        throw new NotFoundException('User not found');
     }
   }
 }

@@ -5,9 +5,10 @@ import { userStreakProviders } from './user-streak.providers';
 import { UserStreakService } from './user-streak.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserStreak } from './user-streak.entity';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [DatabaseModule, TypeOrmModule.forFeature([UserStreak])],
+  imports: [DatabaseModule, TypeOrmModule.forFeature([UserStreak]), UserModule],
   controllers: [UserStreakController],
   providers: [...userStreakProviders, UserStreakService],
   exports: [UserStreakService],

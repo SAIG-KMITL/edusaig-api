@@ -39,8 +39,6 @@ export class AuthService {
         role: user.role,
       });
       const refreshToken = this.generateRefreshToken();
-      if (user.role === Role.STUDENT)
-        await this.userStreakService.update(user.id);
       return {
         accessToken,
         refreshToken,
@@ -68,8 +66,6 @@ export class AuthService {
         role: createdUser.role,
       });
       const refreshToken = this.generateRefreshToken();
-      if (createdUser.role === Role.STUDENT)
-        await this.userStreakService.create(createdUser.id);
       return {
         accessToken,
         refreshToken,

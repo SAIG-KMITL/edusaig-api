@@ -7,6 +7,7 @@ import { ChatMessageService } from './chat-message.service';
 import { chatMessageProviders } from './chat-message.providers';
 import { ChatRoomModule } from 'src/chat-room/chat-room.module';
 import { EnrollmentModule } from 'src/enrollment/enrollment.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { EnrollmentModule } from 'src/enrollment/enrollment.module';
     TypeOrmModule.forFeature([ChatMessage]),
     forwardRef(() => ChatRoomModule),
     EnrollmentModule,
+    HttpModule,
   ],
   controllers: [ChatMessageController],
   providers: [...chatMessageProviders, ChatMessageService],

@@ -4,7 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Injectable,
-  Patch,
+  Post,
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -14,13 +14,17 @@ import { Role } from 'src/shared/enums/roles.enum';
 import { UserStreakResponseDto } from './dtos/user-streak-response.dto';
 import { UserStreak } from './user-streak.entity';
 import { UserStreakService } from './user-streak.service';
+import { UserService } from 'src/user/user.service';
 
 @Controller('user-streak')
 @ApiTags('User Streak')
 @ApiBearerAuth()
 @Injectable()
 export class UserStreakController {
-  constructor(private readonly userStreakService: UserStreakService) {}
+  constructor(
+    private readonly userStreakService: UserStreakService,
+    private readonly userService: UserService,
+  ) {}
 
   @Get()
   @Roles(Role.ADMIN)
@@ -40,26 +44,39 @@ export class UserStreakController {
   @Get('profile')
   @ApiResponse({
     status: HttpStatus.OK,
-    type: UserStreak,
+    type: UserStreakResponseDto,
     description: 'Get user streak',
+    isArray: true,
   })
   async findOne(
     @Req() request: AuthenticatedRequest,
-  ): Promise<UserStreakResponseDto> {
-    const userStreak = await this.userStreakService.findOne({
+  ): Promise<UserStreakResponseDto[]> {
+    const userStreak = await this.userStreakService.findMany({
       where: { user: { id: request.user.id } },
       relations: { user: true },
     });
-    return new UserStreakResponseDto(userStreak);
+    return userStreak.map((userStreak) => new UserStreakResponseDto(userStreak));
   }
 
-  @Patch()
+  @Post()
   @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: 'Update user streak',
+    status: HttpStatus.CREATED,
+    type: UserStreakResponseDto,
+    description: 'Create user streak',
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async update(@Req() request: AuthenticatedRequest): Promise<void> {
-    return await this.userStreakService.update(request.user.id);
+  @Roles(Role.STUDENT)
+  @HttpCode(HttpStatus.CREATED)
+  async create(
+    @Req() request: AuthenticatedRequest,
+  ): Promise<UserStreakResponseDto> {
+    const userStreak = await this.userStreakService.create(request.user.id);
+    await this.userService.increment(
+      {
+        id: request.user.id,
+      },
+      'points',
+      5,
+    );
+    return new UserStreakResponseDto(userStreak);
   }
 }
