@@ -34,8 +34,6 @@ export class ExamAnswerController {
   constructor(private readonly examAnswerService: ExamAnswerService) {}
 
   @Get()
-  @Roles(Role.TEACHER)
-  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all exam answers',
@@ -76,8 +74,6 @@ export class ExamAnswerController {
   }
 
   @Get(':id')
-  @Roles(Role.TEACHER)
-  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns an exam answer',
@@ -105,8 +101,6 @@ export class ExamAnswerController {
   }
 
   @Get('question/:questionId')
-  @Roles(Role.TEACHER)
-  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all exam answer in question',
@@ -156,8 +150,6 @@ export class ExamAnswerController {
   }
 
   @Get('selected-option/:selectedOptionId')
-  @Roles(Role.TEACHER)
-  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all exam answer in selectedOption',
@@ -207,7 +199,7 @@ export class ExamAnswerController {
   }
 
   @Post()
-  @Roles(Role.TEACHER)
+  @Roles(Role.STUDENT)
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Create an exam answer',
@@ -217,13 +209,14 @@ export class ExamAnswerController {
   async createExamAnswer(
     @Body() createExamAnswerDto: CreateExamAnswerDto,
   ): Promise<ExamAnswerResponseDto> {
-    const examAnswer =
-      await this.examAnswerService.createExamAnswer(createExamAnswerDto);
+    const examAnswer = await this.examAnswerService.createExamAnswer(
+      createExamAnswerDto,
+    );
     return new ExamAnswerResponseDto(examAnswer);
   }
 
   @Patch(':id')
-  @Roles(Role.TEACHER)
+  @Roles(Role.STUDENT)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Update an exam answer',
@@ -251,8 +244,6 @@ export class ExamAnswerController {
   }
 
   @Delete(':id')
-  @Roles(Role.TEACHER)
-  @Roles(Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Delete an exam',

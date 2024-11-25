@@ -80,6 +80,17 @@ export class ExamAnswerService {
   ): FindOptionsWhere<ExamAnswer> | FindOptionsWhere<ExamAnswer>[] {
     const baseSearch = search ? { answerText: ILike(`%${search}%`) } : {};
 
+    if (role === Role.STUDENT) {
+      return [
+        {
+          ...baseSearch,
+          examAttempt: {
+            userId,
+          },
+        },
+      ];
+    }
+
     if (role === Role.TEACHER) {
       return [
         {
@@ -106,16 +117,8 @@ export class ExamAnswerService {
     return [
       {
         ...baseSearch,
-        question: {
-          exam: {
-            courseModule: {
-              course: {
-                teacher: {
-                  id: userId,
-                },
-              },
-            },
-          },
+        examAttempt: {
+          userId,
         },
       },
     ];

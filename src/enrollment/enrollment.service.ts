@@ -42,6 +42,13 @@ export class EnrollmentService {
     return enrollments;
   }
 
+  async findEnrollmentByUserId(userId: string): Promise<Enrollment[]> {
+    const enrollment = this.enrollmentRepository.find({
+      where: { user: { id: userId } },
+    });
+    return enrollment;
+  }
+
   async findOne(where: FindOptionsWhere<Enrollment>): Promise<Enrollment> {
     const options: FindOneOptions<Enrollment> = {
       where,
