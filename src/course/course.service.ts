@@ -85,30 +85,33 @@ export class CourseService {
     search = '',
   }: FindAllParams): Promise<PaginatedCourseResponeDto> {
     const skip = (page - 1) * limit;
-    
-    const queryBuilder = this.courseRepository.createQueryBuilder('course')
+ 
+    const queryBuilder = this.courseRepository
+      .createQueryBuilder('course')
       .leftJoinAndSelect('course.teacher', 'teacher')
       .leftJoinAndSelect('course.category', 'category')
-      .leftJoin('course.enrollments', 'enrollment')
+      .leftJoin('course.enrollments', 'enrollments')
       .where('course.status = :status', { status: CourseStatus.PUBLISHED });
-  
+
     if (search) {
       queryBuilder.andWhere('course.title ILIKE :search', { search: `%${search}%` });
     }
-  
-    const courses = await queryBuilder
-      .groupBy('course.id, teacher.id, category.id')
-      .addSelect('COUNT(enrollment.id)', 'enrollmentCount')
-      .orderBy('COUNT(enrollment.id)', 'DESC')
-      .skip(skip)
-      .take(limit)
-      .getRawAndEntities();
-  
+
     const total = await queryBuilder.getCount();
-  
+
+    const courses = await queryBuilder
+      .addSelect('COUNT(enrollments.id)', 'enrollmentCount')
+      .groupBy('course.id')
+      .addGroupBy('teacher.id')
+      .addGroupBy('category.id')
+      .orderBy('COUNT(enrollments.id)', 'DESC')
+      .offset(skip)
+      .limit(limit)
+      .getRawAndEntities();
+
     const transformedCourses = courses.entities.map((course, index) => ({
       ...course,
-      enrollmentCount: parseInt(courses.raw[index].enrollmentCount)
+      enrollmentCount: parseInt(courses.raw[index].enrollment_count) || 0
     }));
 
     return new PaginatedCourseResponeDto(
