@@ -6,18 +6,28 @@ import {
 } from '@nestjs/common';
 import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { UserStreak } from './user-streak.entity';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class UserStreakService {
   constructor(
     @Inject('UserStreakRepository')
     private readonly userStreakRepository: Repository<UserStreak>,
+    private readonly userService: UserService,
   ) {}
 
   async create(userId: string): Promise<UserStreak> {
-    return await this.userStreakRepository.save({
+    const userStreak = await this.userStreakRepository.save({
       user: { id: userId },
     });
+    await this.userService.increment(
+      {
+        id: userId,
+      },
+      'points',
+      5,
+    );
+    return userStreak;
   }
 
   async findAll(): Promise<UserStreak[]> {

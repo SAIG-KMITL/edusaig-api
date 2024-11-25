@@ -39,6 +39,21 @@ export class ChatMessageService {
     }
   }
 
+  async findMany(where: FindOptionsWhere<ChatMessage>): Promise<ChatMessage[]> {
+    try {
+      return await this.chatMessageRepository.find({
+        where,
+        relations: {
+          user: true,
+          chatRoom: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error)
+        throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async findAll({
     where,
     page = 1,

@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Injectable,
+  InternalServerErrorException,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -21,13 +22,23 @@ import { Role } from 'src/shared/enums';
 import { CreateChatMessageDto, ChatMessageResponseDto } from './dtos';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { CreateChatMessageGuard } from './guards/create-chat-message.guard';
+import { HttpService } from '@nestjs/axios';
+import { catchError } from 'rxjs';
+import { AxiosError } from 'axios';
+import { ConfigService } from '@nestjs/config';
+import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
+import { QADto } from './dtos/qa.dto';
 
 @Controller('chat-message')
 @Injectable()
 @ApiTags('Chat Message')
 @ApiBearerAuth()
 export class ChatMessageController {
-  constructor(private readonly chatMessageService: ChatMessageService) {}
+  constructor(
+    private readonly chatMessageService: ChatMessageService,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Get(':id')
   @ApiResponse({
@@ -62,10 +73,24 @@ export class ChatMessageController {
     @Body() createChatMessageDto: CreateChatMessageDto,
     @Req() request: AuthenticatedRequest,
   ) {
+    const chatMessages = await this.chatMessageService.findMany({
+      chatRoom: { id: createChatMessageDto.chatRoomId },
+    });
     const chatMessage = await this.chatMessageService.create(
       request.user.id,
       createChatMessageDto,
     );
+    const response = this.httpService
+      .post<string>(
+        `${this.configService.getOrThrow<string>(GLOBAL_CONFIG.AI_URL)}/qa`,
+        new QADto('chapterSummary', chatMessages),
+      )
+      .pipe(
+        catchError((error: AxiosError) => {
+          throw new InternalServerErrorException(error.message);
+        }),
+      );
+    console.log(response);
     return new ChatMessageResponseDto(chatMessage);
   }
 
