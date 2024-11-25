@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsUUID } from 'class-validator';
 import { CourseLevel, CourseStatus } from 'src/shared/enums/index';
 export class CreateCourseDto {
   @IsNotEmpty()
@@ -18,6 +18,7 @@ export class CreateCourseDto {
   })
   description: string;
 
+  @IsUUID(4)
   @IsNotEmpty()
   @ApiProperty({
     description: 'Category Id',
