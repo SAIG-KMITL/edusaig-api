@@ -160,8 +160,9 @@ export class QuestionController {
   async createQuestion(
     @Body() createQuestionDto: CreateQuestionDto,
   ): Promise<QuestionResponseDto> {
-    const question =
-      await this.questionService.createQuestion(createQuestionDto);
+    const question = await this.questionService.createQuestion(
+      createQuestionDto,
+    );
     return new QuestionResponseDto(question);
   }
 
@@ -211,11 +212,13 @@ export class QuestionController {
       }),
     )
     id: string,
-  ): Promise<void> {
-    await this.questionService.deleteQuestion(
+  ): Promise<QuestionResponseDto> {
+    const question = await this.questionService.deleteQuestion(
       request.user.id,
       request.user.role,
       id,
     );
+
+    return new QuestionResponseDto(question);
   }
 }

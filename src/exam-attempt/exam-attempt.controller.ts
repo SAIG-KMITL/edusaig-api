@@ -25,6 +25,7 @@ import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
 import { CreateExamAttemptDto } from './dtos/create-exam-attempt.dto';
 import { UpdateExamAttemptDto } from './dtos/update-exam-attempt.dto';
+import { Exam } from 'src/exam/exam.entity';
 
 @Controller('exam-attempt')
 @ApiTags('ExamAttempt')
@@ -191,11 +192,12 @@ export class ExamAttemptController {
       }),
     )
     id: string,
-  ): Promise<void> {
-    await this.examAttemptService.deleteExamAttempt(
+  ): Promise<ExamAttemptResponseDto> {
+    const examAttempt = await this.examAttemptService.deleteExamAttempt(
       request.user.id,
       request.user.role,
       id,
     );
+    return new ExamAttemptResponseDto(examAttempt);
   }
 }

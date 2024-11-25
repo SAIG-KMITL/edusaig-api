@@ -217,10 +217,11 @@ export class ExamAttemptService {
     userId: string,
     role: Role,
     id: string,
-  ): Promise<void> {
+  ): Promise<ExamAttempt> {
     try {
       const examAttempt = await this.findOne(userId, role, { where: { id } });
       await this.examAttemptRepository.delete(id);
+      return examAttempt;
     } catch (error) {
       if (error instanceof Error)
         throw new NotFoundException('Exam-attempt not found');
