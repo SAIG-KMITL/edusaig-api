@@ -251,6 +251,22 @@ export class ChapterController {
     return this.chapterService.create(createChapterDto);
   }
 
+  @Post('transcribe/:id')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ChapterResponseDto,
+    description: 'Update a chapter',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Chapter ID',
+  })
+  async transcribe(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.chapterService.transcribeAudio(id);
+  }
+
+
   @Patch(':id')
   @CourseOwnership({ adminDraftOnly: true })
   @ApiResponse({

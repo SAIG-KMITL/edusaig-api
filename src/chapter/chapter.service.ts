@@ -20,6 +20,7 @@ import { EnrollmentStatus } from 'src/enrollment/enums/enrollment-status.enum';
 
 @Injectable()
 export class ChapterService {
+
   constructor(
     @InjectRepository(Chapter)
     private readonly chapterRepository: Repository<Chapter>,
@@ -193,6 +194,10 @@ export class ChapterService {
     await this.reorderModules(chapter.moduleId);
 
     return result;
+  }
+
+  async transcribeAudio(id: string) {
+    throw new Error('Method not implemented.');
   }
 
   private async validateOrderIndex(

@@ -47,7 +47,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('course')
 @ApiTags('Course')
-@ApiBearerAuth()
 @Injectable()
 export class CourseController {
   constructor(
@@ -151,7 +150,7 @@ export class CourseController {
   @ApiResponse({
     status: HttpStatus.OK,
     type: CourseResponseDto,
-    description: 'Get all course',
+    description: 'Get all course by',
     isArray: true,
   })
   @ApiQuery({
@@ -172,6 +171,7 @@ export class CourseController {
     required: false,
     description: 'Search by email',
   })
+  @ApiBearerAuth()
   async findAll(
     @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
@@ -217,6 +217,7 @@ export class CourseController {
 
   @Post()
   @Roles(Role.TEACHER)
+  @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.CREATED,
     type: CourseResponseDto,
@@ -243,6 +244,7 @@ export class CourseController {
 
   @Patch(':id')
   @CourseOwnership({ adminDraftOnly: true })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     type: String,
@@ -288,6 +290,7 @@ export class CourseController {
     status: HttpStatus.OK,
     description: 'Delete course by id',
   })
+  @ApiBearerAuth()
   async delete(
     @Param(
       'id',
