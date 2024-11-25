@@ -10,13 +10,14 @@ import {
   FindOptionsSelect,
   FindOptionsWhere,
   ILike,
+  Not,
   Repository,
 } from 'typeorm';
 import { QuestionOption } from './question-option.entity';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { PaginatedQuestionOptionResponseDto } from './dtos/question-option-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { ExamStatus, Role } from 'src/shared/enums';
+import { ExamStatus, QuestionType, Role } from 'src/shared/enums';
 import { CreateQuestionOptionDto } from './dtos/create-question-option.dto';
 import { Question } from 'src/question/question.entity';
 import { UpdateQuestionOptionDto } from './dtos/update-question-option.dto';
@@ -270,7 +271,7 @@ export class QuestionOptionService {
     userId: string,
     role: Role,
     id: string,
-  ): Promise<void> {
+  ): Promise<QuestionOption> {
     try {
       const questionOption = await this.findOne(userId, role, {
         where: { id },
@@ -278,6 +279,7 @@ export class QuestionOptionService {
       if (this.checkPermission(userId, role, questionOption) === false)
         throw new ForbiddenException('Can not change this question option');
       await this.questionOptionRepository.delete(id);
+      return questionOption;
     } catch (error) {
       if (error instanceof Error)
         throw new NotFoundException('Question option not found');

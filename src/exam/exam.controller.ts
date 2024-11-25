@@ -31,7 +31,10 @@ import { CreateExamDto } from './dtos/create-exam.dto';
 import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { UpdateExamDto } from './dtos/update-exam.dto';
-import { PaginatedQuestionResponseDto } from 'src/question/dtos/question-response.dto';
+import {
+  PaginatedQuestionResponseDto,
+  QuestionResponseDto,
+} from 'src/question/dtos/question-response.dto';
 import { Public } from 'src/shared/decorators/public.decorator';
 
 @Controller('exam')
@@ -163,8 +166,13 @@ export class ExamController {
       }),
     )
     id: string,
-  ): Promise<void> {
-    await this.examService.deleteExam(request.user.id, request.user.role, id);
+  ): Promise<ExamResponseDto> {
+    const exam = await this.examService.deleteExam(
+      request.user.id,
+      request.user.role,
+      id,
+    );
+    return new ExamResponseDto(exam);
   }
 
   @Post('generate/:examId')
@@ -183,7 +191,11 @@ export class ExamController {
       }),
     )
     examId: string,
-  ): Promise<void> {
-    return this.examService.createQuestionAndChoice(examId, request.user.id);
+  ): Promise<QuestionResponseDto[]> {
+    const questions = await this.examService.createQuestionAndChoice(
+      examId,
+      request.user.id,
+    );
+    return questions.map((question) => new QuestionResponseDto(question));
   }
 }

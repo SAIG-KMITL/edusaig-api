@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -30,7 +31,7 @@ import {
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { CategoryService } from 'src/category/category.service';
 import { Roles } from 'src/shared/decorators/role.decorator';
-import { Role } from 'src/shared/enums';
+import { CourseStatus, Role } from 'src/shared/enums';
 import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
 import { CourseService } from './course.service';
 import {
@@ -53,8 +54,169 @@ export class CourseController {
     private readonly courseService: CourseService,
     private readonly categoryService: CategoryService,
     private readonly fileService: FileService,
-  ) {}
+  ) { }
+  @Get()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: CourseResponseDto,
+    description: 'Get all course',
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by email',
+  })
+  @Public()
+  async findAll(
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedCourseResponeDto> {
+    return this.courseService.findAll({
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+    });
+  }
+  @Get('new-arrivals')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: CourseResponseDto,
+    description: 'Get all new arrivals course',
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by email',
+  })
+  @Public()
+  async newArrival(
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedCourseResponeDto> {
+    return this.courseService.newArrival({
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+    });
+  }
+  @Get('most-enroll')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: CourseResponseDto,
+    description: 'Get all most enroll course',
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by email',
+  })
+  @Public()
+  async mostEnroll(
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedCourseResponeDto> {
+    return this.courseService.mostEnroll({
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+    });
+  }
 
+
+  @Get('by-teacher/:teacherId')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: CourseResponseDto,
+    description: 'Get all course by teacher id',
+    isArray: true,
+  })
+  @ApiParam({
+    name: 'teacherId',
+    type: String,
+    description: 'Teacher id',
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by email',
+  })
+  @Roles(Role.TEACHER, Role.ADMIN)
+  @ApiBearerAuth()
+  async getAllCourseByTeacherId(
+    @Param(
+      'teacherId',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    ) teacherId: string,
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedCourseResponeDto> {
+    if(request.user.role === Role.TEACHER && request.user.id !== teacherId) {
+      throw new ForbiddenException('You are not allowed to access this resource');
+    }
+
+    return this.courseService.getAllCourseByTeacherId({
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+      teacherId,
+    });
+  }
   @Get(':id/thumbnail')
   @Public()
   @ApiParam({
@@ -138,19 +300,21 @@ export class CourseController {
       where: { id },
     });
     if (course.thumbnailKey)
-      await this.fileService.update(Folder.COURSE_THUMBNAILS, course.thumbnailKey, file); 
+      await this.fileService.update(Folder.COURSE_THUMBNAILS, course.thumbnailKey, file);
     else {
       await this.fileService.upload(Folder.COURSE_THUMBNAILS, id, file);
     }
-    await this.courseService.update(id, { thumbnailKey: `${id}.${file.originalname.split('.').pop()}` });  
+    await this.courseService.update(id, { thumbnailKey: `${id}.${file.originalname.split('.').pop()}` });
   }
 
 
-  @Get()
+
+
+  @Get('with-ownership')
   @ApiResponse({
     status: HttpStatus.OK,
     type: CourseResponseDto,
-    description: 'Get all course by',
+    description: 'Get all course with ownership',
     isArray: true,
   })
   @ApiQuery({
@@ -172,11 +336,11 @@ export class CourseController {
     description: 'Search by email',
   })
   @ApiBearerAuth()
-  async findAll(
+  async findAllWithOwnership(
     @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
   ): Promise<PaginatedCourseResponeDto> {
-    return this.courseService.findAll({
+    return this.courseService.findAllWithOwnership({
       page: query.page,
       limit: query.limit,
       search: query.search,
@@ -184,8 +348,7 @@ export class CourseController {
       role: request.user.role,
     });
   }
-
-  @Get(':id')
+  @Get('with-ownership/:id')
   @ApiParam({
     name: 'id',
     type: String,
@@ -194,9 +357,10 @@ export class CourseController {
   @ApiResponse({
     status: HttpStatus.OK,
     type: CourseResponseDto,
-    description: 'Get course by id',
+    description: 'Get owned course by id',
   })
-  async findOne(
+  @ApiBearerAuth()
+  async findOneWithOwnership(
     @Req() request: AuthenticatedRequest,
     @Param(
       'id',
@@ -215,6 +379,37 @@ export class CourseController {
     return new CourseResponseDto(course);
   }
 
+  @Get(':id')
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Course id',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: CourseResponseDto,
+    description: 'Get course by id',
+  })
+  @Public()
+  async findOne(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+  ): Promise<CourseResponseDto> {
+    const course = await this.courseService.findOne({
+      where: {
+        id,
+        status: CourseStatus.PUBLISHED
+      }
+    });
+    return new CourseResponseDto(course);
+  }
+
   @Post()
   @Roles(Role.TEACHER)
   @ApiBearerAuth()
@@ -223,6 +418,7 @@ export class CourseController {
     type: CourseResponseDto,
     description: 'Create course',
   })
+  @ApiBearerAuth()
   async create(
     @Req() request: AuthenticatedRequest,
     @Body() createCourseDto: CreateCourseDto,
@@ -255,6 +451,7 @@ export class CourseController {
     type: CourseResponseDto,
     description: 'Update course by id',
   })
+  @ApiBearerAuth()
   async update(
     @Req() request: AuthenticatedRequest,
     @Body() updateCourseDto: UpdateCourseDto,
@@ -286,6 +483,7 @@ export class CourseController {
     type: String,
     description: 'Course id',
   })
+  @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Delete course by id',
@@ -300,7 +498,10 @@ export class CourseController {
       }),
     )
     id: string,
-  ): Promise<void> {
-    await this.courseService.delete(id);
+  ): Promise<CourseResponseDto> {
+    return await this.courseService.remove(id);
   }
+
+
+
 }

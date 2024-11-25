@@ -11,12 +11,13 @@ import {
   FindOptionsSelect,
   FindOptionsWhere,
   ILike,
+  Not,
   Repository,
 } from 'typeorm';
 import { PaginatedQuestionResponseDto } from './dtos/question-response.dto';
 import { createPagination } from 'src/shared/pagination';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
-import { ExamStatus, Role } from 'src/shared/enums';
+import { ExamStatus, QuestionType, Role } from 'src/shared/enums';
 import { CreateQuestionDto } from './dtos/create-question.dto';
 import { UpdateQuestionDto } from './dtos/update-question.dto';
 import { Exam } from 'src/exam/exam.entity';
@@ -328,13 +329,18 @@ export class QuestionService {
     }
   }
 
-  async deleteQuestion(userId: string, role: Role, id: string): Promise<void> {
+  async deleteQuestion(
+    userId: string,
+    role: Role,
+    id: string,
+  ): Promise<Question> {
     try {
       const question = await this.findOne(userId, role, { where: { id } });
       if (this.checkPermission(userId, role, question) === false)
         throw new BadRequestException('Can not change this question');
       await this.questionRepository.delete(id);
       await this.reOrderIndex(question.examId);
+      return question;
     } catch (error) {
       if (error instanceof Error)
         throw new NotFoundException('Question not found');

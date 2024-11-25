@@ -214,11 +214,14 @@ export class QuestionOptionController {
       }),
     )
     id: string,
-  ): Promise<void> {
-    await this.questionOptionService.deleteQuestionOption(
-      request.user.id,
-      request.user.role,
-      id,
-    );
+  ): Promise<QuestionOptionResponseDto> {
+    const questionOption =
+      await this.questionOptionService.deleteQuestionOption(
+        request.user.id,
+        request.user.role,
+        id,
+      );
+
+    return new QuestionOptionResponseDto(questionOption);
   }
 }
