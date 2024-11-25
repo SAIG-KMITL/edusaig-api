@@ -27,4 +27,5 @@ export const dotenvConfig = Joi.object({
   AWS_BUCKET_NAME: Joi.string().required(),
   ADMIN_EMAIL: Joi.string().required(),
   ADMIN_PASSWORD: Joi.string().required(),
+  AI_URL: Joi.string().required(),
 });
