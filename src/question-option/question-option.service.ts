@@ -17,7 +17,7 @@ import { QuestionOption } from './question-option.entity';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { PaginatedQuestionOptionResponseDto } from './dtos/question-option-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { ExamStatus, QuestionType, Role } from 'src/shared/enums';
+import { CourseStatus, ExamStatus, QuestionType, Role } from 'src/shared/enums';
 import { CreateQuestionOptionDto } from './dtos/create-question-option.dto';
 import { Question } from 'src/question/question.entity';
 import { UpdateQuestionOptionDto } from './dtos/update-question-option.dto';
@@ -169,6 +169,16 @@ export class QuestionOptionService {
         question: {
           exam: {
             status: ExamStatus.PUBLISHED,
+            courseModule: {
+              course: {
+                status: CourseStatus.PUBLISHED,
+                enrollments: {
+                  user: {
+                    id: userId,
+                  },
+                },
+              },
+            },
           },
         },
       };
@@ -179,9 +189,6 @@ export class QuestionOptionService {
         ...baseSearch,
         question: {
           exam: [
-            {
-              status: ExamStatus.PUBLISHED,
-            },
             {
               courseModule: {
                 course: {
@@ -203,6 +210,16 @@ export class QuestionOptionService {
       question: {
         exam: {
           status: ExamStatus.PUBLISHED,
+          courseModule: {
+            course: {
+              status: CourseStatus.PUBLISHED,
+              enrollments: {
+                user: {
+                  id: userId,
+                },
+              },
+            },
+          },
         },
       },
     };

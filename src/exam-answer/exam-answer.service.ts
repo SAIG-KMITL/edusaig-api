@@ -18,7 +18,7 @@ import { ExamAnswer } from './exam-answer.entity';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { PaginatedExamAnswerResponseDto } from './dtos/exam-answer-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { ExamStatus, QuestionType, Role } from 'src/shared/enums';
+import { CourseStatus, ExamStatus, QuestionType, Role } from 'src/shared/enums';
 import { CreateExamAnswerDto } from './dtos/create-exam-answer.dto';
 import { Question } from 'src/question/question.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
@@ -88,6 +88,21 @@ export class ExamAnswerService {
           examAttempt: {
             userId,
           },
+          question: {
+            exam: {
+              status: ExamStatus.PUBLISHED,
+              courseModule: {
+                course: {
+                  status: CourseStatus.PUBLISHED,
+                  enrollments: {
+                    user: {
+                      id: userId,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       ];
     }
@@ -120,6 +135,21 @@ export class ExamAnswerService {
         ...baseSearch,
         examAttempt: {
           userId,
+        },
+        question: {
+          exam: {
+            status: ExamStatus.PUBLISHED,
+            courseModule: {
+              course: {
+                status: CourseStatus.PUBLISHED,
+                enrollments: {
+                  user: {
+                    id: userId,
+                  },
+                },
+              },
+            },
+          },
         },
       },
     ];
