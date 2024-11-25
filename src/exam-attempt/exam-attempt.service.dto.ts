@@ -245,8 +245,7 @@ export class ExamAttemptService {
   ): Promise<ExamAttempt> {
     try {
       const examAttempt = await this.findOne(userId, role, { where: { id } });
-      await this.examAttemptRepository.delete(id);
-      return examAttempt;
+      return await this.examAttemptRepository.remove(examAttempt);
     } catch (error) {
       if (error instanceof Error)
         throw new NotFoundException('Exam-attempt not found');

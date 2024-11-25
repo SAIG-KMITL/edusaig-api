@@ -198,10 +198,10 @@ export class QuestionController {
   @Roles(Role.TEACHER)
   @Roles(Role.ADMIN)
   @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
+    status: HttpStatus.OK,
     description: 'Delete an question',
+    type: QuestionResponseDto,
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteExam(
     @Req() request: AuthenticatedRequest,
     @Param(

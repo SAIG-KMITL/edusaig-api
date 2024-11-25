@@ -295,8 +295,7 @@ export class QuestionOptionService {
       });
       if (this.checkPermission(userId, role, questionOption) === false)
         throw new ForbiddenException('Can not change this question option');
-      await this.questionOptionRepository.delete(id);
-      return questionOption;
+      return await this.questionOptionRepository.remove(questionOption);
     } catch (error) {
       if (error instanceof Error)
         throw new NotFoundException('Question option not found');

@@ -213,6 +213,8 @@ export class ExamService {
       examInData.status != ExamStatus.DRAFT &&
       updateExamDto.status == ExamStatus.DRAFT
     ) {
+      console.log(examInData.status);
+      console.log(updateExamDto.status);
       throw new ForbiddenException("Can't change status to draft");
     }
 
@@ -236,8 +238,7 @@ export class ExamService {
       const exam = await this.findOne(userId, role, { where: { id } });
       if (this.checkPermission(userId, role, exam) === false)
         throw new ForbiddenException('Can not change this exam');
-      await this.examRepository.delete(id);
-      return exam;
+      return await this.examRepository.remove(exam);
     } catch (error) {
       if (error instanceof Error) throw new NotFoundException('Exam not found');
     }
@@ -296,17 +297,23 @@ export class ExamService {
         },
         createdAt: new Date(),
         updatedAt: new Date(),
-        ...(enrollments.length > 0 && {
-          topics: enrollments.map((enrollment) => ({
-            id: enrollment.id,
-            title: enrollment.course.title,
-            description: enrollment.course.description,
-            level: enrollment.course.level,
-            createdAt: enrollment.createdAt,
-            updatedAt: enrollment.updatedAt,
-          })),
-        }),
+
+        topics:
+          enrollments.length > 0
+            ? enrollments.map((enrollment) => ({
+                id: enrollment.id,
+                title: enrollment.course.title,
+                description: enrollment.course.description,
+                level: enrollment.course.level,
+                createdAt: enrollment.createdAt,
+                updatedAt: enrollment.updatedAt,
+              }))
+            : [],
       };
+
+      console.log(requestBody);
+
+      console.log(enrollments);
 
       const response = await this.httpService.axiosRef.post(
         `${this.configService.get<string>(
@@ -332,7 +339,7 @@ export class ExamService {
         const createQuestionDto = {
           examId,
           question: data.question,
-          type: QuestionType.PRETEST,
+          type: QuestionType.MULTIPLE_CHOICE,
           points: 1,
           orderIndex: orderIndex++,
         };

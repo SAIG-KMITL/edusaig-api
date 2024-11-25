@@ -355,9 +355,9 @@ export class QuestionService {
       const question = await this.findOne(userId, role, { where: { id } });
       if (this.checkPermission(userId, role, question) === false)
         throw new BadRequestException('Can not change this question');
-      await this.questionRepository.delete(id);
+      const removeQuestion = await this.questionRepository.remove(question);
       await this.reOrderIndex(question.examId);
-      return question;
+      return removeQuestion;
     } catch (error) {
       if (error instanceof Error)
         throw new NotFoundException('Question not found');

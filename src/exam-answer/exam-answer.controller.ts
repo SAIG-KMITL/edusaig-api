@@ -245,10 +245,10 @@ export class ExamAnswerController {
 
   @Delete(':id')
   @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
+    status: HttpStatus.OK,
     description: 'Delete an exam',
+    type: ExamAnswerResponseDto,
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteExam(
     @Req() request: AuthenticatedRequest,
     @Param(

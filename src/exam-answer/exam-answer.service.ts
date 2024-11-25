@@ -373,8 +373,7 @@ export class ExamAnswerService {
   ): Promise<ExamAnswer> {
     try {
       const examAnswer = await this.findOne(userId, role, { where: { id } });
-      await this.examAnswerRepository.delete(id);
-      return examAnswer;
+      return await this.examAnswerRepository.remove(examAnswer);
     } catch (error) {
       if (error instanceof Error)
         throw new NotFoundException('Exam answer not found');

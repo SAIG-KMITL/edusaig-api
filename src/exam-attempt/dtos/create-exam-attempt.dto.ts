@@ -11,7 +11,7 @@ export class CreateExamAttemptDto {
   })
   examId: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @Min(0)
   @IsInt()
   @ApiProperty({
@@ -19,7 +19,7 @@ export class CreateExamAttemptDto {
     type: Number,
     example: 0,
   })
-  score: number = 0;
+  score?: number;
 
   @IsNotEmpty()
   @IsEnum(ExamAttemptStatus)
