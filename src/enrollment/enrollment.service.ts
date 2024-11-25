@@ -1,5 +1,5 @@
 import {
-  BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -66,13 +66,14 @@ export class EnrollmentService {
   }
 
   async create(createEnrollmentDto: CreateEnrollmentDto): Promise<Enrollment> {
-    try {
-      const enrollment = await this.findOne({
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
         user: { id: createEnrollmentDto.userId },
         course: { id: createEnrollmentDto.courseId },
-      });
-      if (enrollment)
-        throw new BadRequestException('Enrollment already exists');
+      },
+    });
+    if (enrollment) throw new ConflictException('Enrollment already exists');
+    try {
       const createdEnrollment =
         this.enrollmentRepository.create(createEnrollmentDto);
       return await this.enrollmentRepository.save({

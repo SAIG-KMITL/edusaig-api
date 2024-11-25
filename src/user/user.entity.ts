@@ -4,6 +4,7 @@ import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 import { Roadmap } from 'src/roadmap/roadmap.entity';
 import { Role } from 'src/shared/enums/roles.enum';
 import { UserBackground } from 'src/user-background/user-background.entity';
+import { UserStreak } from 'src/user-streak/user-streak.entity';
 import { UserReward } from 'src/user-reward/user-reward.entity';
 import {
   Column,
@@ -43,6 +44,9 @@ export class User {
 
   @OneToMany(() => Roadmap, (roadmap) => roadmap.user)
   roadmaps: Roadmap[];
+
+  @OneToMany(() => UserStreak, (streak) => streak.user)
+  streaks: UserStreak[];
 
   @Column({
     nullable: false,
