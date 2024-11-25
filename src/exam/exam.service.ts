@@ -26,6 +26,7 @@ import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.
 import { UserService } from 'src/user/user.service';
 import { EnrollmentService } from 'src/enrollment/enrollment.service';
 import { PretestDto } from './dtos/pretest.dto';
+import { Question } from 'src/question/question.entity';
 
 @Injectable()
 export class ExamService {
@@ -205,12 +206,13 @@ export class ExamService {
     });
   }
 
-  async deleteExam(userId: string, role: Role, id: string): Promise<void> {
+  async deleteExam(userId: string, role: Role, id: string): Promise<Exam> {
     try {
       const exam = await this.findOne(userId, role, { where: { id } });
       if (this.checkPermission(userId, role, exam) === false)
         throw new ForbiddenException('Can not change this exam');
       await this.examRepository.delete(id);
+      return exam;
     } catch (error) {
       if (error instanceof Error) throw new NotFoundException('Exam not found');
     }
@@ -292,7 +294,11 @@ export class ExamService {
     }
   }
 
-  async createQuestionAndChoice(examId: string, userId: string): Promise<void> {
+  async createQuestionAndChoice(
+    examId: string,
+    userId: string,
+  ): Promise<Question[]> {
+    let questions = [];
     const fetchData = await this.fetchData(examId, userId);
     let orderIndex = (await this.questionService.getMaxOrderIndex(examId)) + 1;
     await Promise.all(
@@ -300,7 +306,7 @@ export class ExamService {
         const createQuestionDto = {
           examId,
           question: data.question,
-          type: QuestionType.MULTIPLE_CHOICE,
+          type: QuestionType.PRETEST,
           points: 1,
           orderIndex: orderIndex++,
         };
@@ -308,6 +314,8 @@ export class ExamService {
         const question = await this.questionService.createQuestion(
           createQuestionDto,
         );
+
+        questions.push(question);
 
         await Promise.all(
           Object.entries(data.choices).map(([key, value]) => {
@@ -325,5 +333,7 @@ export class ExamService {
         );
       }),
     );
+
+    return questions;
   }
 }

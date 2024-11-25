@@ -259,11 +259,12 @@ export class ExamAnswerController {
       }),
     )
     id: string,
-  ): Promise<void> {
-    await this.examAnswerService.deleteExamAnswer(
+  ): Promise<ExamAnswerResponseDto> {
+    const examAnswer = await this.examAnswerService.deleteExamAnswer(
       request.user.id,
       request.user.role,
       id,
     );
+    return new ExamAnswerResponseDto(examAnswer);
   }
 }
