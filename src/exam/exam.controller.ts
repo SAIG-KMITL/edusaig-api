@@ -174,6 +174,7 @@ export class ExamController {
   })
   @HttpCode(HttpStatus.CREATED)
   async createQuestionAndChoice(
+    @Req() request: AuthenticatedRequest,
     @Param(
       'examId',
       new ParseUUIDPipe({
@@ -183,6 +184,6 @@ export class ExamController {
     )
     examId: string,
   ): Promise<void> {
-    return this.examService.createQuestionAndChoice(examId);
+    return this.examService.createQuestionAndChoice(examId, request.user.id);
   }
 }

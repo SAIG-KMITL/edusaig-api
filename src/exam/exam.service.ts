@@ -21,6 +21,11 @@ import { UpdateExamDto } from './dtos/update-exam.dto';
 import { CourseModule } from 'src/course-module/course-module.entity';
 import { QuestionService } from 'src/question/question.service';
 import { QuestionOptionService } from 'src/question-option/question-option.service';
+import { HttpService } from '@nestjs/axios';
+import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
+import { UserService } from 'src/user/user.service';
+import { EnrollmentService } from 'src/enrollment/enrollment.service';
+import { PretestDto } from './dtos/pretest.dto';
 
 @Injectable()
 export class ExamService {
@@ -31,6 +36,9 @@ export class ExamService {
     private readonly courseModuleRepository: Repository<CourseModule>,
     private readonly questionService: QuestionService,
     private readonly questionOptionService: QuestionOptionService,
+    private readonly httpService: HttpService,
+    private readonly userService: UserService,
+    private readonly enrollService: EnrollmentService,
   ) {}
 
   async findAll(
@@ -234,47 +242,58 @@ export class ExamService {
     }
   }
 
-  async fetchData() {
-    return {
-      message: 'Generate comment successful',
-      data: [
-        {
-          question: "What is the purpose of the 'print()' function in Python?",
-          choices: {
-            a: 'To import libraries',
-            b: 'To create a new variable',
-            c: 'To display output on the screen',
-            d: 'To end a loop',
-          },
-          answer: 'c',
+  async fetchData(examId: string, userId: string): Promise<PretestDto> {
+    const api = 'https://ai.edusaig.com/ai';
+    const user = await this.userService.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Not Found User');
+    const exam = await this.examRepository.findOne({ where: { id: examId } });
+    if (!exam) throw new NotFoundException('Not Found this exam');
+    const enrollments = await this.enrollService.findEnrollmentByUserId(userId);
+    try {
+      const requestBody = {
+        id: exam.id,
+        user: {
+          id: user.id,
+          email: user.email,
+          points: user.points,
+          role: user.role,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          fullname: user.fullname,
         },
-        {
-          question: 'What data type is represented by the number 5 in Python?',
-          choices: {
-            a: 'String',
-            b: 'Integer',
-            c: 'Float',
-            d: 'Boolean',
-          },
-          answer: 'b',
+        occupation: {
+          id: exam.id,
+          title: exam.title,
+          description: exam.description,
+          createdAt: exam.createdAt,
+          updatedAt: exam.updatedAt,
         },
-        {
-          question:
-            'What is the difference between a list and a tuple in Python?',
-          choices: {
-            a: 'A list is mutable and a tuple is immutable.',
-            b: 'A list is immutable and a tuple is mutable.',
-            c: 'Both lists and tuples are mutable.',
-            d: 'Both lists and tuples are immutable.',
-          },
-          answer: 'a',
-        },
-      ],
-    };
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...(enrollments.length > 0 && {
+          topics: enrollments.map((enrollment) => ({
+            id: enrollment.id,
+            title: enrollment.course.title,
+            description: enrollment.course.description,
+            level: enrollment.course.level,
+            createdAt: enrollment.createdAt,
+            updatedAt: enrollment.updatedAt,
+          })),
+        }),
+      };
+
+      const response = await this.httpService.axiosRef.post(
+        `${api}/generate-pretest/`,
+        requestBody,
+      );
+      return { data: response.data };
+    } catch (error) {
+      throw new Error('Failed to fetch data or process request');
+    }
   }
 
-  async createQuestionAndChoice(examId: string): Promise<void> {
-    const fetchData = await this.fetchData();
+  async createQuestionAndChoice(examId: string, userId: string): Promise<void> {
+    const fetchData = await this.fetchData(examId, userId);
     let orderIndex = (await this.questionService.getMaxOrderIndex(examId)) + 1;
     await Promise.all(
       fetchData.data.map(async (data) => {

@@ -58,6 +58,7 @@ export class UserResponseDto {
     this.id = user.id;
     this.email = user.email;
     this.role = user.role;
+    this.points = user.points;
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
     this.fullname = user.fullname;
