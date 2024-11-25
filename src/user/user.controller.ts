@@ -116,13 +116,11 @@ export class UserController {
       where: { id: request.user.id },
     });
     if (user.profileKey)
-      await this.fileService.update(Folder.PROFILES, user.id, file);
+      await this.fileService.update(Folder.PROFILES, user.profileKey, file);
     else {
       await this.fileService.upload(Folder.PROFILES, user.id, file);
-      await this.userService.update(user.id, {
-        profileKey: `${user.id}.${file.mimetype.split('/').pop()}`,
-      });
     }
+    await this.userService.update(request.user.id, { profileKey: `${user.id}.${file.originalname.split('.').pop()}` });
   }
 
   @Get('avatar')

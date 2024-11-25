@@ -54,7 +54,13 @@ export class QuestionOptionService {
     );
     const question = await find({
       where: whereCondition,
-      relations: ['question'],
+      relations: [
+        'question',
+        'question.exam',
+        'question.exam.courseModule',
+        'question.exam.courseModule.course',
+        'question.exam.courseModule.course.teacher',
+      ],
       select: {
         question: this.selectPopulateQuestion(),
       },
@@ -80,7 +86,13 @@ export class QuestionOptionService {
     const question = await this.questionOptionRepository.findOne({
       ...options,
       where,
-      relations: ['question'],
+      relations: [
+        'question',
+        'question.exam',
+        'question.exam.courseModule',
+        'question.exam.courseModule.course',
+        'question.exam.courseModule.course.teacher',
+      ],
       select: {
         question: this.selectPopulateQuestion(),
       },
@@ -129,7 +141,13 @@ export class QuestionOptionService {
 
     const questionOption = await find({
       where: whereCondition,
-      relations: ['question'],
+      relations: [
+        'question',
+        'question.exam',
+        'question.exam.courseModule',
+        'question.exam.courseModule.course',
+        'question.exam.courseModule.course.teacher',
+      ],
       select: {
         question: this.selectPopulateQuestion(),
       },
@@ -195,6 +213,12 @@ export class QuestionOptionService {
     const question = await this.questionRepository.findOne({
       where: { id: createQuestionOptionDto.questionId },
       select: this.selectPopulateQuestion(),
+      relations: [
+        'exam',
+        'exam.courseModule',
+        'exam.courseModule.course',
+        'exam.courseModule.course.teacher',
+      ],
     });
     if (!question) {
       throw new NotFoundException('Question option not found.');
@@ -221,28 +245,21 @@ export class QuestionOptionService {
     });
     if (this.checkPermission(userId, role, questionOptionInData) === false)
       throw new ForbiddenException('Can not change this question option');
-    let question = null;
-    if (updateQuestionOptionDto.questionId) {
-      question = await this.questionRepository.findOne({
-        where: { id: updateQuestionOptionDto.questionId },
-        select: this.selectPopulateQuestion(),
-      });
-
-      if (!question) throw new NotFoundException('Question Not Found');
-    }
-    const updateQuestionOption = {
-      ...updateQuestionOptionDto,
-      ...(question ? { questionId: question.id } : {}),
-    };
     const questionOption = await this.questionOptionRepository.update(
       id,
-      updateQuestionOption,
+      updateQuestionOptionDto,
     );
     if (!questionOption)
       throw new BadRequestException("Can't update question option");
     return await this.questionOptionRepository.findOne({
       where: { id },
-      relations: ['question'],
+      relations: [
+        'question',
+        'question.exam',
+        'question.exam.courseModule',
+        'question.exam.courseModule.course',
+        'question.exam.courseModule.course.teacher',
+      ],
       select: {
         question: this.selectPopulateQuestion(),
       },
@@ -274,6 +291,18 @@ export class QuestionOptionService {
       type: true,
       points: true,
       orderIndex: true,
+      exam: {
+        id: true,
+        courseModule: {
+          id: true,
+          course: {
+            id: true,
+            teacher: {
+              id: true,
+            },
+          },
+        },
+      },
     };
   }
 

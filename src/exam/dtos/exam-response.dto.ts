@@ -16,10 +16,16 @@ export class ExamResponseDto {
     description: 'Course Module Data',
     type: String,
     example: {
-      id: 'b88d68fc-7437-4812-b4f6-e08f18bc09d1',
-      title: 'Thai',
-      description: 'This module is an introduction to programming',
+      id: '7093a5ae-cc1d-4017-8445-cba7ea978b22',
+      title: 'Introduction to Biology',
+      description: 'This module is an introduction to biology',
       orderIndex: 1,
+      course: {
+        id: 'b7634715-9536-46be-ae06-650dc0d719fb',
+        teacher: {
+          id: '75af7b82-d765-40a3-82aa-bc4f572c492c',
+        },
+      },
     },
   })
   courseModule: CourseModuleResponseDto;

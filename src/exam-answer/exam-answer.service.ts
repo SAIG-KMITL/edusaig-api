@@ -80,6 +80,17 @@ export class ExamAnswerService {
   ): FindOptionsWhere<ExamAnswer> | FindOptionsWhere<ExamAnswer>[] {
     const baseSearch = search ? { answerText: ILike(`%${search}%`) } : {};
 
+    if (role === Role.STUDENT) {
+      return [
+        {
+          ...baseSearch,
+          examAttempt: {
+            userId,
+          },
+        },
+      ];
+    }
+
     if (role === Role.TEACHER) {
       return [
         {
@@ -106,16 +117,8 @@ export class ExamAnswerService {
     return [
       {
         ...baseSearch,
-        question: {
-          exam: {
-            courseModule: {
-              course: {
-                teacher: {
-                  id: userId,
-                },
-              },
-            },
-          },
+        examAttempt: {
+          userId,
         },
       },
     ];
@@ -301,8 +304,6 @@ export class ExamAnswerService {
     if (!examAnswerInData) throw new NotFoundException('Exam answer not found');
 
     let examAttempt = null;
-    let selectedOption = null;
-    let question = null;
     if (updateExamAnswerDto.examAttemptId) {
       examAttempt = await this.examAttemptRepository.findOne({
         where: { id: updateExamAnswerDto.examAttemptId },
@@ -312,30 +313,10 @@ export class ExamAnswerService {
         throw new NotFoundException('Exam attempt not found');
       }
     }
-    if (updateExamAnswerDto.selectedOptionId) {
-      selectedOption = await this.questionOptionRepository.findOne({
-        where: { id: updateExamAnswerDto.selectedOptionId },
-        select: this.selectPopulateSelectedOption(),
-      });
-      if (!selectedOption) {
-        throw new NotFoundException('SelectedOption not found');
-      }
-
-      question = await this.questionRepository.findOne({
-        where: { id: selectedOption.questionId },
-        select: this.selectPopulateQuestion(),
-      });
-
-      if (!question) {
-        throw new NotFoundException('Question not found');
-      }
-    }
 
     const updateExamAnswer = {
       ...updateExamAnswerDto,
       ...(examAttempt ? { examAttemptId: examAttempt.id } : {}),
-      ...(selectedOption ? { selectedOptionId: selectedOption.id } : {}),
-      ...(question ? { questionId: selectedOption.questionId } : {}),
     };
 
     const examAnswer = await this.examAnswerRepository.update(

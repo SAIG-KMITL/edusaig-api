@@ -26,13 +26,6 @@ export class ChapterResponseDto {
   description: string;
 
   @ApiProperty({
-    description: 'Chapter video URL',
-    type: String,
-    example: 'https://www.youtube.com/watch?v=8k-9mU5KfBQ',
-  })
-  videoUrl: string;
-
-  @ApiProperty({
     description: 'Chapter content',
     type: String,
     example: 'This chapter covers the basics of programming',
@@ -84,7 +77,6 @@ export class ChapterResponseDto {
     this.id = chapter.id;
     this.title = chapter.title;
     this.description = chapter.description;
-    this.videoUrl = chapter.videoUrl;
     this.content = chapter.content;
     this.summary = chapter.summary;
     this.duration = chapter.duration;

@@ -10,6 +10,7 @@ import {
   Req,
   Patch,
   Delete,
+  HttpCode,
 } from '@nestjs/common';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { Roles } from 'src/shared/decorators/role.decorator';
@@ -42,8 +43,9 @@ export class UserRewardController {
 
   @Post(':rewardId')
   @Roles(Role.STUDENT)
+  @HttpCode(HttpStatus.CREATED)
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.CREATED,
     type: UserRewardResponseDto,
     description: 'create new user-reward',
   })

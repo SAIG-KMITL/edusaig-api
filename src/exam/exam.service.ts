@@ -16,10 +16,16 @@ import { Exam } from './exam.entity';
 import { CreateExamDto } from './dtos/create-exam.dto';
 import { PaginatedExamResponseDto } from './dtos/exam-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { ExamStatus, Role } from 'src/shared/enums';
-import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
+import { ExamStatus, QuestionType, Role } from 'src/shared/enums';
 import { UpdateExamDto } from './dtos/update-exam.dto';
 import { CourseModule } from 'src/course-module/course-module.entity';
+import { QuestionService } from 'src/question/question.service';
+import { QuestionOptionService } from 'src/question-option/question-option.service';
+import { HttpService } from '@nestjs/axios';
+import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
+import { UserService } from 'src/user/user.service';
+import { EnrollmentService } from 'src/enrollment/enrollment.service';
+import { PretestDto } from './dtos/pretest.dto';
 
 @Injectable()
 export class ExamService {
@@ -28,6 +34,11 @@ export class ExamService {
     private readonly examRepository: Repository<Exam>,
     @Inject('CourseModuleRepository')
     private readonly courseModuleRepository: Repository<CourseModule>,
+    private readonly questionService: QuestionService,
+    private readonly questionOptionService: QuestionOptionService,
+    private readonly httpService: HttpService,
+    private readonly userService: UserService,
+    private readonly enrollService: EnrollmentService,
   ) {}
 
   async findAll(
@@ -55,7 +66,11 @@ export class ExamService {
     );
     const exam = await find({
       where: whereCondition,
-      relations: ['courseModule'],
+      relations: [
+        'courseModule',
+        'courseModule.course',
+        'courseModule.course.teacher',
+      ],
       select: {
         courseModule: this.selectPopulateCourseModule(),
       },
@@ -123,7 +138,11 @@ export class ExamService {
     const exam = await this.examRepository.findOne({
       ...options,
       where,
-      relations: ['courseModule'],
+      relations: [
+        'courseModule',
+        'courseModule.course',
+        'courseModule.course.teacher',
+      ],
       select: {
         courseModule: this.selectPopulateCourseModule(),
       },
@@ -140,6 +159,7 @@ export class ExamService {
     const courseModule = await this.courseModuleRepository.findOne({
       where: { id: createExamDto.courseModuleId },
       select: this.selectPopulateCourseModule(),
+      relations: ['course', 'course.teacher'],
     });
 
     if (!courseModule) throw new NotFoundException('Course Module not found');
@@ -169,25 +189,16 @@ export class ExamService {
     ) {
       throw new ForbiddenException("Can't change status to draft");
     }
-    let courseModule = null;
-    if (updateExamDto.courseModuleId) {
-      courseModule = await this.courseModuleRepository.findOne({
-        where: { id: updateExamDto.courseModuleId },
-        select: this.selectPopulateCourseModule(),
-      });
 
-      if (!courseModule) throw new NotFoundException('CourseModule Not Found');
-    }
-    const updateExam = {
-      ...updateExamDto,
-      ...(courseModule ? { examAttemptId: courseModule.id } : {}),
-    };
-
-    const exam = await this.examRepository.update(id, updateExam);
+    const exam = await this.examRepository.update(id, updateExamDto);
     if (!exam) throw new BadRequestException("Can't update exam");
     return await this.examRepository.findOne({
       where: { id },
-      relations: ['courseModule'],
+      relations: [
+        'courseModule',
+        'courseModule.course',
+        'courseModule.course.teacher',
+      ],
       select: {
         courseModule: this.selectPopulateCourseModule(),
       },
@@ -206,7 +217,18 @@ export class ExamService {
   }
 
   private selectPopulateCourseModule(): FindOptionsSelect<CourseModule> {
-    return { id: true, title: true, description: true, orderIndex: true };
+    return {
+      id: true,
+      title: true,
+      description: true,
+      orderIndex: true,
+      course: {
+        id: true,
+        teacher: {
+          id: true,
+        },
+      },
+    };
   }
 
   private checkPermission(userId: string, role: Role, exam: Exam): boolean {
@@ -218,5 +240,90 @@ export class ExamService {
       case Role.STUDENT:
         return false;
     }
+  }
+
+  async fetchData(examId: string, userId: string): Promise<PretestDto> {
+    const api = 'https://ai.edusaig.com/ai';
+    const user = await this.userService.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Not Found User');
+    const exam = await this.examRepository.findOne({ where: { id: examId } });
+    if (!exam) throw new NotFoundException('Not Found this exam');
+    const enrollments = await this.enrollService.findEnrollmentByUserId(userId);
+    try {
+      const requestBody = {
+        id: exam.id,
+        user: {
+          id: user.id,
+          email: user.email,
+          points: user.points,
+          role: user.role,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          fullname: user.fullname,
+        },
+        occupation: {
+          id: exam.id,
+          title: exam.title,
+          description: exam.description,
+          createdAt: exam.createdAt,
+          updatedAt: exam.updatedAt,
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...(enrollments.length > 0 && {
+          topics: enrollments.map((enrollment) => ({
+            id: enrollment.id,
+            title: enrollment.course.title,
+            description: enrollment.course.description,
+            level: enrollment.course.level,
+            createdAt: enrollment.createdAt,
+            updatedAt: enrollment.updatedAt,
+          })),
+        }),
+      };
+
+      const response = await this.httpService.axiosRef.post(
+        `${api}/generate-pretest/`,
+        requestBody,
+      );
+      return { data: response.data };
+    } catch (error) {
+      throw new Error('Failed to fetch data or process request');
+    }
+  }
+
+  async createQuestionAndChoice(examId: string, userId: string): Promise<void> {
+    const fetchData = await this.fetchData(examId, userId);
+    let orderIndex = (await this.questionService.getMaxOrderIndex(examId)) + 1;
+    await Promise.all(
+      fetchData.data.map(async (data) => {
+        const createQuestionDto = {
+          examId,
+          question: data.question,
+          type: QuestionType.MULTIPLE_CHOICE,
+          points: 1,
+          orderIndex: orderIndex++,
+        };
+
+        const question = await this.questionService.createQuestion(
+          createQuestionDto,
+        );
+
+        await Promise.all(
+          Object.entries(data.choices).map(([key, value]) => {
+            const createQuestionOptionDto = {
+              questionId: question.id,
+              optionText: `${key}. ${value}`,
+              isCorrect: key === data.answer,
+              explanation: '',
+            };
+
+            return this.questionOptionService.createQuestionOption(
+              createQuestionOptionDto,
+            );
+          }),
+        );
+      }),
+    );
   }
 }
