@@ -24,66 +24,66 @@ export class CourseModuleService {
     page = 1,
     limit = 20,
     search = '',
-    userId,
-    role,
   }: {
     page?: number;
     limit?: number;
     search?: string;
-    userId: string;
-    role: Role;
   }): Promise<PaginatedCourseModuleResponseDto> {
-    const { find } = await createPagination(this.courseModuleRepository, {
-      page,
-      limit,
-    });
-
-    const baseSearch = search ? { title: ILike(`%${search}%`) } : {};
-    const whereCondition = this.buildWhereCondition(userId, role, baseSearch);
-
+    const { find } = await createPagination(this.courseModuleRepository, { page, limit });
+    const baseSearch = {
+      course : {
+        status: CourseStatus.PUBLISHED
+      },
+      ...(search ? { title: ILike(`%${search}%`) } : {}),
+    };
     const courseModules = await find({
-      where: whereCondition,
+      where: baseSearch,
       relations: {
         course: true,
       },
+      
     }).run();
-
-    return courseModules;
+    return courseModules
   }
-
   async findOne(
-    userId: string,
-    role: Role,
     options: FindOneOptions<CourseModule>,
   ): Promise<CourseModule> {
-    const baseWhere = options.where as FindOptionsWhere<CourseModule>;
-    const whereCondition = this.buildWhereCondition(userId, role, baseWhere);
-
     const courseModule = await this.courseModuleRepository.findOne({
-      where: whereCondition,
+      ...options,
       relations: {
         course: true,
       },
+      where: {
+        ...options.where,
+        course: {
+          status: CourseStatus.PUBLISHED
+        },
+      },
     });
-
-    if (!courseModule) {
-      throw new NotFoundException('Course Module not found');
-    }
-
+    
+    if (!courseModule) throw new NotFoundException('Course Module not found');
     return courseModule;
   }
 
   async findByCourseId(courseId: string): Promise<CourseModule[]> {
     const courseModules = await this.courseModuleRepository.find({
-      where: { courseId },
+      where: { 
+        course: {
+          id: courseId,
+          status: CourseStatus.PUBLISHED
+        }
+      },
       relations: {
         course: true,
       },
     });
-
+  
+    if (!courseModules.length) {
+      throw new NotFoundException('Course modules not found or course is not published');
+    }
+  
     return courseModules;
   }
-
   async validateAndGetNextOrderIndex(courseId: string): Promise<number> {
     const existingModules = await this.courseModuleRepository.find({
       where: { courseId },
@@ -263,5 +263,58 @@ export class CourseModuleService {
     }
 
     return buildCondition();
+  }
+
+  async findAllWithOwnership({
+    page = 1,
+    limit = 20,
+    search = '',
+    userId,
+    role,
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    userId: string;
+    role: Role;
+  }): Promise<PaginatedCourseModuleResponseDto> {
+    const { find } = await createPagination(this.courseModuleRepository, {
+      page,
+      limit,
+    });
+
+    const baseSearch = search ? { title: ILike(`%${search}%`) } : {};
+    const whereCondition = this.buildWhereCondition(userId, role, baseSearch);
+
+    const courseModules = await find({
+      where: whereCondition,
+      relations: {
+        course: true,
+      },
+    }).run();
+
+    return courseModules;
+  }
+
+  async findOneWithOwnership(
+    userId: string,
+    role: Role,
+    options: FindOneOptions<CourseModule>,
+  ): Promise<CourseModule> {
+    const baseWhere = options.where as FindOptionsWhere<CourseModule>;
+    const whereCondition = this.buildWhereCondition(userId, role, baseWhere);
+
+    const courseModule = await this.courseModuleRepository.findOne({
+      where: whereCondition,
+      relations: {
+        course: true,
+      },
+    });
+
+    if (!courseModule) {
+      throw new NotFoundException('Course Module not found');
+    }
+
+    return courseModule;
   }
 }

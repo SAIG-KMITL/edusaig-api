@@ -47,10 +47,10 @@ import { FileService } from 'src/file/file.service';
 import { Folder } from 'src/file/enums/folder.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { EnrollmentService } from 'src/enrollment/enrollment.service';
+import { Public } from 'src/shared/decorators/public.decorator';
 
 @Controller('chapter')
 @ApiTags('Chapters')
-@ApiBearerAuth()
 @Injectable()
 export class ChapterController {
   constructor(
@@ -58,7 +58,7 @@ export class ChapterController {
     private readonly courseModuleService: CourseModuleService,
     private readonly fileService: FileService,
     private readonly enrollmentService: EnrollmentService,
-  ) {}
+  ) { }
 
   @Get(':id/video')
   @ApiParam({
@@ -66,6 +66,7 @@ export class ChapterController {
     type: String,
     description: 'Course id',
   })
+  @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Get chapter video',
@@ -88,7 +89,7 @@ export class ChapterController {
       { where: { id } },
     );
 
-    const file = await this.fileService.get(Folder.CHAPTER_VIDEOS, chapter.videoKey);   
+    const file = await this.fileService.get(Folder.CHAPTER_VIDEOS, chapter.videoKey);
     return new StreamableFile(file, {
       disposition: 'inline',
       type: `video/${chapter.videoKey.split('.').pop()}`,
@@ -146,14 +147,12 @@ export class ChapterController {
       where: { id },
     });
     if (chapter.videoKey)
-      await this.fileService.update(Folder.CHAPTER_VIDEOS, chapter.videoKey, file); 
+      await this.fileService.update(Folder.CHAPTER_VIDEOS, chapter.videoKey, file);
     else {
       await this.fileService.upload(Folder.CHAPTER_VIDEOS, id, file);
     }
-    await this.chapterService.update(id, { videoKey: `${id}.${file.originalname.split('.').pop()}` });  
+    await this.chapterService.update(id, { videoKey: `${id}.${file.originalname.split('.').pop()}` });
   }
-  
-
 
   @Get()
   @ApiResponse({
@@ -174,17 +173,113 @@ export class ChapterController {
     required: false,
     description: 'Items per page',
   })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  @Public()
   async findAll(
-    @Req() request: AuthenticatedRequest,
     @Query() query: PaginateQueryDto,
   ): Promise<PaginatedChapterResponseDto> {
     return this.chapterService.findAll({
+      page: query.page,
+      limit: query.limit,
+      search: query.search
+    });
+  }
+  @Get('module/:moduleId')
+  @ApiParam({
+    name: 'moduleId',
+    type: String,
+    description: 'Module ID',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ChapterResponseDto,
+    description: 'Get all chapters by module id',
+    isArray: true,
+  })
+  @Public()
+  async findByModuleId(
+    @Param('moduleId', ParseUUIDPipe) moduleId: string,
+  ): Promise<ChapterResponseDto[]> {
+    return this.chapterService.findByModuleId(moduleId);
+  }
+
+  @Get('with-ownership')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ChapterResponseDto,
+    description: 'Get all chapters with ownership',
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiBearerAuth()
+  async findAllWithOwnership(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedChapterResponseDto> {
+    return this.chapterService.findAllWithOwnership({
       page: query.page,
       limit: query.limit,
       search: query.search,
       userId: request.user.id,
       role: request.user.role,
     });
+  }
+  @Get('with-ownership/:id')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ChapterResponseDto,
+    description: 'Get a chapter by ID',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Chapter ID',
+  })
+  @ApiBearerAuth()
+  async findOneWithOwnership(
+    @Req() request: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ChapterResponseDto> {
+    return this.chapterService.findOneWithOwnership(request.user.id, request.user.role, {
+      where: { id },
+    });
+  }
+
+
+
+
+  @Get(':id')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ChapterResponseDto,
+    description: 'Get a chapter by ID',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Chapter ID',
+  })
+  @Public()
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ChapterResponseDto> {
+    return this.chapterService.findOne({ where: { id, isPreview: true } });
   }
 
   @Get(':id/chat-rooms')
@@ -200,6 +295,7 @@ export class ChapterController {
     description: 'Chapter ID',
   })
   @Roles(Role.STUDENT)
+  @ApiBearerAuth()
   async getChatRooms(
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
@@ -211,25 +307,6 @@ export class ChapterController {
     return chatRooms.map((chatRoom) => new ChatRoomResponseDto(chatRoom));
   }
 
-  @Get(':id')
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ChapterResponseDto,
-    description: 'Get a chapter by ID',
-  })
-  @ApiParam({
-    name: 'id',
-    type: String,
-    description: 'Chapter ID',
-  })
-  async findOne(
-    @Req() request: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<ChapterResponseDto> {
-    return this.chapterService.findOneWithOwnership(request.user.id, request.user.role, {
-      where: { id },
-    });
-  }
 
   @Post()
   @Roles(Role.TEACHER)
@@ -238,6 +315,7 @@ export class ChapterController {
     type: ChapterResponseDto,
     description: 'Create a chapter',
   })
+  @ApiBearerAuth()
   async create(
     @Req() request: AuthenticatedRequest,
     @Body() createChapterDto: CreateChapterDto,
@@ -263,6 +341,7 @@ export class ChapterController {
     type: String,
     description: 'Chapter ID',
   })
+  @ApiBearerAuth()
   async update(
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
@@ -289,6 +368,7 @@ export class ChapterController {
     type: String,
     description: 'Chapter ID',
   })
+  @ApiBearerAuth()
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ChapterResponseDto> {

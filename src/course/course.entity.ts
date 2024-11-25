@@ -36,6 +36,8 @@ export class Course {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'teacher_id' })
   teacher: User;
+  @Column({ name: 'teacher_id' })
+  teacherId: string;
 
   @ManyToOne(() => Category)
   @JoinColumn({ name: 'category_id' })
