@@ -250,7 +250,6 @@ export class UserController {
   async delete(
     @Req() request: AuthenticatedRequest,
   ): Promise<void> {
-    console.log(request.user.id);
     await this.userService.delete({ id: request.user.id });
   }
 }

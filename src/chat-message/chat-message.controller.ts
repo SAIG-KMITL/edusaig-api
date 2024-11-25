@@ -90,7 +90,6 @@ export class ChatMessageController {
           throw new InternalServerErrorException(error.message);
         }),
       );
-    console.log(response);
     return new ChatMessageResponseDto(chatMessage);
   }
 
