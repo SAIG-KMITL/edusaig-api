@@ -203,13 +203,13 @@ export class PretestService {
     };
   }
 
-  async fetchData(userId: string): Promise<PretestDto> {
+  async fetchData(userId: string, pretestId: string): Promise<PretestDto> {
     const userBackground = await this.userBackgroundService.findOneByUserId(
       userId,
     );
     try {
       const requestBody = {
-        id: '1',
+        id: pretestId,
         user: {
           id: userBackground.user.id,
           email: userBackground.user.email,
@@ -256,7 +256,7 @@ export class PretestService {
     pretestId: string,
     userId: string,
   ): Promise<void> {
-    const fetchData = await this.fetchData(userId);
+    const fetchData = await this.fetchData(userId, pretestId);
     let orderIndex = 1;
     await Promise.all(
       fetchData.data.map(async (data) => {
