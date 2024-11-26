@@ -77,11 +77,7 @@ export class CourseModuleService {
         course: true,
       },
     });
-  
-    if (!courseModules.length) {
-      throw new NotFoundException('Course modules not found or course is not published');
-    }
-  
+
     return courseModules;
   }
   async validateAndGetNextOrderIndex(courseId: string): Promise<number> {
