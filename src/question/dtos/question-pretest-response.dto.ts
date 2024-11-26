@@ -31,8 +31,6 @@ export class QuestionPretestResponseDto {
       timeLimit: 20,
       passingScore: 3,
       maxAttempts: 1,
-      createdAt: '2024-11-26T10:06:39.408Z',
-      updatedAt: '2024-11-26T10:06:39.408Z',
     },
   })
   pretest: Pretest;

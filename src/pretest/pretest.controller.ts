@@ -174,9 +174,4 @@ export class PretestController {
     );
     return new PretestResponseDto(pretest);
   }
-
-  @Get('pretest/test')
-  async test(@Req() request: AuthenticatedRequest): Promise<void> {
-    this.pretestService.fetchData(request.user.id);
-  }
 }

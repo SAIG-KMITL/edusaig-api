@@ -23,8 +23,6 @@ export class QuestionOptionPretestResponseDto {
       question:
         "What is the difference between 'int()', 'float()', and 'str()' functions in Python?",
       type: 'pretest',
-      createdAt: '2024-11-26T10:12:01.884Z',
-      updatedAt: '2024-11-26T10:12:01.884Z',
       pretest: {
         timeLimit: 20,
         id: '168eb5b6-9ba9-4e6d-9880-551d4232129e',
