@@ -1,5 +1,6 @@
 import { ExamAnswer } from 'src/exam-answer/exam-answer.entity';
 import { Exam } from 'src/exam/exam.entity';
+import { Pretest } from 'src/pretest/pretest.entity';
 import { QuestionOption } from 'src/question-option/question-option.entity';
 import { QuestionType } from 'src/shared/enums';
 import {
@@ -21,13 +22,23 @@ export class Question {
 
   @ManyToOne(() => Exam, (exam) => exam.question, {
     onDelete: 'CASCADE',
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn({ name: 'exam_id' })
   exam: Exam;
 
-  @Column({ name: 'exam_id' })
+  @Column({ name: 'exam_id', nullable: true })
   examId: string;
+
+  @ManyToOne(() => Pretest, (pretest) => pretest.question, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'pretest_id' })
+  pretest: Pretest;
+
+  @Column({ name: 'pretest_id', nullable: true })
+  pretestId: string;
 
   @OneToMany(
     () => QuestionOption,
@@ -57,13 +68,13 @@ export class Question {
     nullable: false,
     default: 1,
   })
-  points: number;
+  points: number = 1;
 
   @Column({
     nullable: false,
     default: 1,
   })
-  orderIndex: number;
+  orderIndex: number = 1;
 
   @CreateDateColumn({
     type: 'timestamp with time zone',

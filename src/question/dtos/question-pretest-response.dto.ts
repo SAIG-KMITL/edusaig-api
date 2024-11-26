@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/shared/pagination/dtos/paginate-response.dto';
 import { Question } from '../question.entity';
-import { Exam } from 'src/exam/exam.entity';
-import { ExamResponseDto } from 'src/exam/dtos/exam-response.dto';
 import { QuestionType } from 'src/shared/enums';
+import { Pretest } from 'src/pretest/pretest.entity';
+import { PretestResponseDto } from 'src/pretest/dtos/pretest-response.dto';
 
-export class QuestionResponseDto {
+export class QuestionPretestResponseDto {
   @ApiProperty({
     description: 'Question ID',
     type: String,
@@ -14,41 +14,40 @@ export class QuestionResponseDto {
   id: string;
 
   @ApiProperty({
-    description: 'Exam Data',
-    type: ExamResponseDto,
+    description: 'Pretest Data',
+    type: PretestResponseDto,
     example: {
-      id: 'e20ffe51-2514-4f14-9bea-4bb28bb97fdd',
+      id: '80ff2ec3-7c6d-4427-a98d-58ac3aa68697',
+      user: {
+        id: 'a12e1e37-3504-4711-a389-09a1734d7b1c',
+        username: 'johndoe',
+        fullname: 'John Doe',
+        role: 'student',
+        email: 'johndoe@gmail.com',
+        profileKey: null,
+      },
       title: 'Biology',
       description: 'This course is an introduction to biology',
       timeLimit: 20,
-      passingScore: 50,
+      passingScore: 3,
       maxAttempts: 1,
-      shuffleQuestions: false,
-      status: 'published',
-      courseModule: {
-        id: '7093a5ae-cc1d-4017-8445-cba7ea978b22',
-        course: {
-          id: 'b7634715-9536-46be-ae06-650dc0d719fb',
-          teacher: {
-            id: '75af7b82-d765-40a3-82aa-bc4f572c492c',
-          },
-        },
-      },
+      createdAt: '2024-11-26T10:06:39.408Z',
+      updatedAt: '2024-11-26T10:06:39.408Z',
     },
   })
-  exam: Exam;
+  pretest: Pretest;
 
   @ApiProperty({
-    description: 'Exam question',
+    description: 'Pretest question',
     type: String,
     example: 'What is this?',
   })
   question: string;
 
   @ApiProperty({
-    description: 'Type question',
+    description: 'Type question pretest',
     type: String,
-    example: QuestionType.TRUE_FALSE,
+    example: QuestionType.PRETEST,
     enum: QuestionType,
   })
   type: QuestionType;
@@ -83,7 +82,7 @@ export class QuestionResponseDto {
 
   constructor(question: Question) {
     this.id = question.id;
-    this.exam = question.exam;
+    this.pretest = question.pretest;
     this.question = question.question;
     this.type = question.type;
     this.points = question.points;
@@ -93,8 +92,8 @@ export class QuestionResponseDto {
   }
 }
 
-export class PaginatedQuestionResponseDto extends PaginatedResponse(
-  QuestionResponseDto,
+export class PaginatedQuestionPretestResponseDto extends PaginatedResponse(
+  QuestionPretestResponseDto,
 ) {
   constructor(
     question: Question[],
@@ -103,7 +102,7 @@ export class PaginatedQuestionResponseDto extends PaginatedResponse(
     currentPage: number,
   ) {
     const questionDtos = question.map(
-      (question) => new QuestionResponseDto(question),
+      (question) => new QuestionPretestResponseDto(question),
     );
     super(questionDtos, total, pageSize, currentPage);
   }

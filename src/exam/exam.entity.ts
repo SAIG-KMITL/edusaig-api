@@ -52,7 +52,7 @@ export class Exam {
     nullable: false,
     default: 20,
   })
-  timeLimit: number;
+  timeLimit: number = 20;
 
   @Column({
     nullable: false,

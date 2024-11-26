@@ -34,6 +34,7 @@ import { UserOccupationModule } from './user-occupation/user-occupation.module';
 import { UserStreakModule } from './user-streak/user-streak.module';
 import { UserModule } from './user/user.module';
 import { UserRewardModule } from './user-reward/user-reward.module';
+import { PretestModule } from './pretest/pretest.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { UserRewardModule } from './user-reward/user-reward.module';
     RewardModule,
     UserRewardModule,
     RoadmapModule,
+    PretestModule,
   ],
   controllers: [AppController],
   providers: [

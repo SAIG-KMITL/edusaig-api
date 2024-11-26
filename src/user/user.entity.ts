@@ -14,6 +14,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Pretest } from 'src/pretest/pretest.entity';
 
 @Entity()
 export class User {
@@ -76,7 +77,13 @@ export class User {
   })
   enrollments: Enrollment[];
 
-  @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.exam, {
+  @OneToMany(() => Pretest, (pretest) => pretest.user, {
+    cascade: true,
+    nullable: true,
+  })
+  pretest: Pretest[];
+
+  @OneToMany(() => ExamAttempt, (examAttempt) => examAttempt.user, {
     cascade: true,
     nullable: true,
   })
