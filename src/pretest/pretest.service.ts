@@ -228,17 +228,17 @@ export class PretestService {
         },
         createdAt: new Date(),
         updatedAt: new Date(),
-        // topics:
-        //   userBackground.topics.length > 0
-        //     ? userBackground.topics.map((topic) => ({
-        //         id: topic.id,
-        //         title: topic.title,
-        //         description: topic.description,
-        //         level: topic.level,
-        //         createdAt: topic.createdAt,
-        //         updatedAt: topic.updatedAt,
-        //       }))
-        //     : [],
+        topics:
+          userBackground.topics.length > 0
+            ? userBackground.topics.map((topic) => ({
+                id: topic.id,
+                title: topic.title,
+                description: topic.description,
+                level: topic.level,
+                createdAt: topic.createdAt,
+                updatedAt: topic.updatedAt,
+              }))
+            : [],
       };
       const response = await this.httpService.axiosRef.post(
         `${this.configService.get<string>(
