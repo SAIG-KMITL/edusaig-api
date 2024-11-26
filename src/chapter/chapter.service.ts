@@ -17,7 +17,6 @@ import { ChatRoomStatus, ChatRoomType } from 'src/chat-room/enums';
 import { EnrollmentService } from 'src/enrollment/enrollment.service';
 import { ChatRoom } from 'src/chat-room/chat-room.entity';
 import { EnrollmentStatus } from 'src/enrollment/enums/enrollment-status.enum';
-
 @Injectable()
 export class ChapterService {
   constructor(
@@ -306,21 +305,33 @@ export class ChapterService {
       Role,
       () => FindOptionsWhere<Chapter> | FindOptionsWhere<Chapter>[]
     > = {
-      [Role.STUDENT]: () => ({
-        ...baseCondition,
-        module: {
-          course: {
-            status: CourseStatus.PUBLISHED,
-            enrollments: {
-              user: { id: userId },
-              status: Not(EnrollmentStatus.DROPPED)
+      [Role.STUDENT]: () => [
+        {
+          ...baseCondition,
+          module: {
+            course: {
+              status: CourseStatus.PUBLISHED,
+              enrollments: {
+                user: { id: userId },
+                status: Not(EnrollmentStatus.DROPPED)
+              }
+            }
+          },
+        },
+        {
+          ...baseCondition,
+          isPreview: true,
+          module: {
+            course: {
+              status: CourseStatus.PUBLISHED
             }
           }
-        }
-      }),
+        },
+      ],
       [Role.TEACHER]: () => [
         {
           ...baseCondition,
+          isPreview: true,
           module: {
             course: {
               status: CourseStatus.PUBLISHED
