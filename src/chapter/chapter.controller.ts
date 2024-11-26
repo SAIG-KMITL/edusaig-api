@@ -66,14 +66,13 @@ export class ChapterController {
     type: String,
     description: 'Course id',
   })
-  @ApiBearerAuth()
+  @Public()
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Get chapter video',
     type: StreamableFile,
   })
   async getVideo(
-    @Req() request: AuthenticatedRequest,
     @Param(
       'id',
       new ParseUUIDPipe({
@@ -83,12 +82,7 @@ export class ChapterController {
     )
     id: string,
   ): Promise<StreamableFile> {
-    const chapter = await this.chapterService.findOneWithOwnership(
-      request.user.id,
-      request.user.role,
-      { where: { id } },
-    );
-
+    const chapter = await this.chapterService.findOne({ where: { id } });
     const file = await this.fileService.get(Folder.CHAPTER_VIDEOS, chapter.videoKey);
     return new StreamableFile(file, {
       disposition: 'inline',
@@ -244,7 +238,7 @@ export class ChapterController {
   @ApiResponse({
     status: HttpStatus.OK,
     type: ChapterResponseDto,
-    description: 'Get a chapter by ID',
+    description: 'Get a chapter by ID with ownership',
   })
   @ApiParam({
     name: 'id',
@@ -260,9 +254,21 @@ export class ChapterController {
       where: { id },
     });
   }
-
-
-
+  @Get('transcribe/:id')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ChapterResponseDto,
+    description: 'Transcribe a chapter',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Chapter ID',
+  })
+  @ApiBearerAuth()
+  async transcribe(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.chapterService.transcribeAudio(id);
+  }
 
   @Get(':id')
   @ApiResponse({
@@ -329,20 +335,6 @@ export class ChapterController {
     return this.chapterService.create(createChapterDto);
   }
 
-  @Post('transcribe/:id')
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ChapterResponseDto,
-    description: 'Update a chapter',
-  })
-  @ApiParam({
-    name: 'id',
-    type: String,
-    description: 'Chapter ID',
-  })
-  async transcribe(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.chapterService.transcribeAudio(id);
-  }
 
 
   @Patch(':id')

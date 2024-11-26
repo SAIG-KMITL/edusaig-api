@@ -11,6 +11,7 @@ import { ChatRoomModule } from 'src/chat-room/chat-room.module';
 import { EnrollmentModule } from 'src/enrollment/enrollment.module';
 import { FileModule } from 'src/file/file.module';
 import { HttpModule } from '@nestjs/axios';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { HttpModule } from '@nestjs/axios';
     ChatRoomModule,
     EnrollmentModule,
     FileModule,
-    HttpModule
+    HttpModule,
+    ConfigModule
   ],
   controllers: [ChapterController],
   providers: [...chapterProviders, ChapterService],
