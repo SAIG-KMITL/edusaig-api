@@ -35,12 +35,12 @@ export class CreateExamAnswerDto {
   })
   isCorrect: boolean;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
   @ApiProperty({
     description: 'Points in this answer',
     type: Number,
     example: 0,
   })
-  points: number = 0;
+  points?: number;
 }

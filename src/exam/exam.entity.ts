@@ -68,14 +68,15 @@ export class Exam {
     nullable: false,
     default: false,
   })
-  shuffleQuestions: boolean;
+  shuffleQuestions: boolean = false;
 
   @Column({
+    type: 'enum',
     enum: ExamStatus,
     nullable: false,
     default: ExamStatus.DRAFT,
   })
-  status: ExamStatus;
+  status: ExamStatus = ExamStatus.DRAFT;
 
   @CreateDateColumn({
     type: 'timestamp with time zone',

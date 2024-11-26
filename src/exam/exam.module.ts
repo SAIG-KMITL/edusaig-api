@@ -12,6 +12,7 @@ import { ExamAnswerModule } from 'src/exam-answer/exam-answer.module';
 import { HttpModule } from '@nestjs/axios';
 import { UserModule } from 'src/user/user.module';
 import { EnrollmentModule } from 'src/enrollment/enrollment.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { EnrollmentModule } from 'src/enrollment/enrollment.module';
     HttpModule,
     UserModule,
     EnrollmentModule,
+    ConfigModule,
   ],
   controllers: [ExamController],
   providers: [...examProviders, ExamService],

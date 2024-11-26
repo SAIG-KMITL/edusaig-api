@@ -17,7 +17,12 @@ import {
 import { ExamAttempt } from './exam-attempt.entity';
 import { PaginatedExamAttemptResponseDto } from './dtos/exam-attempt-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { ExamAttemptStatus, ExamStatus, Role } from 'src/shared/enums';
+import {
+  CourseStatus,
+  ExamAttemptStatus,
+  ExamStatus,
+  Role,
+} from 'src/shared/enums';
 import { CreateExamAttemptDto } from './dtos/create-exam-attempt.dto';
 import { Exam } from 'src/exam/exam.entity';
 import { UpdateExamAttemptDto } from './dtos/update-exam-attempt.dto';
@@ -86,6 +91,16 @@ export class ExamAttemptService {
         userId: userId,
         exam: {
           status: ExamStatus.PUBLISHED,
+          courseModule: {
+            course: {
+              status: CourseStatus.PUBLISHED,
+              enrollments: {
+                user: {
+                  id: userId,
+                },
+              },
+            },
+          },
         },
       };
     }
@@ -110,6 +125,16 @@ export class ExamAttemptService {
       userId: userId,
       exam: {
         status: ExamStatus.PUBLISHED,
+        courseModule: {
+          course: {
+            status: CourseStatus.PUBLISHED,
+            enrollments: {
+              user: {
+                id: userId,
+              },
+            },
+          },
+        },
       },
     };
   }
@@ -220,8 +245,7 @@ export class ExamAttemptService {
   ): Promise<ExamAttempt> {
     try {
       const examAttempt = await this.findOne(userId, role, { where: { id } });
-      await this.examAttemptRepository.delete(id);
-      return examAttempt;
+      return await this.examAttemptRepository.remove(examAttempt);
     } catch (error) {
       if (error instanceof Error)
         throw new NotFoundException('Exam-attempt not found');

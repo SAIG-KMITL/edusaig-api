@@ -49,7 +49,7 @@ export class ExamAttempt {
     default: 0,
     type: 'decimal',
   })
-  score: number;
+  score: number = 0;
 
   @Column({
     enum: ExamAttemptStatus,

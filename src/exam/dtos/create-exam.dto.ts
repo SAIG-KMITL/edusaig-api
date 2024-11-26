@@ -59,16 +59,16 @@ export class CreateExamDto {
   })
   maxAttempts: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsBoolean()
   @ApiProperty({
     description: 'Shuffle question.',
     type: Boolean,
     example: false,
   })
-  shuffleQuestions: boolean = false;
+  shuffleQuestions?: boolean;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsEnum(ExamStatus)
   @ApiProperty({
     description: 'Exam status',
@@ -76,5 +76,5 @@ export class CreateExamDto {
     example: ExamStatus.DRAFT,
     enum: ExamStatus,
   })
-  status: ExamStatus = ExamStatus.DRAFT;
+  status?: ExamStatus;
 }

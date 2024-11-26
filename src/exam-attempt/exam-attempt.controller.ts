@@ -178,10 +178,10 @@ export class ExamAttemptController {
   @Roles(Role.TEACHER)
   @Roles(Role.ADMIN)
   @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
+    status: HttpStatus.OK,
     description: 'Delete an exam',
+    type: ExamAttemptResponseDto,
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteExamAttempt(
     @Req() request: AuthenticatedRequest,
     @Param(

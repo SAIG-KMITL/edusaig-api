@@ -16,7 +16,7 @@ import { Exam } from './exam.entity';
 import { CreateExamDto } from './dtos/create-exam.dto';
 import { PaginatedExamResponseDto } from './dtos/exam-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { ExamStatus, QuestionType, Role } from 'src/shared/enums';
+import { CourseStatus, ExamStatus, QuestionType, Role } from 'src/shared/enums';
 import { UpdateExamDto } from './dtos/update-exam.dto';
 import { CourseModule } from 'src/course-module/course-module.entity';
 import { QuestionService } from 'src/question/question.service';
@@ -27,6 +27,8 @@ import { UserService } from 'src/user/user.service';
 import { EnrollmentService } from 'src/enrollment/enrollment.service';
 import { PretestDto } from './dtos/pretest.dto';
 import { Question } from 'src/question/question.entity';
+import { ConfigService } from '@nestjs/config';
+import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
 
 @Injectable()
 export class ExamService {
@@ -40,6 +42,7 @@ export class ExamService {
     private readonly httpService: HttpService,
     private readonly userService: UserService,
     private readonly enrollService: EnrollmentService,
+    private readonly configService: ConfigService,
   ) {}
 
   async findAll(
@@ -93,7 +96,20 @@ export class ExamService {
     const baseSearch = search ? { title: ILike(`%${search}%`) } : {};
 
     if (role === Role.STUDENT) {
-      return { ...baseSearch, status: ExamStatus.PUBLISHED };
+      return {
+        ...baseSearch,
+        status: ExamStatus.PUBLISHED,
+        courseModule: {
+          course: {
+            status: CourseStatus.PUBLISHED,
+            enrollments: {
+              user: {
+                id: userId,
+              },
+            },
+          },
+        },
+      };
     }
 
     if (role === Role.TEACHER) {
@@ -108,10 +124,6 @@ export class ExamService {
             },
           },
         },
-        {
-          ...baseSearch,
-          status: ExamStatus.PUBLISHED,
-        },
       ];
     }
 
@@ -119,7 +131,20 @@ export class ExamService {
       return { ...baseSearch };
     }
 
-    return { ...baseSearch, status: ExamStatus.PUBLISHED };
+    return {
+      ...baseSearch,
+      status: ExamStatus.PUBLISHED,
+      courseModule: {
+        course: {
+          status: CourseStatus.PUBLISHED,
+          enrollments: {
+            user: {
+              id: userId,
+            },
+          },
+        },
+      },
+    };
   }
 
   async findOne(
@@ -188,6 +213,8 @@ export class ExamService {
       examInData.status != ExamStatus.DRAFT &&
       updateExamDto.status == ExamStatus.DRAFT
     ) {
+      console.log(examInData.status);
+      console.log(updateExamDto.status);
       throw new ForbiddenException("Can't change status to draft");
     }
 
@@ -211,8 +238,7 @@ export class ExamService {
       const exam = await this.findOne(userId, role, { where: { id } });
       if (this.checkPermission(userId, role, exam) === false)
         throw new ForbiddenException('Can not change this exam');
-      await this.examRepository.delete(id);
-      return exam;
+      return await this.examRepository.remove(exam);
     } catch (error) {
       if (error instanceof Error) throw new NotFoundException('Exam not found');
     }
@@ -245,7 +271,6 @@ export class ExamService {
   }
 
   async fetchData(examId: string, userId: string): Promise<PretestDto> {
-    const api = 'https://ai.edusaig.com/ai';
     const user = await this.userService.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Not Found User');
     const exam = await this.examRepository.findOne({ where: { id: examId } });
@@ -272,20 +297,28 @@ export class ExamService {
         },
         createdAt: new Date(),
         updatedAt: new Date(),
-        ...(enrollments.length > 0 && {
-          topics: enrollments.map((enrollment) => ({
-            id: enrollment.id,
-            title: enrollment.course.title,
-            description: enrollment.course.description,
-            level: enrollment.course.level,
-            createdAt: enrollment.createdAt,
-            updatedAt: enrollment.updatedAt,
-          })),
-        }),
+
+        topics:
+          enrollments.length > 0
+            ? enrollments.map((enrollment) => ({
+                id: enrollment.id,
+                title: enrollment.course.title,
+                description: enrollment.course.description,
+                level: enrollment.course.level,
+                createdAt: enrollment.createdAt,
+                updatedAt: enrollment.updatedAt,
+              }))
+            : [],
       };
 
+      console.log(requestBody);
+
+      console.log(enrollments);
+
       const response = await this.httpService.axiosRef.post(
-        `${api}/generate-pretest/`,
+        `${this.configService.get<string>(
+          GLOBAL_CONFIG.AI_URL,
+        )}/generate-pretest/`,
         requestBody,
       );
       return { data: response.data };
@@ -306,7 +339,7 @@ export class ExamService {
         const createQuestionDto = {
           examId,
           question: data.question,
-          type: QuestionType.PRETEST,
+          type: QuestionType.MULTIPLE_CHOICE,
           points: 1,
           orderIndex: orderIndex++,
         };
