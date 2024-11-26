@@ -243,7 +243,7 @@ export class PretestService {
       const response = await this.httpService.axiosRef.post(
         `${this.configService.get<string>(
           GLOBAL_CONFIG.AI_URL,
-        )}/generate-pretest/`,
+        )}/ai/generate-pretest/`,
         requestBody,
       );
       return { data: response.data };
