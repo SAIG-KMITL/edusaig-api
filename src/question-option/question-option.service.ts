@@ -256,6 +256,28 @@ export class QuestionOptionService {
     return questionOption;
   }
 
+  async createQuestionOptionPretest(
+    createQuestionOptionDto: CreateQuestionOptionDto,
+  ): Promise<QuestionOption> {
+    const question = await this.questionRepository.findOne({
+      where: { id: createQuestionOptionDto.questionId },
+      select: this.selectPopulateQuestion(),
+      relations: ['pretest', 'pretest.user'],
+    });
+    if (!question) {
+      throw new NotFoundException('Question option not found.');
+    }
+    const questionOption = await this.questionOptionRepository.create({
+      ...createQuestionOptionDto,
+      question,
+    });
+    if (!questionOption) {
+      throw new BadRequestException('Question option not create.');
+    }
+    await this.questionOptionRepository.save(questionOption);
+    return questionOption;
+  }
+
   async updateQuestionOption(
     userId: string,
     role: Role,

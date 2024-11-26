@@ -278,7 +278,7 @@ export class PretestService {
               isCorrect: key === data.answer,
               explanation: '',
             };
-            return this.questionOptionService.createQuestionOption(
+            return this.questionOptionService.createQuestionOptionPretest(
               createQuestionOptionDto,
             );
           }),
