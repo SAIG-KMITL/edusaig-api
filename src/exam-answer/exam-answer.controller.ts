@@ -25,6 +25,10 @@ import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
 import { CreateExamAnswerDto } from './dtos/create-exam-answer.dto';
 import { UpdateExamAnswerDto } from './dtos/update-exam-answer.dto';
+import {
+  ExamAnswerPretestResponseDto,
+  PaginatedExamAnswerPretestResponseDto,
+} from './dtos/exam-answer-pretest-response.dto';
 
 @Controller('exam-answer')
 @ApiTags('ExamAnswer')
@@ -73,6 +77,88 @@ export class ExamAnswerController {
     );
   }
 
+  @Get('/pretest')
+  @Roles(Role.STUDENT, Role.ADMIN)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all exam answers with pretest',
+    type: PaginatedExamAnswerPretestResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findAllExamAnswerPretest(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedExamAnswerPretestResponseDto> {
+    return await this.examAnswerService.findAllExamAnswerPretest(
+      request.user.id,
+      request.user.role,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
+  }
+
+  @Get('/user')
+  @Roles(Role.STUDENT, Role.ADMIN)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all exam answers by user id',
+    type: PaginatedExamAnswerResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findExamAnswerByUserId(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedExamAnswerResponseDto> {
+    return await this.examAnswerService.findExamAnswerByUserId(
+      request.user.id,
+      request.user.role,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
+  }
+
   @Get(':id')
   @ApiResponse({
     status: HttpStatus.OK,
@@ -98,6 +184,97 @@ export class ExamAnswerController {
       },
     );
     return new ExamAnswerResponseDto(examAnswer);
+  }
+
+  @Get('/pretest/user')
+  @Roles(Role.STUDENT, Role.ADMIN)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all exam answers with pretest by user id',
+    type: PaginatedExamAnswerPretestResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findExamAnswerPretestByUserId(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedExamAnswerPretestResponseDto> {
+    return await this.examAnswerService.findExamAnswerPretestByUserId(
+      request.user.id,
+      request.user.role,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
+  }
+
+  @Get('/pretest/:pretestId')
+  @Roles(Role.STUDENT, Role.ADMIN)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all exam answers with pretest by pretest id',
+    type: PaginatedExamAnswerPretestResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findExamAnswerPretest(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+    @Param(
+      'pretestId',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    pretestId: string,
+  ): Promise<PaginatedExamAnswerPretestResponseDto> {
+    return await this.examAnswerService.findExamAnswerPretestByPretestId(
+      request.user.id,
+      request.user.role,
+      pretestId,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
   }
 
   @Get('question/:questionId')

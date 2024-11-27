@@ -4,26 +4,26 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-  ForbiddenException,
 } from '@nestjs/common';
 import {
   FindOneOptions,
   FindOptionsSelect,
   FindOptionsWhere,
   ILike,
-  Not,
   Repository,
 } from 'typeorm';
 import { ExamAnswer } from './exam-answer.entity';
-import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { PaginatedExamAnswerResponseDto } from './dtos/exam-answer-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { CourseStatus, ExamStatus, QuestionType, Role } from 'src/shared/enums';
+import { CourseStatus, ExamStatus, Role } from 'src/shared/enums';
 import { CreateExamAnswerDto } from './dtos/create-exam-answer.dto';
 import { Question } from 'src/question/question.entity';
 import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 import { QuestionOption } from 'src/question-option/question-option.entity';
 import { UpdateExamAnswerDto } from './dtos/update-exam-answer.dto';
+import { PaginatedExamAnswerPretestResponseDto } from './dtos/exam-answer-pretest-response.dto';
+import { User } from 'src/user/user.entity';
+import { Pretest } from 'src/pretest/pretest.entity';
 
 @Injectable()
 export class ExamAnswerService {
@@ -36,6 +36,10 @@ export class ExamAnswerService {
     private readonly questionRepository: Repository<Question>,
     @Inject('QuestionOptionRepository')
     private readonly questionOptionRepository: Repository<QuestionOption>,
+    @Inject('UserRepository')
+    private readonly userRepository: Repository<User>,
+    @Inject('PretestRepository')
+    private readonly pretestRepository: Repository<Pretest>,
   ) {}
 
   async findAll(
@@ -63,7 +67,12 @@ export class ExamAnswerService {
     );
     const exam = await find({
       where: whereCondition,
-      relations: ['examAttempt', 'question', 'selectedOption'],
+      relations: [
+        'examAttempt',
+        'question',
+        'selectedOption',
+        'examAttempt.user',
+      ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestion(),
@@ -172,7 +181,12 @@ export class ExamAnswerService {
     const examAnswer = await this.examAnswerRepository.findOne({
       ...options,
       where,
-      relations: ['examAttempt', 'question', 'selectedOption'],
+      relations: [
+        'examAttempt',
+        'question',
+        'selectedOption',
+        'examAttempt.user',
+      ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestion(),
@@ -223,7 +237,12 @@ export class ExamAnswerService {
 
     return await find({
       where: whereCondition,
-      relations: ['examAttempt', 'question', 'selectedOption'],
+      relations: [
+        'examAttempt',
+        'question',
+        'selectedOption',
+        'examAttempt.user',
+      ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestion(),
@@ -268,10 +287,64 @@ export class ExamAnswerService {
 
     return await find({
       where: whereCondition,
-      relations: ['examAttempt', 'question', 'selectedOption'],
+      relations: [
+        'examAttempt',
+        'question',
+        'selectedOption',
+        'examAttempt.user',
+      ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestion(),
+        selectedOption: this.selectPopulateSelectedOption(),
+      },
+    }).run();
+  }
+
+  async findExamAnswerByUserId(
+    userId: string,
+    role: Role,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedExamAnswerPretestResponseDto> {
+    const { find } = await createPagination(this.examAnswerRepository, {
+      page,
+      limit,
+    });
+
+    const whereCondition = this.validateAndCreateConditionForePretest(
+      userId,
+      role,
+      search,
+    );
+    whereCondition['examAttempt.user'] = { id: userId };
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    return await find({
+      where: whereCondition,
+      relations: [
+        'examAttempt',
+        'question',
+        'selectedOption',
+        'examAttempt.user',
+      ],
+      select: {
+        examAttempt: this.selectPopulateExamAttempt(),
+        question: this.selectPopulateQuestionPretest(),
         selectedOption: this.selectPopulateSelectedOption(),
       },
     }).run();
@@ -357,7 +430,12 @@ export class ExamAnswerService {
     if (!examAnswer) throw new BadRequestException("Can't update exam answer");
     return await this.examAnswerRepository.findOne({
       where: { id },
-      relations: ['examAttempt', 'question', 'selectedOption'],
+      relations: [
+        'examAttempt',
+        'question',
+        'selectedOption',
+        'examAttempt.user',
+      ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestion(),
@@ -387,6 +465,9 @@ export class ExamAnswerService {
       status: true,
       startedAt: true,
       submittedAt: true,
+      user: {
+        id: true,
+      },
     };
   }
 
@@ -406,6 +487,210 @@ export class ExamAnswerService {
       isCorrect: true,
       explanation: true,
       questionId: true,
+    };
+  }
+
+  async findAllExamAnswerPretest(
+    userId: string,
+    role: Role,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedExamAnswerPretestResponseDto> {
+    const { find } = await createPagination(this.examAnswerRepository, {
+      page,
+      limit,
+    });
+
+    const whereCondition = this.validateAndCreateConditionForePretest(
+      userId,
+      role,
+      search,
+    );
+    const exam = await find({
+      where: whereCondition,
+      relations: [
+        'examAttempt',
+        'question',
+        'selectedOption',
+        'question.pretest',
+        'question.pretest.user',
+      ],
+      select: {
+        examAttempt: this.selectPopulateExamAttempt(),
+        question: this.selectPopulateQuestionPretest(),
+        selectedOption: this.selectPopulateSelectedOption(),
+      },
+    }).run();
+
+    return exam;
+  }
+
+  private validateAndCreateConditionForePretest(
+    userId: string,
+    role: Role,
+    search: string,
+  ): FindOptionsWhere<ExamAnswer> | FindOptionsWhere<ExamAnswer>[] {
+    const baseSearch = search ? { answerText: ILike(`%${search}%`) } : {};
+
+    if (role === Role.STUDENT) {
+      return [
+        {
+          ...baseSearch,
+          question: {
+            pretest: {
+              user: {
+                id: userId,
+              },
+            },
+          },
+        },
+      ];
+    }
+
+    if (role === Role.ADMIN) {
+      return { ...baseSearch };
+    }
+
+    return [
+      {
+        ...baseSearch,
+        question: {
+          pretest: {
+            user: {
+              id: userId,
+            },
+          },
+        },
+      },
+    ];
+  }
+
+  async findExamAnswerPretestByPretestId(
+    userId: string,
+    role: Role,
+    pretestId: string,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedExamAnswerPretestResponseDto> {
+    const { find } = await createPagination(this.examAnswerRepository, {
+      page,
+      limit,
+    });
+
+    const whereCondition = this.validateAndCreateConditionForePretest(
+      userId,
+      role,
+      search,
+    );
+    whereCondition['question.pretest'] = { id: pretestId };
+
+    const pretest = await this.pretestRepository.findOne({
+      where: { id: pretestId },
+    });
+
+    if (!pretest) {
+      throw new NotFoundException('Pretest not found.');
+    }
+
+    return await find({
+      where: whereCondition,
+      relations: [
+        'examAttempt',
+        'question',
+        'selectedOption',
+        'question.pretest',
+        'question.pretest.user',
+      ],
+      select: {
+        examAttempt: this.selectPopulateExamAttempt(),
+        question: this.selectPopulateQuestionPretest(),
+        selectedOption: this.selectPopulateSelectedOption(),
+      },
+    }).run();
+  }
+
+  async findExamAnswerPretestByUserId(
+    userId: string,
+    role: Role,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedExamAnswerPretestResponseDto> {
+    const { find } = await createPagination(this.examAnswerRepository, {
+      page,
+      limit,
+    });
+
+    const whereCondition = this.validateAndCreateConditionForePretest(
+      userId,
+      role,
+      search,
+    );
+    whereCondition['question.pretest.user'] = { id: userId };
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    return await find({
+      where: whereCondition,
+      relations: [
+        'examAttempt',
+        'question',
+        'selectedOption',
+        'question.pretest',
+        'question.pretest.user',
+      ],
+      select: {
+        examAttempt: this.selectPopulateExamAttempt(),
+        question: this.selectPopulateQuestionPretest(),
+        selectedOption: this.selectPopulateSelectedOption(),
+      },
+    }).run();
+  }
+
+  private selectPopulateQuestionPretest(): FindOptionsSelect<Question> {
+    return {
+      id: true,
+      question: true,
+      type: true,
+      points: true,
+      orderIndex: true,
+      pretest: {
+        id: true,
+        title: true,
+        description: true,
+        timeLimit: true,
+        passingScore: true,
+        maxAttempts: true,
+        user: {
+          id: true,
+        },
+      },
     };
   }
 }

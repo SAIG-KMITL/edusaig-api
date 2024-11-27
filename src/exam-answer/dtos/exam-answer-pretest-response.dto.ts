@@ -6,7 +6,7 @@ import { Question } from 'src/question/question.entity';
 import { QuestionOption } from 'src/question-option/question-option.entity';
 import { ExamAttemptResponseDto } from 'src/exam-attempt/dtos/exam-attempt-response.dto';
 
-export class ExamAnswerResponseDto {
+export class ExamAnswerPretestResponseDto {
   @ApiProperty({
     description: 'Exam Answer ID',
     type: String,
@@ -34,11 +34,23 @@ export class ExamAnswerResponseDto {
     description: 'Question Data',
     type: Question,
     example: {
-      id: '1e251a62-6339-4a59-bb56-e338f1dae55b',
-      question: 'What is this?',
-      type: 'true_false',
       points: 1,
       orderIndex: 1,
+      id: 'b43d7571-f371-48a9-bee0-542f6fe154bb',
+      question:
+        'What is the primary function of a microprocessor in a computer system?',
+      type: 'pretest',
+      pretest: {
+        timeLimit: 20,
+        id: 'b269a451-87a9-41f8-86be-d5c3ecdfa934',
+        title: 'Biology',
+        description: 'This course is an introduction to biology',
+        passingScore: 3,
+        maxAttempts: 1,
+        user: {
+          id: 'b269a451-87a9-41f8-86be-d5c3ecdfa934',
+        },
+      },
     },
   })
   question: Question;
@@ -102,8 +114,8 @@ export class ExamAnswerResponseDto {
   }
 }
 
-export class PaginatedExamAnswerResponseDto extends PaginatedResponse(
-  ExamAnswerResponseDto,
+export class PaginatedExamAnswerPretestResponseDto extends PaginatedResponse(
+  ExamAnswerPretestResponseDto,
 ) {
   constructor(
     examAnswer: ExamAnswer[],
@@ -112,7 +124,7 @@ export class PaginatedExamAnswerResponseDto extends PaginatedResponse(
     currentPage: number,
   ) {
     const examAnswerDtos = examAnswer.map(
-      (examAnswer) => new ExamAnswerResponseDto(examAnswer),
+      (examAnswer) => new ExamAnswerPretestResponseDto(examAnswer),
     );
     super(examAnswerDtos, total, pageSize, currentPage);
   }

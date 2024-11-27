@@ -75,8 +75,7 @@ export class QuestionOptionController {
   }
 
   @Get('/pretest')
-  @Roles(Role.STUDENT)
-  @Roles(Role.ADMIN)
+  @Roles(Role.STUDENT, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all question option pretest',
@@ -144,8 +143,7 @@ export class QuestionOptionController {
   }
 
   @Get('pretest/:questionId')
-  @Roles(Role.STUDENT)
-  @Roles(Role.ADMIN)
+  @Roles(Role.STUDENT, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all question options in pretest id',
@@ -291,8 +289,7 @@ export class QuestionOptionController {
   }
 
   @Delete(':id')
-  @Roles(Role.TEACHER)
-  @Roles(Role.ADMIN)
+  @Roles(Role.TEACHER, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Delete a question option',

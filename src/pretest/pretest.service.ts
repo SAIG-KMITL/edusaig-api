@@ -274,7 +274,7 @@ export class PretestService {
           Object.entries(data.choices).map(([key, value]) => {
             const createQuestionOptionDto = {
               questionId: question.id,
-              optionText: `${key}. ${value}`,
+              optionText: `${value}`,
               isCorrect: key === data.answer,
               explanation: '',
             };

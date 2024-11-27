@@ -25,10 +25,7 @@ import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
 import { CreateQuestionDto } from './dtos/create-question.dto';
 import { UpdateQuestionDto } from './dtos/update-question.dto';
-import {
-  PaginatedQuestionPretestResponseDto,
-  QuestionPretestResponseDto,
-} from './dtos/question-pretest-response.dto';
+import { PaginatedQuestionPretestResponseDto } from './dtos/question-pretest-response.dto';
 
 @Controller('question')
 @Injectable()
@@ -78,8 +75,7 @@ export class QuestionController {
   }
 
   @Get('/pretest')
-  @Roles(Role.STUDENT)
-  @Roles(Role.TEACHER)
+  @Roles(Role.STUDENT, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all questions pretest',
@@ -147,8 +143,7 @@ export class QuestionController {
   }
 
   @Get('pretest/:pretestId')
-  @Roles(Role.STUDENT)
-  @Roles(Role.TEACHER)
+  @Roles(Role.STUDENT, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all questions pretest with pretest id',
@@ -293,8 +288,7 @@ export class QuestionController {
   }
 
   @Delete(':id')
-  @Roles(Role.TEACHER)
-  @Roles(Role.ADMIN)
+  @Roles(Role.TEACHER, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Delete an question',
