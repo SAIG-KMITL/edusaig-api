@@ -52,6 +52,20 @@ export class ExamAnswer {
   @Column({ name: 'question_option_id' })
   selectedOptionId: string;
 
+  @ManyToOne(
+    () => QuestionOption,
+    (questionOption) => questionOption.examAnswerCorrect,
+    {
+      onDelete: 'CASCADE',
+      nullable: false,
+    },
+  )
+  @JoinColumn({ name: 'correct_answer_id' })
+  correctAnswer: QuestionOption;
+
+  @Column({ name: 'correct_answer_id' })
+  correctAnswerId: string;
+
   @Column({
     nullable: false,
   })
