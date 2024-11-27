@@ -13,9 +13,6 @@ jobs:
   build-and-deploy:
     runs-on: self-hosted
     steps:
-      - name: 'who am i'
-        run: whoami
-        
       - name: switch to root
         run: sudo -s
     
