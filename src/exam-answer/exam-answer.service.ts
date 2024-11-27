@@ -509,6 +509,7 @@ export class ExamAnswerService {
       isCorrect: true,
       explanation: true,
       questionId: true,
+      optionText: true,
     };
   }
 

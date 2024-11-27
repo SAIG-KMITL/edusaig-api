@@ -63,6 +63,7 @@ export class ExamAnswerResponseDto {
       questionId: '1e251a62-6339-4a59-bb56-e338f1dae55b',
       isCorrect: true,
       explanation: 'Rock is not biology.',
+      optionText: 'ROM',
     },
   })
   correctAnswer: QuestionOption;

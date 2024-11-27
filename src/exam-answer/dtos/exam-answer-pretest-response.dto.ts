@@ -63,6 +63,7 @@ export class ExamAnswerPretestResponseDto {
       questionId: '1e251a62-6339-4a59-bb56-e338f1dae55b',
       isCorrect: false,
       explanation: 'Rock is not biology.',
+      optionText: 'ROM',
     },
   })
   selectedOption: QuestionOption;
@@ -75,6 +76,7 @@ export class ExamAnswerPretestResponseDto {
       questionId: '1e251a62-6339-4a59-bb56-e338f1dae55b',
       isCorrect: true,
       explanation: 'Rock is not biology.',
+      optionText: 'ROM',
     },
   })
   correctAnswer: QuestionOption;
