@@ -66,14 +66,13 @@ export class ChapterController {
     type: String,
     description: 'Course id',
   })
-  @ApiBearerAuth()
+  @Public()
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Get chapter video',
     type: StreamableFile,
   })
   async getVideo(
-    @Req() request: AuthenticatedRequest,
     @Param(
       'id',
       new ParseUUIDPipe({
@@ -83,11 +82,9 @@ export class ChapterController {
     )
     id: string,
   ): Promise<StreamableFile> {
-    const chapter = await this.chapterService.findOneWithOwnership(
-      request.user.id,
-      request.user.role,
-      { where: { id } },
-    );
+    const chapter = await this.chapterService.findOne({
+      where: { id },
+    });
 
     const file = await this.fileService.get(Folder.CHAPTER_VIDEOS, chapter.videoKey);
     return new StreamableFile(file, {
