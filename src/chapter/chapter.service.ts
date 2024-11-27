@@ -252,10 +252,9 @@ export class ChapterService {
     try {
       const transcriptionResponse = await firstValueFrom(
         this.httpService.post(
-          `${this.configService.get<string>(GLOBAL_CONFIG.AI_URL)}/asr-public`,
+          `${this.configService.get<string>(GLOBAL_CONFIG.AI_URL)}/asr`,
           {
-            url: `http://localhost:${this.configService.get<string>(GLOBAL_CONFIG.PORT)}/chapter/${id}/video`,
-            language: 'en'
+            url: `${this.configService.getOrThrow<string>(GLOBAL_CONFIG.API_URL)}/chapter/${id}/video`,
           },
           {
             headers: {

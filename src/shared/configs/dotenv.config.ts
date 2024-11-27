@@ -28,4 +28,5 @@ export const dotenvConfig = Joi.object({
   ADMIN_EMAIL: Joi.string().required(),
   ADMIN_PASSWORD: Joi.string().required(),
   AI_URL: Joi.string().required(),
+  API_URL: Joi.string().required(),
 });
