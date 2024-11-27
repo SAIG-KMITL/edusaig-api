@@ -325,8 +325,7 @@ export class ExamAttemptController {
   }
 
   @Delete(':id')
-  @Roles(Role.TEACHER)
-  @Roles(Role.ADMIN)
+  @Roles(Role.TEACHER, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Delete an exam',

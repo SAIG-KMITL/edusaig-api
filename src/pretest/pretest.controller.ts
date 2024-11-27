@@ -33,8 +33,7 @@ import { UpdatePretestDto } from './dtos/update-pretest.dto';
 export class PretestController {
   constructor(private readonly pretestService: PretestService) {}
   @Get()
-  @Roles(Role.STUDENT)
-  @Roles(Role.ADMIN)
+  @Roles(Role.STUDENT, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all pretests',
@@ -75,8 +74,7 @@ export class PretestController {
   }
 
   @Get(':id')
-  @Roles(Role.STUDENT)
-  @Roles(Role.ADMIN)
+  @Roles(Role.STUDENT, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns a pretest',
@@ -149,8 +147,7 @@ export class PretestController {
   }
 
   @Delete(':id')
-  @Roles(Role.STUDENT)
-  @Roles(Role.ADMIN)
+  @Roles(Role.STUDENT, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Delete a pretest',
