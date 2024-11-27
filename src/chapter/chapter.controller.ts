@@ -183,6 +183,7 @@ export class ChapterController {
       search: query.search
     });
   }
+
   @Get('module/:moduleId')
   @ApiParam({
     name: 'moduleId',
@@ -254,20 +255,21 @@ export class ChapterController {
       where: { id },
     });
   }
-  @Get('transcribe/:id')
+  @Get('summarize/:id')
   @ApiResponse({
     status: HttpStatus.OK,
     type: ChapterResponseDto,
-    description: 'Transcribe a chapter',
+    description: 'Summarize a chapter',
   })
   @ApiParam({
     name: 'id',
     type: String,
     description: 'Chapter ID',
   })
-  @ApiBearerAuth()
-  async transcribe(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.chapterService.transcribeAudio(id);
+  @Public()
+  async summarize(@Param('id', ParseUUIDPipe) id: string) {
+    const chapter = await this.chapterService.summarize(id);
+    return new ChapterResponseDto(chapter);
   }
 
   @Get(':id')

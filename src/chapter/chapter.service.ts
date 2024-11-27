@@ -247,6 +247,28 @@ export class ChapterService {
     return result;
   }
 
+  async summarize(id: string): Promise<Chapter> {
+    try {
+      const transcribeResult = await this.transcribeAudio(id);
+      
+      if (!transcribeResult?.transcription) {
+        throw new BadRequestException('Invalid transcription response');
+      }
+      
+      const summarize = await this.summarizeChapter(transcribeResult.transcription);
+      
+      this.chapterRepository.update(id, { summary: summarize });
+
+      return await this.findOne({ where: { id } });
+    } catch (error) {
+      console.error('Full error details:', error);
+      throw new InternalServerErrorException(
+        'Failed to process audio summarization',
+        { cause: error }
+      );
+    }
+  }
+
   async transcribeAudio(id: string): Promise<TranscribeResponseDto> {
 
     try {
@@ -280,7 +302,35 @@ export class ChapterService {
       throw new InternalServerErrorException('Error processing transcription request');
     }
   }
+  private async summarizeChapter(content: string): Promise<string> {
+    try {
+      const summarizeResponse = await firstValueFrom(
+        this.httpService.post(
+          `${this.configService.get<string>(GLOBAL_CONFIG.AI_URL)}/summarize`,
+          {
+            content: `${content}`,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+      );
+      if (!summarizeResponse.data) {
+        throw new BadRequestException('Failed to get summarization');
+      }
+      return summarizeResponse.data;
+    } catch (error) {
+      if (error.response) {
+        throw new InternalServerErrorException(
+          error.response.data || 'Summarization service error'
+        );
+      }
+      throw new InternalServerErrorException('Error processing summarization request');
+    }
 
+  }
   private async validateOrderIndex(
     moduleId: string,
     orderIndex: number,
