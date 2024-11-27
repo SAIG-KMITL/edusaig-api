@@ -418,7 +418,6 @@ export class CourseController {
     type: CourseResponseDto,
     description: 'Create course',
   })
-  @ApiBearerAuth()
   async create(
     @Req() request: AuthenticatedRequest,
     @Body() createCourseDto: CreateCourseDto,
@@ -451,7 +450,6 @@ export class CourseController {
     type: CourseResponseDto,
     description: 'Update course by id',
   })
-  @ApiBearerAuth()
   async update(
     @Req() request: AuthenticatedRequest,
     @Body() updateCourseDto: UpdateCourseDto,
@@ -488,7 +486,6 @@ export class CourseController {
     status: HttpStatus.OK,
     description: 'Delete course by id',
   })
-  @ApiBearerAuth()
   async delete(
     @Param(
       'id',
