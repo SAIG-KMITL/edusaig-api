@@ -1,13 +1,13 @@
 name: Build and deploy to an VM
 
 on:
-  push: 
+  push:
     branches:
       - dev
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -38,7 +38,6 @@ jobs:
           echo "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}" >> .env
           echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env
           echo "AI_URL=${{ secrets.AI_URL }}" >> .env
-          echo "VOLUMES_PATH=${{ secrets.VOLUMES_PATH }}" >> .env
           cat .env
 
       - name: Running Docker Compose
