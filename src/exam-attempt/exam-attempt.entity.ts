@@ -1,5 +1,6 @@
 import { ExamAnswer } from 'src/exam-answer/exam-answer.entity';
 import { Exam } from 'src/exam/exam.entity';
+import { Pretest } from 'src/pretest/pretest.entity';
 import { ExamAttemptStatus } from 'src/shared/enums';
 import { User } from 'src/user/user.entity';
 import {
@@ -21,13 +22,23 @@ export class ExamAttempt {
 
   @ManyToOne(() => Exam, (exam) => exam.examAttempt, {
     onDelete: 'CASCADE',
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn({ name: 'exam_id' })
   exam: Exam;
 
-  @Column({ name: 'exam_id' })
+  @Column({ name: 'exam_id', nullable: true })
   examId: String;
+
+  @ManyToOne(() => Pretest, (pretest) => pretest.examAttempt, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'pretest_id' })
+  pretest: Pretest;
+
+  @Column({ name: 'pretest_id', nullable: true })
+  pretestId: String;
 
   @ManyToOne(() => User, (user) => user.examAttempt, {
     onDelete: 'CASCADE',

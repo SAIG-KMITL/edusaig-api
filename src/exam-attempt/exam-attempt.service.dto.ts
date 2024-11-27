@@ -23,10 +23,18 @@ import {
   ExamStatus,
   Role,
 } from 'src/shared/enums';
-import { CreateExamAttemptDto } from './dtos/create-exam-attempt.dto';
+import {
+  CreateExamAttemptDto,
+  CreateExamAttemptPretestDto,
+} from './dtos/create-exam-attempt.dto';
 import { Exam } from 'src/exam/exam.entity';
-import { UpdateExamAttemptDto } from './dtos/update-exam-attempt.dto';
+import {
+  UpdateExamAttemptDto,
+  UpdateExamAttemptPretestDto,
+} from './dtos/update-exam-attempt.dto';
 import { User } from 'src/user/user.entity';
+import { Pretest } from 'src/pretest/pretest.entity';
+import { PaginatedExamAttemptPretestResponseDto } from './dtos/exam-attempt-pretest.dto';
 
 @Injectable()
 export class ExamAttemptService {
@@ -37,6 +45,8 @@ export class ExamAttemptService {
     private readonly examRepository: Repository<Exam>,
     @Inject('UserRepository')
     private readonly userRepository: Repository<User>,
+    @Inject('PretestRepository')
+    private readonly pretestRepository: Repository<Pretest>,
   ) {}
 
   async findAll(
@@ -191,8 +201,10 @@ export class ExamAttemptService {
     if (user.role != Role.STUDENT)
       throw new ForbiddenException('User is not student.');
     if (
-      (await this.countExamAttempts(createExamAttemptDto.examId, userId)) >=
-      exam.maxAttempts
+      (await this.countExamAttemptsWithExamId(
+        createExamAttemptDto.examId,
+        userId,
+      )) >= exam.maxAttempts
     )
       throw new ForbiddenException(
         "Can't create exam-attempt more than max attempt",
@@ -216,6 +228,8 @@ export class ExamAttemptService {
     const examAttemptInData = await this.findOne(userId, role, {
       where: { id },
     });
+    if (examAttemptInData.submittedAt)
+      throw new ForbiddenException('Already submitted');
     if (
       examAttemptInData.status != ExamAttemptStatus.IN_PROGRESS &&
       updateExamAttemptDto.status == ExamAttemptStatus.IN_PROGRESS
@@ -272,7 +286,10 @@ export class ExamAttemptService {
     return updatedExamAttempt;
   }
 
-  async countExamAttempts(examId: string, userId: string): Promise<number> {
+  async countExamAttemptsWithExamId(
+    examId: string,
+    userId: string,
+  ): Promise<number> {
     const count = await this.examAttemptRepository
       .createQueryBuilder('examAttempt')
       .where('examAttempt.examId = :examId AND examAttempt.userId = :userId', {
@@ -305,6 +322,257 @@ export class ExamAttemptService {
       role: true,
       email: true,
       profileKey: true,
+    };
+  }
+
+  async findAllExamAttemptPretest(
+    userId: string,
+    role: Role,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedExamAttemptPretestResponseDto> {
+    const { find } = await createPagination(this.examAttemptRepository, {
+      page,
+      limit,
+    });
+
+    const whereCondition = this.validateAndCreateConditionForPretest(
+      userId,
+      role,
+      search,
+    );
+    const exam = await find({
+      where: whereCondition,
+      relations: ['pretest', 'user'],
+      select: {
+        user: this.selectPopulateUser(),
+        pretest: this.selectPopulatePretest(),
+      },
+    }).run();
+
+    return exam;
+  }
+
+  async findOneExamAttemptPrestest(
+    userId: string,
+    role: Role,
+    options: FindOneOptions<ExamAttempt> = {},
+  ): Promise<ExamAttempt> {
+    const whereCondition = this.validateAndCreateConditionForPretest(
+      userId,
+      role,
+      '',
+    );
+
+    const where = Array.isArray(whereCondition)
+      ? [
+          { ...whereCondition[0], ...options.where },
+          { ...whereCondition[1], ...options.where },
+        ]
+      : { ...whereCondition, ...options.where };
+
+    const exam = await this.examAttemptRepository.findOne({
+      ...options,
+      where,
+      relations: ['pretest', 'user'],
+      select: {
+        user: this.selectPopulateUser(),
+        pretest: this.selectPopulatePretest(),
+      },
+    });
+
+    if (!exam) {
+      throw new NotFoundException('Exam not found');
+    }
+
+    return exam;
+  }
+
+  private validateAndCreateConditionForPretest(
+    userId: string,
+    role: Role,
+    search: string,
+  ): FindOptionsWhere<ExamAttempt> | FindOptionsWhere<ExamAttempt>[] {
+    const baseSearch = search ? { id: ILike(`%${search}%`) } : {};
+
+    if (role === Role.ADMIN) {
+      return { ...baseSearch };
+    }
+
+    if (role === Role.STUDENT) {
+      return {
+        ...baseSearch,
+        pretest: {
+          user: {
+            id: userId,
+          },
+        },
+      };
+    }
+
+    return {
+      ...baseSearch,
+      pretest: {
+        user: {
+          id: userId,
+        },
+      },
+    };
+  }
+
+  async createExamAttemptPretest(
+    userId: string,
+    createExamAttemptPretestDto: CreateExamAttemptPretestDto,
+  ): Promise<ExamAttempt> {
+    const pretest = await this.pretestRepository.findOne({
+      where: { id: createExamAttemptPretestDto.pretestId },
+      select: this.selectPopulatePretest(),
+    });
+    if (!pretest) {
+      throw new NotFoundException('Pretest not found.');
+    }
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: this.selectPopulateUser(),
+    });
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+    if (user.role != Role.STUDENT)
+      throw new ForbiddenException('User is not student.');
+    if (
+      (await this.countExamAttemptsWithPretestId(
+        createExamAttemptPretestDto.pretestId,
+        userId,
+      )) >= pretest.maxAttempts
+    )
+      throw new ForbiddenException(
+        "Can't create exam-attempt more than max attempt",
+      );
+    const examAttempt = await this.examAttemptRepository.create({
+      ...createExamAttemptPretestDto,
+      pretest,
+      user,
+    });
+    if (!examAttempt) throw new NotFoundException("Can't create exam-attempt");
+    await this.examAttemptRepository.save(examAttempt);
+    return examAttempt;
+  }
+
+  async updateExamAttemptPretest(
+    userId: string,
+    role: Role,
+    id: string,
+    updateExamAttemptPretestDto: UpdateExamAttemptPretestDto,
+  ): Promise<ExamAttempt> {
+    const examAttemptInData = await this.findOneExamAttemptPrestest(
+      userId,
+      role,
+      {
+        where: { id },
+      },
+    );
+    if (examAttemptInData.submittedAt)
+      throw new ForbiddenException('Already submitted');
+    if (
+      examAttemptInData.status != ExamAttemptStatus.IN_PROGRESS &&
+      updateExamAttemptPretestDto.status == ExamAttemptStatus.IN_PROGRESS
+    ) {
+      throw new ForbiddenException("Can't change status to in progress");
+    }
+    const examAttempt = await this.examAttemptRepository.update(
+      id,
+      updateExamAttemptPretestDto,
+    );
+    if (!examAttempt)
+      throw new BadRequestException("Can't update exam-attempt");
+    return await this.examAttemptRepository.findOne({
+      where: { id },
+      relations: ['pretest', 'user'],
+      select: {
+        user: this.selectPopulateUser(),
+        pretest: this.selectPopulatePretest(),
+      },
+    });
+  }
+
+  async deleteExamAttemptPretest(
+    userId: string,
+    role: Role,
+    id: string,
+  ): Promise<ExamAttempt> {
+    try {
+      const examAttempt = await this.findOneExamAttemptPrestest(userId, role, {
+        where: { id },
+      });
+      return await this.examAttemptRepository.remove(examAttempt);
+    } catch (error) {
+      if (error instanceof Error)
+        throw new NotFoundException('Exam-attempt not found');
+    }
+  }
+
+  async submittedExamPretest(
+    userId: string,
+    role: Role,
+    id: string,
+  ): Promise<ExamAttempt> {
+    const examAttemptInData = await this.findOneExamAttemptPrestest(
+      userId,
+      role,
+      {
+        where: { id },
+      },
+    );
+
+    examAttemptInData.submittedAt = new Date();
+
+    await this.examAttemptRepository.update(id, examAttemptInData);
+
+    const updatedExamAttempt = await this.findOneExamAttemptPrestest(
+      userId,
+      role,
+      {
+        where: { id },
+      },
+    );
+
+    return updatedExamAttempt;
+  }
+
+  async countExamAttemptsWithPretestId(
+    pretestId: string,
+    userId: string,
+  ): Promise<number> {
+    const count = await this.examAttemptRepository
+      .createQueryBuilder('examAttempt')
+      .where(
+        'examAttempt.pretestId = :pretestId AND examAttempt.userId = :userId',
+        {
+          pretestId,
+          userId,
+        },
+      )
+      .getCount();
+
+    return count;
+  }
+
+  private selectPopulatePretest(): FindOptionsSelect<Pretest> {
+    return {
+      id: true,
+      title: true,
+      description: true,
+      timeLimit: true,
+      passingScore: true,
+      maxAttempts: true,
     };
   }
 }

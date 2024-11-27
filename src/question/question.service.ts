@@ -16,11 +16,15 @@ import {
 } from 'typeorm';
 import { PaginatedQuestionResponseDto } from './dtos/question-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { CourseStatus, ExamStatus, QuestionType, Role } from 'src/shared/enums';
-import { CreateQuestionDto } from './dtos/create-question.dto';
+import {
+  CreateQuestionDto,
+  CreateQuestionPretestDto,
+} from './dtos/create-question.dto';
 import { UpdateQuestionDto } from './dtos/update-question.dto';
 import { Exam } from 'src/exam/exam.entity';
+import { Pretest } from 'src/pretest/pretest.entity';
+import { PaginatedQuestionPretestResponseDto } from './dtos/question-pretest-response.dto';
 @Injectable()
 export class QuestionService {
   constructor(
@@ -28,6 +32,8 @@ export class QuestionService {
     private readonly questionRepository: Repository<Question>,
     @Inject('ExamRepository')
     private readonly examRepository: Repository<Exam>,
+    @Inject('PretestRepository')
+    private readonly pretestRepository: Repository<Pretest>,
   ) {}
 
   async findAll(
@@ -382,6 +388,162 @@ export class QuestionService {
             id: true,
           },
         },
+      },
+    };
+  }
+
+  async findAllQuestionPretest(
+    userId: string,
+    role: Role,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedQuestionPretestResponseDto> {
+    const { find } = await createPagination(this.questionRepository, {
+      page,
+      limit,
+    });
+
+    const whereCondition = this.validateAndCreateConditionForPretest(
+      userId,
+      role,
+      search,
+    );
+    const question = await find({
+      order: {
+        orderIndex: 'ASC',
+      },
+      where: whereCondition,
+      relations: ['pretest', 'pretest.user'],
+      select: {
+        pretest: this.selectPopulatePretest(),
+      },
+    }).run();
+
+    return question;
+  }
+
+  async findQuestionPretestByPretestId(
+    userId: string,
+    role: Role,
+    pretestId: string,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedQuestionPretestResponseDto> {
+    const { find } = await createPagination(this.questionRepository, {
+      page,
+      limit,
+    });
+
+    const whereCondition = this.validateAndCreateConditionForPretest(
+      userId,
+      role,
+      search,
+    );
+    whereCondition['pretest'] = { id: pretestId };
+
+    const pretest = await this.pretestRepository.findOne({
+      where: { id: pretestId },
+    });
+
+    if (!pretest) {
+      throw new NotFoundException('Pretest not found.');
+    }
+
+    const question = await find({
+      order: {
+        orderIndex: 'ASC',
+      },
+      where: whereCondition,
+      relations: ['pretest', 'pretest.user'],
+      select: {
+        pretest: this.selectPopulatePretest(),
+      },
+    }).run();
+    return question;
+  }
+
+  private validateAndCreateConditionForPretest(
+    userId: string,
+    role: Role,
+    search: string,
+  ): FindOptionsWhere<Question> {
+    const baseSearch = search ? { question: ILike(`%${search}%`) } : {};
+
+    if (role === Role.STUDENT) {
+      return {
+        ...baseSearch,
+        pretest: {
+          user: {
+            id: userId,
+          },
+        },
+      };
+    }
+
+    if (role === Role.ADMIN) {
+      return { ...baseSearch };
+    }
+
+    return {
+      ...baseSearch,
+      pretest: {
+        user: {
+          id: userId,
+        },
+      },
+    };
+  }
+
+  async createQuestionForPretest(
+    createQuestionPretestDto: CreateQuestionPretestDto,
+  ): Promise<Question> {
+    const pretest = await this.pretestRepository.findOne({
+      where: { id: createQuestionPretestDto.pretestId },
+    });
+
+    if (!pretest) throw new NotFoundException('Not found pretest');
+
+    const question = this.questionRepository.create({
+      ...createQuestionPretestDto,
+      pretest,
+    });
+
+    if (!question)
+      throw new BadRequestException('Cannot create pretest question');
+
+    await this.questionRepository.save(question);
+    return question;
+  }
+
+  private selectPopulatePretest(): FindOptionsSelect<Pretest> {
+    return {
+      id: true,
+      title: true,
+      description: true,
+      timeLimit: true,
+      passingScore: true,
+      maxAttempts: true,
+      user: {
+        id: true,
+        username: true,
+        fullname: true,
+        role: true,
+        email: true,
+        profileKey: true,
       },
     };
   }

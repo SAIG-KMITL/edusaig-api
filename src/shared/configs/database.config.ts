@@ -23,6 +23,7 @@ import { User } from 'src/user/user.entity';
 import { UserReward } from 'src/user-reward/user-reward.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { GLOBAL_CONFIG } from '../constants/global-config.constant';
+import { Pretest } from 'src/pretest/pretest.entity';
 
 const configService = new ConfigService();
 
@@ -56,6 +57,7 @@ export const databaseConfig: DataSourceOptions = {
     ChatRoom,
     ChatMessage,
     Roadmap,
+    Pretest,
   ],
 };
 

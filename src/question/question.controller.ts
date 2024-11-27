@@ -25,6 +25,10 @@ import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
 import { CreateQuestionDto } from './dtos/create-question.dto';
 import { UpdateQuestionDto } from './dtos/update-question.dto';
+import {
+  PaginatedQuestionPretestResponseDto,
+  QuestionPretestResponseDto,
+} from './dtos/question-pretest-response.dto';
 
 @Controller('question')
 @Injectable()
@@ -73,6 +77,48 @@ export class QuestionController {
     );
   }
 
+  @Get('/pretest')
+  @Roles(Role.STUDENT)
+  @Roles(Role.TEACHER)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all questions pretest',
+    type: PaginatedQuestionPretestResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findAllQuestionPretest(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedQuestionPretestResponseDto> {
+    return await this.questionService.findAllQuestionPretest(
+      request.user.id,
+      request.user.role,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
+  }
+
   @Get(':id')
   @ApiResponse({
     status: HttpStatus.OK,
@@ -98,6 +144,58 @@ export class QuestionController {
       },
     );
     return new QuestionResponseDto(question);
+  }
+
+  @Get('pretest/:pretestId')
+  @Roles(Role.STUDENT)
+  @Roles(Role.TEACHER)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all questions pretest with pretest id',
+    type: PaginatedQuestionPretestResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findQuestionPretestByPretestId(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+    @Param(
+      'pretestId',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    pretestId: string,
+  ): Promise<PaginatedQuestionPretestResponseDto> {
+    const question = await this.questionService.findQuestionPretestByPretestId(
+      request.user.id,
+      request.user.role,
+      pretestId,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
+    return question;
   }
 
   @Get('exam/:examId')
