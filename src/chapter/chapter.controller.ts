@@ -48,6 +48,7 @@ import { Folder } from 'src/file/enums/folder.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { EnrollmentService } from 'src/enrollment/enrollment.service';
 import { Public } from 'src/shared/decorators/public.decorator';
+import { VideoGuard } from './guards/video.guard';
 
 @Controller('chapter')
 @ApiTags('Chapters')
@@ -57,14 +58,13 @@ export class ChapterController {
     private readonly chapterService: ChapterService,
     private readonly courseModuleService: CourseModuleService,
     private readonly fileService: FileService,
-    private readonly enrollmentService: EnrollmentService,
   ) { }
 
   @Get(':id/video')
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'Course id',
+    description: 'chapter id',
   })
   @Public()
   @ApiResponse({
@@ -72,6 +72,13 @@ export class ChapterController {
     description: 'Get chapter video',
     type: StreamableFile,
   })
+  @ApiQuery({
+    name: 'token',
+    type: String,
+    required: false,
+    description: 'Access token',
+  })
+  @UseGuards(VideoGuard)
   async getVideo(
     @Param(
       'id',
