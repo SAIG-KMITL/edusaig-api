@@ -10,6 +10,7 @@ import { ExamAttempt } from 'src/exam-attempt/exam-attempt.entity';
 import { Question } from 'src/question/question.entity';
 import { QuestionOption } from 'src/question-option/question-option.entity';
 import { User } from 'src/user/user.entity';
+import { Pretest } from 'src/pretest/pretest.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { User } from 'src/user/user.entity';
       Question,
       QuestionOption,
       User,
+      Pretest,
     ]),
   ],
   controllers: [ExamAnswerController],

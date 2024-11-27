@@ -23,6 +23,7 @@ import { QuestionOption } from 'src/question-option/question-option.entity';
 import { UpdateExamAnswerDto } from './dtos/update-exam-answer.dto';
 import { PaginatedExamAnswerPretestResponseDto } from './dtos/exam-answer-pretest-response.dto';
 import { User } from 'src/user/user.entity';
+import { Pretest } from 'src/pretest/pretest.entity';
 
 @Injectable()
 export class ExamAnswerService {
@@ -37,6 +38,8 @@ export class ExamAnswerService {
     private readonly questionOptionRepository: Repository<QuestionOption>,
     @Inject('UserRepository')
     private readonly userRepository: Repository<User>,
+    @Inject('PretestRepository')
+    private readonly pretestRepository: Repository<Pretest>,
   ) {}
 
   async findAll(
@@ -569,27 +572,42 @@ export class ExamAnswerService {
     ];
   }
 
-  async findOneExamAnswerPretest(
+  async findExamAnswerPretestByPretestId(
     userId: string,
     role: Role,
-    options: FindOneOptions<ExamAnswer> = {},
-  ): Promise<ExamAnswer> {
+    pretestId: string,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedExamAnswerPretestResponseDto> {
+    const { find } = await createPagination(this.examAnswerRepository, {
+      page,
+      limit,
+    });
+
     const whereCondition = this.validateAndCreateConditionForePretest(
       userId,
       role,
-      '',
+      search,
     );
+    whereCondition['question.pretest'] = { id: pretestId };
 
-    const where = Array.isArray(whereCondition)
-      ? [
-          { ...whereCondition[0], ...options.where },
-          { ...whereCondition[1], ...options.where },
-        ]
-      : { ...whereCondition, ...options.where };
+    const pretest = await this.pretestRepository.findOne({
+      where: { id: pretestId },
+    });
 
-    const examAnswer = await this.examAnswerRepository.findOne({
-      ...options,
-      where,
+    if (!pretest) {
+      throw new NotFoundException('Pretest not found.');
+    }
+
+    return await find({
+      where: whereCondition,
       relations: [
         'examAttempt',
         'question',
@@ -602,13 +620,7 @@ export class ExamAnswerService {
         question: this.selectPopulateQuestionPretest(),
         selectedOption: this.selectPopulateSelectedOption(),
       },
-    });
-
-    if (!examAnswer) {
-      throw new NotFoundException('Exam answer not found');
-    }
-
-    return examAnswer;
+    }).run();
   }
 
   async findExamAnswerPretestByUserId(

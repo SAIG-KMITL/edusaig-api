@@ -231,11 +231,31 @@ export class ExamAnswerController {
   @Roles(Role.STUDENT, Role.ADMIN)
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Returns an exam answer with pretest',
-    type: ExamAnswerPretestResponseDto,
+    description: 'Returns all exam answers with pretest by pretest id',
+    type: PaginatedExamAnswerPretestResponseDto,
+    isArray: true,
   })
-  async findOneExamAnswerPretest(
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findExamAnswerPretest(
     @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
     @Param(
       'pretestId',
       new ParseUUIDPipe({
@@ -244,15 +264,17 @@ export class ExamAnswerController {
       }),
     )
     pretestId: string,
-  ): Promise<ExamAnswerPretestResponseDto> {
-    const examAnswer = await this.examAnswerService.findOneExamAnswerPretest(
+  ): Promise<PaginatedExamAnswerPretestResponseDto> {
+    return await this.examAnswerService.findExamAnswerPretestByPretestId(
       request.user.id,
       request.user.role,
+      pretestId,
       {
-        where: { id: pretestId },
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
       },
     );
-    return new ExamAnswerPretestResponseDto(examAnswer);
   }
 
   @Get('question/:questionId')
