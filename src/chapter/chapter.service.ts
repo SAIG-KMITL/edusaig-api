@@ -2,11 +2,12 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createPagination } from 'src/shared/pagination';
-import { FindOneOptions, FindOptionsWhere, ILike, Not, Repository } from 'typeorm';
+import { FindOneOptions, FindOptionsWhere, ILike, In, Not, Repository } from 'typeorm';
 import { Chapter } from './chapter.entity';
 import { PaginatedChapterResponseDto } from './dtos/chapter-response.dto';
 import { CreateChapterDto } from './dtos/create-chapter.dto';
@@ -17,13 +18,23 @@ import { ChatRoomStatus, ChatRoomType } from 'src/chat-room/enums';
 import { EnrollmentService } from 'src/enrollment/enrollment.service';
 import { ChatRoom } from 'src/chat-room/chat-room.entity';
 import { EnrollmentStatus } from 'src/enrollment/enums/enrollment-status.enum';
+import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
+import { TranscribeResponseDto } from './dtos/transcribe-response.dto';
+import { firstValueFrom } from 'rxjs';
+import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
+import { SummarizeResponseDto } from './dtos/summarize-response.dto';
+
 @Injectable()
 export class ChapterService {
+
   constructor(
     @InjectRepository(Chapter)
     private readonly chapterRepository: Repository<Chapter>,
     private readonly chatRoomService: ChatRoomService,
     private readonly enrollmentService: EnrollmentService,
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
   ) { }
   async findAll({
     page = 1,
@@ -237,6 +248,98 @@ export class ChapterService {
     return result;
   }
 
+  async summarize(id: string): Promise<Chapter> {
+    try {
+      const transcribeResult = await this.transcribeAudio(id);
+
+      if (!transcribeResult?.transcription) {
+        throw new BadRequestException('Invalid transcription response');
+      }
+
+      const summarize = await this.summarizeChapter(transcribeResult.transcription);
+
+      this.chapterRepository.update(id, { summary: summarize.summary });
+
+      return await this.findOne({ where: { id } });
+    } catch (error) {
+      console.error('Full error details:', error);
+      throw new InternalServerErrorException(
+        'Failed to process audio summarization',
+        { cause: error }
+      );
+    }
+  }
+
+  async transcribeAudio(id: string): Promise<TranscribeResponseDto> {
+
+    try {
+      const transcriptionResponse = await firstValueFrom(
+        this.httpService.post(
+          `${this.configService.get<string>(GLOBAL_CONFIG.AI_URL)}/asr`,
+          {
+            url: `${this.configService.getOrThrow<string>(GLOBAL_CONFIG.API_URL)}/chapter/${id}/video`,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+      );
+
+      if (!transcriptionResponse.data) {
+        throw new BadRequestException('Failed to get transcription');
+      }
+
+      return transcriptionResponse.data;
+
+    } catch (error) {
+      if (error.response) {
+        throw new InternalServerErrorException(
+          error.response.data || 'Transcription service error'
+        );
+      }
+
+      throw new InternalServerErrorException('Error processing transcription request');
+    }
+  }
+  private async summarizeChapter(content: string): Promise<SummarizeResponseDto> {
+    try {
+      const summarizeResponse = await firstValueFrom(
+        this.httpService.post(
+          `${this.configService.get<string>(GLOBAL_CONFIG.AI_URL)}/summarize`,
+          { content },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+      );
+
+      if (!summarizeResponse.data) {
+        throw new BadRequestException('Failed to get summarization');
+      }
+
+      let summaryText = summarizeResponse.data.summary;
+      try {
+        const parsedSummary = JSON.parse(summaryText);
+        summaryText = parsedSummary.summary || summaryText;
+      } catch (e) {
+      }
+
+      return {
+        summary: summaryText
+      };
+    } catch (error) {
+      if (error.response) {
+        throw new InternalServerErrorException(
+          error.response.data || 'Summarization service error'
+        );
+      }
+      throw new InternalServerErrorException('Error processing summarization request');
+    }
+  }
   private async validateOrderIndex(
     moduleId: string,
     orderIndex: number,

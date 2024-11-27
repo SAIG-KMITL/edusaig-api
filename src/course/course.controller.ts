@@ -412,12 +412,12 @@ export class CourseController {
 
   @Post()
   @Roles(Role.TEACHER)
+  @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.CREATED,
     type: CourseResponseDto,
     description: 'Create course',
   })
-  @ApiBearerAuth()
   async create(
     @Req() request: AuthenticatedRequest,
     @Body() createCourseDto: CreateCourseDto,
@@ -439,6 +439,7 @@ export class CourseController {
 
   @Patch(':id')
   @CourseOwnership({ adminDraftOnly: true })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     type: String,
@@ -449,7 +450,6 @@ export class CourseController {
     type: CourseResponseDto,
     description: 'Update course by id',
   })
-  @ApiBearerAuth()
   async update(
     @Req() request: AuthenticatedRequest,
     @Body() updateCourseDto: UpdateCourseDto,

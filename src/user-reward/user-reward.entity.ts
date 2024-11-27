@@ -37,7 +37,7 @@ export class UserReward {
   })
   status: UserRewardStatus;
 
-  //redeemed at
+
   @CreateDateColumn({
     type: 'timestamp with time zone',
     nullable: false,

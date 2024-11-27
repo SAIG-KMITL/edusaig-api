@@ -10,6 +10,8 @@ import { CourseModule } from 'src/course-module/course-module.entity';
 import { ChatRoomModule } from 'src/chat-room/chat-room.module';
 import { EnrollmentModule } from 'src/enrollment/enrollment.module';
 import { FileModule } from 'src/file/file.module';
+import { HttpModule } from '@nestjs/axios';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -18,7 +20,9 @@ import { FileModule } from 'src/file/file.module';
     TypeOrmModule.forFeature([Chapter, CourseModule]),
     ChatRoomModule,
     EnrollmentModule,
-    FileModule
+    FileModule,
+    HttpModule,
+    ConfigModule
   ],
   controllers: [ChapterController],
   providers: [...chapterProviders, ChapterService],
