@@ -16,17 +16,9 @@ import { Exam } from './exam.entity';
 import { CreateExamDto } from './dtos/create-exam.dto';
 import { PaginatedExamResponseDto } from './dtos/exam-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { ExamStatus, QuestionType, Role } from 'src/shared/enums';
+import { CourseStatus, ExamStatus, Role } from 'src/shared/enums';
 import { UpdateExamDto } from './dtos/update-exam.dto';
 import { CourseModule } from 'src/course-module/course-module.entity';
-import { QuestionService } from 'src/question/question.service';
-import { QuestionOptionService } from 'src/question-option/question-option.service';
-import { HttpService } from '@nestjs/axios';
-import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
-import { UserService } from 'src/user/user.service';
-import { EnrollmentService } from 'src/enrollment/enrollment.service';
-import { PretestDto } from './dtos/pretest.dto';
-import { Question } from 'src/question/question.entity';
 
 @Injectable()
 export class ExamService {
@@ -35,11 +27,6 @@ export class ExamService {
     private readonly examRepository: Repository<Exam>,
     @Inject('CourseModuleRepository')
     private readonly courseModuleRepository: Repository<CourseModule>,
-    private readonly questionService: QuestionService,
-    private readonly questionOptionService: QuestionOptionService,
-    private readonly httpService: HttpService,
-    private readonly userService: UserService,
-    private readonly enrollService: EnrollmentService,
   ) {}
 
   async findAll(
@@ -93,7 +80,20 @@ export class ExamService {
     const baseSearch = search ? { title: ILike(`%${search}%`) } : {};
 
     if (role === Role.STUDENT) {
-      return { ...baseSearch, status: ExamStatus.PUBLISHED };
+      return {
+        ...baseSearch,
+        status: ExamStatus.PUBLISHED,
+        courseModule: {
+          course: {
+            status: CourseStatus.PUBLISHED,
+            enrollments: {
+              user: {
+                id: userId,
+              },
+            },
+          },
+        },
+      };
     }
 
     if (role === Role.TEACHER) {
@@ -108,10 +108,6 @@ export class ExamService {
             },
           },
         },
-        {
-          ...baseSearch,
-          status: ExamStatus.PUBLISHED,
-        },
       ];
     }
 
@@ -119,7 +115,20 @@ export class ExamService {
       return { ...baseSearch };
     }
 
-    return { ...baseSearch, status: ExamStatus.PUBLISHED };
+    return {
+      ...baseSearch,
+      status: ExamStatus.PUBLISHED,
+      courseModule: {
+        course: {
+          status: CourseStatus.PUBLISHED,
+          enrollments: {
+            user: {
+              id: userId,
+            },
+          },
+        },
+      },
+    };
   }
 
   async findOne(
@@ -211,8 +220,7 @@ export class ExamService {
       const exam = await this.findOne(userId, role, { where: { id } });
       if (this.checkPermission(userId, role, exam) === false)
         throw new ForbiddenException('Can not change this exam');
-      await this.examRepository.delete(id);
-      return exam;
+      return await this.examRepository.remove(exam);
     } catch (error) {
       if (error instanceof Error) throw new NotFoundException('Exam not found');
     }
@@ -242,98 +250,5 @@ export class ExamService {
       case Role.STUDENT:
         return false;
     }
-  }
-
-  async fetchData(examId: string, userId: string): Promise<PretestDto> {
-    const api = 'https://ai.edusaig.com/ai';
-    const user = await this.userService.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Not Found User');
-    const exam = await this.examRepository.findOne({ where: { id: examId } });
-    if (!exam) throw new NotFoundException('Not Found this exam');
-    const enrollments = await this.enrollService.findEnrollmentByUserId(userId);
-    try {
-      const requestBody = {
-        id: exam.id,
-        user: {
-          id: user.id,
-          email: user.email,
-          points: user.points,
-          role: user.role,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-          fullname: user.fullname,
-        },
-        occupation: {
-          id: exam.id,
-          title: exam.title,
-          description: exam.description,
-          createdAt: exam.createdAt,
-          updatedAt: exam.updatedAt,
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        ...(enrollments.length > 0 && {
-          topics: enrollments.map((enrollment) => ({
-            id: enrollment.id,
-            title: enrollment.course.title,
-            description: enrollment.course.description,
-            level: enrollment.course.level,
-            createdAt: enrollment.createdAt,
-            updatedAt: enrollment.updatedAt,
-          })),
-        }),
-      };
-
-      const response = await this.httpService.axiosRef.post(
-        `${api}/generate-pretest/`,
-        requestBody,
-      );
-      return { data: response.data };
-    } catch (error) {
-      throw new Error('Failed to fetch data or process request');
-    }
-  }
-
-  async createQuestionAndChoice(
-    examId: string,
-    userId: string,
-  ): Promise<Question[]> {
-    let questions = [];
-    const fetchData = await this.fetchData(examId, userId);
-    let orderIndex = (await this.questionService.getMaxOrderIndex(examId)) + 1;
-    await Promise.all(
-      fetchData.data.map(async (data) => {
-        const createQuestionDto = {
-          examId,
-          question: data.question,
-          type: QuestionType.PRETEST,
-          points: 1,
-          orderIndex: orderIndex++,
-        };
-
-        const question = await this.questionService.createQuestion(
-          createQuestionDto,
-        );
-
-        questions.push(question);
-
-        await Promise.all(
-          Object.entries(data.choices).map(([key, value]) => {
-            const createQuestionOptionDto = {
-              questionId: question.id,
-              optionText: `${key}. ${value}`,
-              isCorrect: key === data.answer,
-              explanation: '',
-            };
-
-            return this.questionOptionService.createQuestionOption(
-              createQuestionOptionDto,
-            );
-          }),
-        );
-      }),
-    );
-
-    return questions;
   }
 }

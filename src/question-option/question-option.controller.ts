@@ -25,6 +25,7 @@ import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
 import { CreateQuestionOptionDto } from './dtos/create-question-option.dto';
 import { UpdateQuestionOptionDto } from './dtos/update-question-option.dto';
+import { PaginatedQuestionOptionPretestResponseDto } from './dtos/question-option-pretest-response.dto';
 
 @Controller('question-option')
 @Injectable()
@@ -73,6 +74,48 @@ export class QuestionOptionController {
     );
   }
 
+  @Get('/pretest')
+  @Roles(Role.STUDENT)
+  @Roles(Role.ADMIN)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all question option pretest',
+    type: PaginatedQuestionOptionPretestResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findAllQuestionPretest(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedQuestionOptionPretestResponseDto> {
+    return await this.questionOptionService.findAllQuestionOptionPretest(
+      request.user.id,
+      request.user.role,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
+  }
+
   @Get(':id')
   @ApiResponse({
     status: HttpStatus.OK,
@@ -98,6 +141,57 @@ export class QuestionOptionController {
       },
     );
     return new QuestionOptionResponseDto(questionOption);
+  }
+
+  @Get('pretest/:questionId')
+  @Roles(Role.STUDENT)
+  @Roles(Role.ADMIN)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all question options in pretest id',
+    type: PaginatedQuestionOptionPretestResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findQuestionOptionPretestByQuestionId(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+    @Param(
+      'questionId',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    questionId: string,
+  ): Promise<PaginatedQuestionOptionPretestResponseDto> {
+    return await this.questionOptionService.findQuestionOptionPretestByQuestionId(
+      request.user.id,
+      request.user.role,
+      questionId,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
   }
 
   @Get('question/:questionId')
@@ -200,10 +294,10 @@ export class QuestionOptionController {
   @Roles(Role.TEACHER)
   @Roles(Role.ADMIN)
   @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
+    status: HttpStatus.OK,
     description: 'Delete a question option',
+    type: QuestionOptionResponseDto,
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteExam(
     @Req() request: AuthenticatedRequest,
     @Param(

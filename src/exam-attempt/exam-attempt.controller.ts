@@ -23,9 +23,19 @@ import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto'
 import { ExamAttemptService } from './exam-attempt.service.dto';
 import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
-import { CreateExamAttemptDto } from './dtos/create-exam-attempt.dto';
-import { UpdateExamAttemptDto } from './dtos/update-exam-attempt.dto';
+import {
+  CreateExamAttemptDto,
+  CreateExamAttemptPretestDto,
+} from './dtos/create-exam-attempt.dto';
+import {
+  UpdateExamAttemptDto,
+  UpdateExamAttemptPretestDto,
+} from './dtos/update-exam-attempt.dto';
 import { Exam } from 'src/exam/exam.entity';
+import {
+  ExamAttemptPretestResponseDto,
+  PaginatedExamAttemptPretestResponseDto,
+} from './dtos/exam-attempt-pretest.dto';
 
 @Controller('exam-attempt')
 @ApiTags('ExamAttempt')
@@ -74,6 +84,46 @@ export class ExamAttemptController {
     );
   }
 
+  @Get('/pretest')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all exam-attempt pretest',
+    type: PaginatedExamAttemptPretestResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findAllExamAttemptPretest(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedExamAttemptPretestResponseDto> {
+    return await this.examAttemptService.findAllExamAttemptPretest(
+      request.user.id,
+      request.user.role,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
+  }
+
   @Get(':id')
   @ApiResponse({
     status: HttpStatus.OK,
@@ -101,6 +151,33 @@ export class ExamAttemptController {
     return new ExamAttemptResponseDto(exam);
   }
 
+  @Get('/pretest/:id')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns an exam-attempt pretest',
+    type: ExamAttemptPretestResponseDto,
+  })
+  async findOneExamAttemptPretest(
+    @Req() request: AuthenticatedRequest,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+  ): Promise<ExamAttemptPretestResponseDto> {
+    const exam = await this.examAttemptService.findOneExamAttemptPrestest(
+      request.user.id,
+      request.user.role,
+      {
+        where: { id },
+      },
+    );
+    return new ExamAttemptPretestResponseDto(exam);
+  }
+
   @Post()
   @Roles(Role.STUDENT)
   @ApiResponse({
@@ -120,11 +197,58 @@ export class ExamAttemptController {
     return new ExamAttemptResponseDto(exam);
   }
 
+  @Post('/pretest')
+  @Roles(Role.STUDENT)
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Create an exam-attempt pretest',
+    type: ExamAttemptPretestResponseDto,
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async createExamAttemptPretest(
+    @Req() request: AuthenticatedRequest,
+    @Body() createExamAttemptPretestDto: CreateExamAttemptPretestDto,
+  ): Promise<ExamAttemptPretestResponseDto> {
+    const exam = await this.examAttemptService.createExamAttemptPretest(
+      request.user.id,
+      createExamAttemptPretestDto,
+    );
+    return new ExamAttemptPretestResponseDto(exam);
+  }
+
   @Patch(':id')
   @Roles(Role.STUDENT)
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Update an exam-attempt',
+    type: ExamAttemptPretestResponseDto,
+  })
+  async updateExamAttemptPretest(
+    @Req() request: AuthenticatedRequest,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+    @Body() updateExamAttemptPressDto: UpdateExamAttemptPretestDto,
+  ): Promise<ExamAttemptPretestResponseDto> {
+    const exam = await this.examAttemptService.updateExamAttempt(
+      request.user.id,
+      request.user.role,
+      id,
+      updateExamAttemptPressDto,
+    );
+    return new ExamAttemptPretestResponseDto(exam);
+  }
+
+  @Patch('/pretest/:id')
+  @Roles(Role.STUDENT)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Update an exam-attempt ptetest',
     type: ExamAttemptResponseDto,
   })
   async updateExamAttempt(
@@ -138,14 +262,14 @@ export class ExamAttemptController {
     )
     id: string,
     @Body() updateExamAttemptDto: UpdateExamAttemptDto,
-  ): Promise<ExamAttemptResponseDto> {
-    const exam = await this.examAttemptService.updateExamAttempt(
+  ): Promise<ExamAttemptPretestResponseDto> {
+    const exam = await this.examAttemptService.updateExamAttemptPretest(
       request.user.id,
       request.user.role,
       id,
       updateExamAttemptDto,
     );
-    return new ExamAttemptResponseDto(exam);
+    return new ExamAttemptPretestResponseDto(exam);
   }
 
   @Patch('/submit/:id')
@@ -174,14 +298,40 @@ export class ExamAttemptController {
     return new ExamAttemptResponseDto(exam);
   }
 
+  @Patch('/pretest/submit/:id')
+  @Roles(Role.STUDENT)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Update an exam-attempt pretest',
+    type: ExamAttemptPretestResponseDto,
+  })
+  async submitExamAttemptPretest(
+    @Req() request: AuthenticatedRequest,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+  ): Promise<ExamAttemptPretestResponseDto> {
+    const exam = await this.examAttemptService.submittedExamPretest(
+      request.user.id,
+      request.user.role,
+      id,
+    );
+    return new ExamAttemptPretestResponseDto(exam);
+  }
+
   @Delete(':id')
   @Roles(Role.TEACHER)
   @Roles(Role.ADMIN)
   @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
+    status: HttpStatus.OK,
     description: 'Delete an exam',
+    type: ExamAttemptResponseDto,
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteExamAttempt(
     @Req() request: AuthenticatedRequest,
     @Param(
@@ -199,5 +349,31 @@ export class ExamAttemptController {
       id,
     );
     return new ExamAttemptResponseDto(examAttempt);
+  }
+
+  @Delete('/pretest/:id')
+  @Roles(Role.ADMIN)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Delete an exam',
+    type: ExamAttemptPretestResponseDto,
+  })
+  async deleteExamAttemptPretest(
+    @Req() request: AuthenticatedRequest,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+  ): Promise<ExamAttemptPretestResponseDto> {
+    const examAttempt = await this.examAttemptService.deleteExamAttemptPretest(
+      request.user.id,
+      request.user.role,
+      id,
+    );
+    return new ExamAttemptPretestResponseDto(examAttempt);
   }
 }

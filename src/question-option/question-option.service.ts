@@ -17,10 +17,11 @@ import { QuestionOption } from './question-option.entity';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { PaginatedQuestionOptionResponseDto } from './dtos/question-option-response.dto';
 import { createPagination } from 'src/shared/pagination';
-import { ExamStatus, QuestionType, Role } from 'src/shared/enums';
+import { CourseStatus, ExamStatus, QuestionType, Role } from 'src/shared/enums';
 import { CreateQuestionOptionDto } from './dtos/create-question-option.dto';
 import { Question } from 'src/question/question.entity';
 import { UpdateQuestionOptionDto } from './dtos/update-question-option.dto';
+import { PaginatedQuestionOptionPretestResponseDto } from './dtos/question-option-pretest-response.dto';
 @Injectable()
 export class QuestionOptionService {
   constructor(
@@ -130,7 +131,10 @@ export class QuestionOptionService {
       role,
       search,
     );
-    whereCondition['question'] = { id: questionId };
+    whereCondition['question'] = {
+      id: questionId,
+      type: Not(QuestionType.PRETEST),
+    };
 
     const question = await this.questionRepository.findOne({
       where: { id: questionId },
@@ -169,6 +173,16 @@ export class QuestionOptionService {
         question: {
           exam: {
             status: ExamStatus.PUBLISHED,
+            courseModule: {
+              course: {
+                status: CourseStatus.PUBLISHED,
+                enrollments: {
+                  user: {
+                    id: userId,
+                  },
+                },
+              },
+            },
           },
         },
       };
@@ -179,9 +193,6 @@ export class QuestionOptionService {
         ...baseSearch,
         question: {
           exam: [
-            {
-              status: ExamStatus.PUBLISHED,
-            },
             {
               courseModule: {
                 course: {
@@ -203,6 +214,16 @@ export class QuestionOptionService {
       question: {
         exam: {
           status: ExamStatus.PUBLISHED,
+          courseModule: {
+            course: {
+              status: CourseStatus.PUBLISHED,
+              enrollments: {
+                user: {
+                  id: userId,
+                },
+              },
+            },
+          },
         },
       },
     };
@@ -220,6 +241,28 @@ export class QuestionOptionService {
         'exam.courseModule.course',
         'exam.courseModule.course.teacher',
       ],
+    });
+    if (!question) {
+      throw new NotFoundException('Question option not found.');
+    }
+    const questionOption = await this.questionOptionRepository.create({
+      ...createQuestionOptionDto,
+      question,
+    });
+    if (!questionOption) {
+      throw new BadRequestException('Question option not create.');
+    }
+    await this.questionOptionRepository.save(questionOption);
+    return questionOption;
+  }
+
+  async createQuestionOptionPretest(
+    createQuestionOptionDto: CreateQuestionOptionDto,
+  ): Promise<QuestionOption> {
+    const question = await this.questionRepository.findOne({
+      where: { id: createQuestionOptionDto.questionId },
+      select: this.selectPopulateQuestion(),
+      relations: ['pretest', 'pretest.user'],
     });
     if (!question) {
       throw new NotFoundException('Question option not found.');
@@ -278,8 +321,7 @@ export class QuestionOptionService {
       });
       if (this.checkPermission(userId, role, questionOption) === false)
         throw new ForbiddenException('Can not change this question option');
-      await this.questionOptionRepository.delete(id);
-      return questionOption;
+      return await this.questionOptionRepository.remove(questionOption);
     } catch (error) {
       if (error instanceof Error)
         throw new NotFoundException('Question option not found');
@@ -324,5 +366,145 @@ export class QuestionOptionService {
       case Role.STUDENT:
         return false;
     }
+  }
+
+  async findAllQuestionOptionPretest(
+    userId: string,
+    role: Role,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedQuestionOptionPretestResponseDto> {
+    const { find } = await createPagination(this.questionOptionRepository, {
+      page,
+      limit,
+    });
+
+    const whereCondition = this.validateAndCreateConditionForPretest(
+      userId,
+      role,
+      search,
+    );
+    const question = await find({
+      where: whereCondition,
+      relations: ['question', 'question.pretest', 'question.pretest.user'],
+      select: {
+        question: this.selectPopulateQuestionForPretest(),
+      },
+    }).run();
+
+    return question;
+  }
+
+  async findQuestionOptionPretestByQuestionId(
+    userId: string,
+    role: Role,
+    questionId: string,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedQuestionOptionPretestResponseDto> {
+    const { find } = await createPagination(this.questionOptionRepository, {
+      page,
+      limit,
+    });
+
+    const whereCondition = this.validateAndCreateConditionForPretest(
+      userId,
+      role,
+      search,
+    );
+    whereCondition['question'] = { id: questionId, type: QuestionType.PRETEST };
+
+    const question = await this.questionRepository.findOne({
+      where: { id: questionId },
+    });
+
+    if (!question) {
+      throw new NotFoundException('Question not found.');
+    }
+
+    const questionOption = await find({
+      where: whereCondition,
+      relations: ['question', 'question.pretest', 'question.pretest.user'],
+      select: {
+        question: this.selectPopulateQuestionForPretest(),
+      },
+    }).run();
+    return questionOption;
+  }
+
+  private validateAndCreateConditionForPretest(
+    userId: string,
+    role: Role,
+    search: string,
+  ): FindOptionsWhere<QuestionOption> {
+    const baseSearch = search ? { optionText: ILike(`%${search}%`) } : {};
+
+    if (role === Role.STUDENT) {
+      return {
+        ...baseSearch,
+        question: {
+          pretest: {
+            user: {
+              id: userId,
+            },
+          },
+        },
+      };
+    }
+
+    if (role === Role.ADMIN) {
+      return { ...baseSearch };
+    }
+
+    return {
+      ...baseSearch,
+      question: {
+        pretest: {
+          user: {
+            id: userId,
+          },
+        },
+      },
+    };
+  }
+
+  private selectPopulateQuestionForPretest(): FindOptionsSelect<Question> {
+    return {
+      id: true,
+      question: true,
+      type: true,
+      points: true,
+      orderIndex: true,
+      pretest: {
+        id: true,
+        timeLimit: true,
+        title: true,
+        description: true,
+        passingScore: true,
+        maxAttempts: true,
+        user: {
+          id: true,
+          username: true,
+          fullname: true,
+          role: true,
+          email: true,
+          profileKey: true,
+        },
+      },
+    };
   }
 }

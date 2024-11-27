@@ -31,11 +31,6 @@ import { CreateExamDto } from './dtos/create-exam.dto';
 import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
 import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { UpdateExamDto } from './dtos/update-exam.dto';
-import {
-  PaginatedQuestionResponseDto,
-  QuestionResponseDto,
-} from 'src/question/dtos/question-response.dto';
-import { Public } from 'src/shared/decorators/public.decorator';
 
 @Controller('exam')
 @ApiTags('Exam')
@@ -48,7 +43,7 @@ export class ExamController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all exams',
-    type: PaginatedQuestionResponseDto,
+    type: PaginatedExamResponseDto,
     isArray: true,
   })
   @ApiQuery({
@@ -152,10 +147,10 @@ export class ExamController {
   @Roles(Role.TEACHER)
   @Roles(Role.ADMIN)
   @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
+    status: HttpStatus.OK,
     description: 'Delete an exam',
+    type: ExamResponseDto,
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteExam(
     @Req() request: AuthenticatedRequest,
     @Param(
@@ -173,29 +168,5 @@ export class ExamController {
       id,
     );
     return new ExamResponseDto(exam);
-  }
-
-  @Post('generate/:examId')
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Create an question and question option in exam',
-  })
-  @HttpCode(HttpStatus.CREATED)
-  async createQuestionAndChoice(
-    @Req() request: AuthenticatedRequest,
-    @Param(
-      'examId',
-      new ParseUUIDPipe({
-        version: '4',
-        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-      }),
-    )
-    examId: string,
-  ): Promise<QuestionResponseDto[]> {
-    const questions = await this.examService.createQuestionAndChoice(
-      examId,
-      request.user.id,
-    );
-    return questions.map((question) => new QuestionResponseDto(question));
   }
 }

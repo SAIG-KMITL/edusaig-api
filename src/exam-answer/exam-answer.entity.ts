@@ -67,7 +67,7 @@ export class ExamAnswer {
     nullable: false,
     default: 0,
   })
-  points: number;
+  points: number = 0;
 
   @CreateDateColumn({
     type: 'timestamp with time zone',

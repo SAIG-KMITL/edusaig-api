@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { QuestionOption } from '../question-option.entity';
 import { PaginatedResponse } from 'src/shared/pagination/dtos/paginate-response.dto';
-import { QuestionResponseDto } from 'src/question/dtos/question-response.dto';
+import { QuestionPretestResponseDto } from 'src/question/dtos/question-pretest-response.dto';
 
-export class QuestionOptionResponseDto {
+export class QuestionOptionPretestResponseDto {
   @ApiProperty({
     description: 'Question option ID',
     type: String,
@@ -13,23 +13,35 @@ export class QuestionOptionResponseDto {
 
   @ApiProperty({
     description: 'Question Data',
-    type: QuestionResponseDto,
+    type: QuestionPretestResponseDto,
     example: {
-      id: 'e20ffe51-2514-4f14-9bea-4bb28bb97fdd',
-      courseModuleId: '7093a5ae-cc1d-4017-8445-cba7ea978b22',
-      courseModule: {
-        id: '7093a5ae-cc1d-4017-8445-cba7ea978b22',
-        courseId: 'b7634715-9536-46be-ae06-650dc0d719fb',
-        course: {
-          id: 'b7634715-9536-46be-ae06-650dc0d719fb',
-          teacher: {
-            id: '75af7b82-d765-40a3-82aa-bc4f572c492c',
-          },
+      points: 1,
+      orderIndex: 10,
+      id: 'e99e39a0-edf0-470c-b8f1-9fe8fddd0ef3',
+      examId: null,
+      pretestId: '168eb5b6-9ba9-4e6d-9880-551d4232129e',
+      question:
+        "What is the difference between 'int()', 'float()', and 'str()' functions in Python?",
+      type: 'pretest',
+      pretest: {
+        timeLimit: 20,
+        id: '168eb5b6-9ba9-4e6d-9880-551d4232129e',
+        title: 'Biology',
+        description: 'This course is an introduction to biology',
+        passingScore: 3,
+        maxAttempts: 1,
+        user: {
+          id: 'a12e1e37-3504-4711-a389-09a1734d7b1c',
+          username: 'johndoe',
+          fullname: 'John Doe',
+          role: 'student',
+          email: 'johndoe@gmail.com',
+          profileKey: null,
         },
       },
     },
   })
-  question: QuestionResponseDto;
+  question: QuestionPretestResponseDto;
 
   @ApiProperty({
     description: 'Question option text',
@@ -77,8 +89,8 @@ export class QuestionOptionResponseDto {
   }
 }
 
-export class PaginatedQuestionOptionResponseDto extends PaginatedResponse(
-  QuestionOptionResponseDto,
+export class PaginatedQuestionOptionPretestResponseDto extends PaginatedResponse(
+  QuestionOptionPretestResponseDto,
 ) {
   constructor(
     questionOption: QuestionOption[],
@@ -87,7 +99,7 @@ export class PaginatedQuestionOptionResponseDto extends PaginatedResponse(
     currentPage: number,
   ) {
     const questionOptionDtos = questionOption.map(
-      (questionOption) => new QuestionOptionResponseDto(questionOption),
+      (questionOption) => new QuestionOptionPretestResponseDto(questionOption),
     );
     super(questionOptionDtos, total, pageSize, currentPage);
   }
