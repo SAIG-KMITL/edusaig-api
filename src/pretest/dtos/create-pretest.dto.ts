@@ -1,21 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsBoolean,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-} from 'class-validator';
-import { ExamStatus } from 'src/shared/enums';
-export class CreateExamDto {
-  @IsNotEmpty()
-  @ApiProperty({
-    description: 'Course Module ID',
-    type: String,
-    example: '8d4887aa-28e7-4d0e-844c-28a8ccead003',
-  })
-  courseModuleId: string;
-
+import { IsInt, IsNotEmpty, IsOptional } from 'class-validator';
+export class CreatePretestDto {
   @IsNotEmpty()
   @ApiProperty({
     description: 'Exam title',
@@ -46,7 +31,7 @@ export class CreateExamDto {
   @ApiProperty({
     description: 'Score to pass exam.',
     type: Number,
-    example: 50,
+    example: 3,
   })
   passingScore: number;
 
@@ -58,23 +43,4 @@ export class CreateExamDto {
     example: 1,
   })
   maxAttempts: number;
-
-  @IsOptional()
-  @IsBoolean()
-  @ApiProperty({
-    description: 'Shuffle question.',
-    type: Boolean,
-    example: false,
-  })
-  shuffleQuestions?: boolean;
-
-  @IsOptional()
-  @IsEnum(ExamStatus)
-  @ApiProperty({
-    description: 'Exam status',
-    type: String,
-    example: ExamStatus.DRAFT,
-    enum: ExamStatus,
-  })
-  status?: ExamStatus;
 }

@@ -7,11 +7,12 @@ import { examAttemptProviders } from './exam-attempt.providers';
 import { ExamAttemptService } from './exam-attempt.service.dto';
 import { Exam } from 'src/exam/exam.entity';
 import { User } from 'src/user/user.entity';
+import { Pretest } from 'src/pretest/pretest.entity';
 
 @Module({
   imports: [
     DatabaseModule,
-    TypeOrmModule.forFeature([ExamAttempt, Exam, User]),
+    TypeOrmModule.forFeature([ExamAttempt, Exam, User, Pretest]),
   ],
   controllers: [ExamAttemptController],
   providers: [...examAttemptProviders, ExamAttemptService],

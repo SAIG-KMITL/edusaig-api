@@ -79,8 +79,9 @@ export class UserBackgroundService {
       occupationId: data.occupationId,
     });
 
-    const savedUserBackground =
-      await this.userBackgroundRepository.save(userBackground);
+    const savedUserBackground = await this.userBackgroundRepository.save(
+      userBackground,
+    );
     return savedUserBackground;
   }
 
@@ -98,8 +99,9 @@ export class UserBackgroundService {
     };
 
     this.userBackgroundRepository.merge(userBackground, updateData);
-    const savedUserBackground =
-      await this.userBackgroundRepository.save(userBackground);
+    const savedUserBackground = await this.userBackgroundRepository.save(
+      userBackground,
+    );
 
     return savedUserBackground;
   }
@@ -111,6 +113,20 @@ export class UserBackgroundService {
 
     await this.userBackgroundRepository.remove(userBackground);
 
+    return userBackground;
+  }
+
+  async findOneByUserId(userId: string): Promise<UserBackground> {
+    const userBackground = this.userBackgroundRepository.findOne({
+      where: { user: { id: userId } },
+      order: { updatedAt: 'DESC' },
+      relations: {
+        user: true,
+        topics: true,
+        occupation: true,
+      },
+    });
+    if (!userBackground) throw new NotFoundException('Not found this user');
     return userBackground;
   }
 }
