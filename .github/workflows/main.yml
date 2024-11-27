@@ -1,18 +1,21 @@
 name: Build and deploy to an VM
 
 on:
-  push: 
+  push:
     branches:
       - dev
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-and-deploy:
     runs-on: self-hosted
     steps:
+      - name: switch to root
+        run: sudo -s
+    
       - name: Copy Repository
         uses: actions/checkout@v4
 
