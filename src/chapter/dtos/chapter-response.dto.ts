@@ -32,6 +32,12 @@ export class ChapterResponseDto {
   })
   content: string;
 
+  @ApiProperty({
+    description: 'Chapter summary',
+    type: String,
+    example: 'This chapter is an introduction to programming',
+  })
+  summary: string;
 
   @ApiProperty({
     description: 'Chapter duration',
@@ -72,6 +78,7 @@ export class ChapterResponseDto {
     this.title = chapter.title;
     this.description = chapter.description;
     this.content = chapter.content;
+    this.summary = chapter.summary;
     this.duration = chapter.duration;
     this.createdAt = chapter.createdAt;
     this.updatedAt = chapter.updatedAt;

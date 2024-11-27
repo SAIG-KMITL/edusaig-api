@@ -23,6 +23,7 @@ import { HttpService } from '@nestjs/axios';
 import { TranscribeResponseDto } from './dtos/transcribe-response.dto';
 import { firstValueFrom } from 'rxjs';
 import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
+import { SummarizeResponseDto } from './dtos/summarize-response.dto';
 
 @Injectable()
 export class ChapterService {
@@ -250,14 +251,14 @@ export class ChapterService {
   async summarize(id: string): Promise<Chapter> {
     try {
       const transcribeResult = await this.transcribeAudio(id);
-      
+
       if (!transcribeResult?.transcription) {
         throw new BadRequestException('Invalid transcription response');
       }
-      
+
       const summarize = await this.summarizeChapter(transcribeResult.transcription);
-      
-      this.chapterRepository.update(id, { summary: summarize });
+
+      this.chapterRepository.update(id, { summary: summarize.summary });
 
       return await this.findOne({ where: { id } });
     } catch (error) {
@@ -302,14 +303,12 @@ export class ChapterService {
       throw new InternalServerErrorException('Error processing transcription request');
     }
   }
-  private async summarizeChapter(content: string): Promise<string> {
+  private async summarizeChapter(content: string): Promise<SummarizeResponseDto> {
     try {
       const summarizeResponse = await firstValueFrom(
         this.httpService.post(
           `${this.configService.get<string>(GLOBAL_CONFIG.AI_URL)}/summarize`,
-          {
-            content: `${content}`,
-          },
+          { content },
           {
             headers: {
               'Content-Type': 'application/json'
@@ -317,10 +316,21 @@ export class ChapterService {
           }
         )
       );
+
       if (!summarizeResponse.data) {
         throw new BadRequestException('Failed to get summarization');
       }
-      return summarizeResponse.data;
+
+      let summaryText = summarizeResponse.data.summary;
+      try {
+        const parsedSummary = JSON.parse(summaryText);
+        summaryText = parsedSummary.summary || summaryText;
+      } catch (e) {
+      }
+
+      return {
+        summary: summaryText
+      };
     } catch (error) {
       if (error.response) {
         throw new InternalServerErrorException(
@@ -329,7 +339,6 @@ export class ChapterService {
       }
       throw new InternalServerErrorException('Error processing summarization request');
     }
-
   }
   private async validateOrderIndex(
     moduleId: string,
