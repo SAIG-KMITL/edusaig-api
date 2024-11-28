@@ -14,18 +14,18 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { PretestService } from './pretest.service';
+import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
+import { Roles } from 'src/shared/decorators/role.decorator';
+import { Role } from 'src/shared/enums';
+import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
+import { CreatePretestDto } from './dtos/create-pretest.dto';
+import { EvaluateResponseDto } from './dtos/evaluate.dto';
 import {
   PaginatedPretestResponseDto,
   PretestResponseDto,
 } from './dtos/pretest-response.dto';
-import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
-import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
-import { Roles } from 'src/shared/decorators/role.decorator';
-import { Role } from 'src/shared/enums';
-import { CreatePretestDto } from './dtos/create-pretest.dto';
 import { UpdatePretestDto } from './dtos/update-pretest.dto';
-
+import { PretestService } from './pretest.service';
 @Controller('pretest')
 @ApiTags('Pretest')
 @ApiBearerAuth()
@@ -97,6 +97,28 @@ export class PretestController {
       { where: { id } },
     );
     return new PretestResponseDto(pretest);
+  }
+
+  @Post('/evaluate/:id')
+  @Roles(Role.STUDENT)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Evaluate a pretest',
+    type: EvaluateResponseDto,
+  })
+  async evaluatePretest(
+    @Req() request: AuthenticatedRequest,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    id: string,
+  ) {
+    const pretest = await this.pretestService.evaluatePretest(request.user, id);
+    return new EvaluateResponseDto(pretest);
   }
 
   @Post()
