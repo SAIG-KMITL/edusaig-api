@@ -72,11 +72,13 @@ export class ExamAnswerService {
         'question',
         'selectedOption',
         'examAttempt.user',
+        'correctAnswer',
       ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestion(),
         selectedOption: this.selectPopulateSelectedOption(),
+        correctAnswer: this.selectPopulateSelectedOption(),
       },
     }).run();
 
@@ -186,11 +188,13 @@ export class ExamAnswerService {
         'question',
         'selectedOption',
         'examAttempt.user',
+        'correctAnswer',
       ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestion(),
         selectedOption: this.selectPopulateSelectedOption(),
+        correctAnswer: this.selectPopulateSelectedOption(),
       },
     });
 
@@ -242,11 +246,13 @@ export class ExamAnswerService {
         'question',
         'selectedOption',
         'examAttempt.user',
+        'correctAnswer',
       ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestion(),
         selectedOption: this.selectPopulateSelectedOption(),
+        correctAnswer: this.selectPopulateSelectedOption(),
       },
     }).run();
   }
@@ -292,11 +298,13 @@ export class ExamAnswerService {
         'question',
         'selectedOption',
         'examAttempt.user',
+        'correctAnswer',
       ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestion(),
         selectedOption: this.selectPopulateSelectedOption(),
+        correctAnswer: this.selectPopulateSelectedOption(),
       },
     }).run();
   }
@@ -341,11 +349,13 @@ export class ExamAnswerService {
         'question',
         'selectedOption',
         'examAttempt.user',
+        'correctAnswer',
       ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestionPretest(),
         selectedOption: this.selectPopulateSelectedOption(),
+        correctAnswer: this.selectPopulateSelectedOption(),
       },
     }).run();
   }
@@ -368,6 +378,14 @@ export class ExamAnswerService {
 
     if (!question) throw new NotFoundException('Not Found Question');
 
+    const correctAnswer = await this.questionOptionRepository.findOne({
+      where: { questionId: selectedOption.questionId, isCorrect: true },
+      select: this.selectPopulateSelectedOption(),
+    });
+
+    if (!correctAnswer)
+      throw new NotFoundException('Not found correct answer in this question');
+
     const examAttempt = createExamAnswerDto.examAttemptId
       ? await this.examAttemptRepository.findOne({
           where: { id: createExamAnswerDto.examAttemptId },
@@ -380,6 +398,8 @@ export class ExamAnswerService {
       selectedOption,
       question,
       examAttempt,
+      correctAnswer,
+      correctAnswerId: correctAnswer.id,
     });
 
     if (!examAnswer) throw new NotFoundException("Can't create exam");
@@ -435,11 +455,13 @@ export class ExamAnswerService {
         'question',
         'selectedOption',
         'examAttempt.user',
+        'correctAnswer',
       ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestion(),
         selectedOption: this.selectPopulateSelectedOption(),
+        correctAnswer: this.selectPopulateSelectedOption(),
       },
     });
   }
@@ -487,6 +509,7 @@ export class ExamAnswerService {
       isCorrect: true,
       explanation: true,
       questionId: true,
+      optionText: true,
     };
   }
 
@@ -521,11 +544,13 @@ export class ExamAnswerService {
         'selectedOption',
         'question.pretest',
         'question.pretest.user',
+        'correctAnswer',
       ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestionPretest(),
         selectedOption: this.selectPopulateSelectedOption(),
+        correctAnswer: this.selectPopulateSelectedOption(),
       },
     }).run();
 
@@ -614,11 +639,13 @@ export class ExamAnswerService {
         'selectedOption',
         'question.pretest',
         'question.pretest.user',
+        'correctAnswer',
       ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestionPretest(),
         selectedOption: this.selectPopulateSelectedOption(),
+        correctAnswer: this.selectPopulateSelectedOption(),
       },
     }).run();
   }
@@ -664,11 +691,13 @@ export class ExamAnswerService {
         'selectedOption',
         'question.pretest',
         'question.pretest.user',
+        'correctAnswer',
       ],
       select: {
         examAttempt: this.selectPopulateExamAttempt(),
         question: this.selectPopulateQuestionPretest(),
         selectedOption: this.selectPopulateSelectedOption(),
+        correctAnswer: this.selectPopulateSelectedOption(),
       },
     }).run();
   }

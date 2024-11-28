@@ -31,6 +31,11 @@ export class QuestionOption {
   })
   examAnswer: ExamAnswer[];
 
+  @OneToMany(() => ExamAnswer, (examAnswer) => examAnswer.correctAnswer, {
+    cascade: true,
+  })
+  examAnswerCorrect: ExamAnswer[];
+
   @Column({
     nullable: false,
   })

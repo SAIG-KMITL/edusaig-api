@@ -63,9 +63,23 @@ export class ExamAnswerPretestResponseDto {
       questionId: '1e251a62-6339-4a59-bb56-e338f1dae55b',
       isCorrect: false,
       explanation: 'Rock is not biology.',
+      optionText: 'ROM',
     },
   })
   selectedOption: QuestionOption;
+
+  @ApiProperty({
+    description: 'Select Question Data',
+    type: QuestionOption,
+    example: {
+      id: '9d77c1d9-b0d1-4025-880c-48073e9dc7d5',
+      questionId: '1e251a62-6339-4a59-bb56-e338f1dae55b',
+      isCorrect: true,
+      explanation: 'Rock is not biology.',
+      optionText: 'ROM',
+    },
+  })
+  correctAnswer: QuestionOption;
 
   @ApiProperty({
     description: 'Answer text',
@@ -107,6 +121,7 @@ export class ExamAnswerPretestResponseDto {
     this.examAttempt = examAnswer.examAttempt;
     this.question = examAnswer.question;
     this.selectedOption = examAnswer.selectedOption;
+    this.correctAnswer = examAnswer.correctAnswer;
     this.isCorrect = examAnswer.isCorrect;
     this.points = examAnswer.points;
     this.createdAt = examAnswer.createdAt;
