@@ -33,7 +33,7 @@ export class RoadmapService {
 
   async fetchRoadmapData(
     userId: string,
-    cerateRoadmapAiDto: CreateRoadmapAiDto,
+    createRoadmapAiDto: CreateRoadmapAiDto,
   ) {
     const userBackground = await this.userBackgroundService.findOneByUserId(
       userId,
@@ -49,7 +49,7 @@ export class RoadmapService {
           department: 'Computer Science',
           interest: userBackground.topics.map((topic) => topic.title),
           name: userBackground.user.fullname,
-          preTestDescription: cerateRoadmapAiDto.preTestDescription,
+          preTestDescription: createRoadmapAiDto.preTestDescription,
           preTestScore: 70,
           university: 'Yale',
           userID: userId,
@@ -66,9 +66,9 @@ export class RoadmapService {
     }
   }
 
-  async create(userId: string, cerateRoadmapAiDto: CreateRoadmapAiDto) {
+  async create(userId: string, createRoadmapAiDto: CreateRoadmapAiDto) {
     try {
-      const roadmap = await this.fetchRoadmapData(userId, cerateRoadmapAiDto);
+      const roadmap = await this.fetchRoadmapData(userId, createRoadmapAiDto);
 
       await Promise.all(
         roadmap.data.validated_roadmap.recommended_courses.map(
