@@ -12,6 +12,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { QuestionModule } from 'src/question/question.module';
 import { QuestionOptionModule } from 'src/question-option/question-option.module';
+import { ExamAnswerModule } from 'src/exam-answer/exam-answer.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { QuestionOptionModule } from 'src/question-option/question-option.module
     ConfigModule,
     QuestionModule,
     QuestionOptionModule,
+    ExamAnswerModule,
   ],
   controllers: [PretestController],
   providers: [...pretestProviders, PretestService],

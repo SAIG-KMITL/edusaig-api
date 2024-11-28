@@ -20,6 +20,7 @@ import { Role } from 'src/shared/enums';
 import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
 import { CreateRoadmapDto, RoadmapResponseDto } from './dtos';
 import { RoadmapService } from './roadmap.service';
+import { CreateRoadmapAiDto } from './dtos/create-roadmp-ai.dto';
 
 @Controller('roadmap')
 @Injectable()
@@ -90,7 +91,7 @@ export class RoadmapController {
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Req() request: AuthenticatedRequest,
-    @Body() createRoadmapDto: CreateRoadmapDto,
+    @Body() createRoadmapDto: CreateRoadmapAiDto,
   ) {
     return await this.roadmapService.create(request.user.id, createRoadmapDto);
   }

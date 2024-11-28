@@ -1,35 +1,109 @@
+import { HttpService } from '@nestjs/axios';
 import {
   Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Course } from 'src/course/course.entity';
+import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
 import { createPagination } from 'src/shared/pagination';
+import { UserBackgroundService } from 'src/user-background/user-background.service';
 import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
-import {
-  CreateRoadmapDto,
-  PaginatedRoadmapResponseDto,
-  UpdateRoadmapDto,
-} from './dtos';
+import { PaginatedRoadmapResponseDto, UpdateRoadmapDto } from './dtos';
+import { CreateRoadmapAiDto } from './dtos/create-roadmp-ai.dto';
 import { Roadmap } from './roadmap.entity';
-
 @Injectable()
 export class RoadmapService {
   constructor(
     @Inject('RoadmapRepository')
     private readonly roadmapRepository: Repository<Roadmap>,
+    @Inject('CourseRepository')
+    private readonly courseRepository: Repository<Course>,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+    private readonly userBackgroundService: UserBackgroundService,
   ) {}
 
-  async create(
+  private readonly defaultRelations = {
+    teacher: true,
+    category: true,
+  };
+
+  async fetchRoadmapData(
     userId: string,
-    createRoadmapDto: CreateRoadmapDto,
-  ): Promise<Roadmap> {
+    createRoadmapAiDto: CreateRoadmapAiDto,
+  ) {
+    const userBackground = await this.userBackgroundService.findOneByUserId(
+      userId,
+    );
+    const course = await this.courseRepository.find({
+      relations: this.defaultRelations,
+    });
     try {
-      return await this.roadmapRepository.save({
-        ...createRoadmapDto,
-        user: { id: userId },
-        courses: createRoadmapDto.courses.map((courseId) => ({ id: courseId })),
-      });
+      const requestBody = {
+        courses: course,
+        user_data: {
+          age: '39',
+          department: 'Computer Science',
+          interest: userBackground.topics.map((topic) => topic.title),
+          name: userBackground.user.fullname,
+          preTestDescription: createRoadmapAiDto.preTestDescription,
+          preTestScore: 70,
+          university: 'Yale',
+          userID: userId,
+        },
+      };
+      console.log('Request body', requestBody);
+      const response = await this.httpService.axiosRef.post(
+        `https://ai.edusaig.com/ai/generate-roadmap`,
+        requestBody,
+      );
+      return { data: response.data };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  async create(userId: string, createRoadmapAiDto: CreateRoadmapAiDto) {
+    try {
+      const roadmap = await this.fetchRoadmapData(userId, createRoadmapAiDto);
+
+      await Promise.all(
+        roadmap.data.validated_roadmap.recommended_courses.map(
+          async (course) => {
+            const courseData = await this.courseRepository.findOne({
+              where: { id: course.id },
+            });
+
+            if (courseData) {
+              const existingRoadmap = await this.roadmapRepository.findOne({
+                where: {
+                  user: { id: userId },
+                  courses: { id: course.id },
+                },
+              });
+
+              if (!existingRoadmap) {
+                const requestBody = {
+                  duration: course.duration.toString(),
+                  priority: course.priority,
+                  courses: [course.id],
+                };
+
+                await this.roadmapRepository.save({
+                  ...requestBody,
+                  user: { id: userId },
+                  courses: requestBody.courses.map((courseId) => ({
+                    id: courseId,
+                  })),
+                });
+              }
+            }
+          },
+        ),
+      );
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException(error.message);

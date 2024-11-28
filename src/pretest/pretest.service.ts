@@ -1,10 +1,20 @@
+import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Pretest } from './pretest.entity';
+import { ConfigService } from '@nestjs/config';
+import { JwtPayloadDto } from 'src/auth/dtos/jwt-payload.dto';
+import { ExamAnswerService } from 'src/exam-answer/exam-answer.service';
+import { QuestionOptionService } from 'src/question-option/question-option.service';
+import { QuestionService } from 'src/question/question.service';
+import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
+import { QuestionType, Role } from 'src/shared/enums';
+import { createPagination } from 'src/shared/pagination';
+import { UserBackgroundService } from 'src/user-background/user-background.service';
+import { User } from 'src/user/user.entity';
 import {
   FindOneOptions,
   FindOptionsSelect,
@@ -12,20 +22,12 @@ import {
   ILike,
   Repository,
 } from 'typeorm';
-import { PaginatedPretestResponseDto } from './dtos/pretest-response.dto';
-import { createPagination } from 'src/shared/pagination';
-import { User } from 'src/user/user.entity';
-import { QuestionType, Role } from 'src/shared/enums';
 import { CreatePretestDto } from './dtos/create-pretest.dto';
-import { UpdatePretestDto } from './dtos/update-pretest.dto';
-import { UserService } from 'src/user/user.service';
-import { UserBackgroundService } from 'src/user-background/user-background.service';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
+import { PaginatedPretestResponseDto } from './dtos/pretest-response.dto';
 import { PretestDto } from './dtos/pretest.dto';
-import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
-import { QuestionService } from 'src/question/question.service';
-import { QuestionOptionService } from 'src/question-option/question-option.service';
+import { UpdatePretestDto } from './dtos/update-pretest.dto';
+import { CreateEvaluate } from './interfaces/create-evaluate';
+import { Pretest } from './pretest.entity';
 
 @Injectable()
 export class PretestService {
@@ -39,6 +41,7 @@ export class PretestService {
     private readonly configService: ConfigService,
     private readonly questionService: QuestionService,
     private readonly questionOptionService: QuestionOptionService,
+    private readonly examAnswerService: ExamAnswerService,
   ) {}
   async findAll(
     userId: string,
@@ -203,6 +206,14 @@ export class PretestService {
     };
   }
 
+  async fetchEvaluation(requestBody: CreateEvaluate) {
+    const response = await this.httpService.axiosRef.post(
+      `https://ai.edusaig.com/ai/evaluate`,
+      requestBody,
+    );
+    return { data: response.data };
+  }
+
   async fetchData(userId: string, pretestId: string): Promise<PretestDto> {
     const userBackground = await this.userBackgroundService.findOneByUserId(
       userId,
@@ -248,8 +259,40 @@ export class PretestService {
       );
       return { data: response.data };
     } catch (error) {
+      console.log(error);
       throw new Error('Failed to fetch data or process request');
     }
+  }
+
+  async evaluatePretest(
+    user: JwtPayloadDto,
+    pretestId: string,
+  ): Promise<string> {
+    const preTestExam =
+      await this.examAnswerService.findExamAnswerPretestByPretestId(
+        user.id,
+        user.role,
+        pretestId,
+        {
+          page: 1,
+          limit: 10,
+          search: '',
+        },
+      );
+
+    const requestBody: CreateEvaluate = {
+      question: preTestExam.data.map((data) => data.question.question),
+      correct_answer: preTestExam.data.map(
+        (data) => data.correctAnswer.optionText,
+      ),
+      user_answer: preTestExam.data.map(
+        (data) => data.selectedOption.optionText,
+      ),
+    };
+
+    const response = await this.fetchEvaluation(requestBody);
+
+    return response.data;
   }
 
   async createQuestionAndChoice(

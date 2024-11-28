@@ -87,7 +87,7 @@ export class UserBackgroundController {
     type: UserBackgroundResponseDto,
     description: 'Create a user background',
   })
-  @Roles(Role.ADMIN)
+  @Roles(Role.STUDENT)
   async create(
     @Body() data: CreateUserBackground,
   ): Promise<UserBackgroundResponseDto> {
