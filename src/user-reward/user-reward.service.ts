@@ -39,9 +39,7 @@ export class UserRewardService {
     if (reward.stock <= 0) throw new BadRequestException('reward not enough');
     if (reward.stock == 1)
       this.rewardRepository.update(rewardId, { status: Status.INACTIVE });
-    //update reward stock
     this.rewardRepository.update(rewardId, { stock: reward.stock - 1 });
-    //decrease user points
     this.userRepository.update(userId, { points: user.points - reward.points });
     const newUserReward = new UserReward();
     newUserReward.user = user;

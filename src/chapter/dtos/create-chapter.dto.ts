@@ -37,15 +37,6 @@ export class CreateChapterDto {
   content: string;
 
   @IsNotEmpty()
-  @IsString()
-  @ApiProperty({
-    description: 'Chapter summary',
-    type: String,
-    example: 'This chapter is an introduction to programming',
-  })
-  summary: string;
-
-  @IsNotEmpty()
   @IsNumber()
   @ApiProperty({
     description: 'Chapter duration',

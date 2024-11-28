@@ -48,6 +48,7 @@ import { Folder } from 'src/file/enums/folder.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { EnrollmentService } from 'src/enrollment/enrollment.service';
 import { Public } from 'src/shared/decorators/public.decorator';
+import { VideoGuard } from './guards/video.guard';
 
 @Controller('chapter')
 @ApiTags('Chapters')
@@ -57,14 +58,13 @@ export class ChapterController {
     private readonly chapterService: ChapterService,
     private readonly courseModuleService: CourseModuleService,
     private readonly fileService: FileService,
-    private readonly enrollmentService: EnrollmentService,
   ) { }
 
   @Get(':id/video')
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'Course id',
+    description: 'chapter id',
   })
   @Public()
   @ApiResponse({
@@ -72,6 +72,13 @@ export class ChapterController {
     description: 'Get chapter video',
     type: StreamableFile,
   })
+  @ApiQuery({
+    name: 'token',
+    type: String,
+    required: false,
+    description: 'Access token',
+  })
+  @UseGuards(VideoGuard)
   async getVideo(
     @Param(
       'id',
@@ -82,10 +89,7 @@ export class ChapterController {
     )
     id: string,
   ): Promise<StreamableFile> {
-    const chapter = await this.chapterService.findOne({
-      where: { id },
-    });
-
+    const chapter = await this.chapterService.findOne({ where: { id } });
     const file = await this.fileService.get(Folder.CHAPTER_VIDEOS, chapter.videoKey);
     return new StreamableFile(file, {
       disposition: 'inline',
@@ -186,6 +190,7 @@ export class ChapterController {
       search: query.search
     });
   }
+
   @Get('module/:moduleId')
   @ApiParam({
     name: 'moduleId',
@@ -241,7 +246,7 @@ export class ChapterController {
   @ApiResponse({
     status: HttpStatus.OK,
     type: ChapterResponseDto,
-    description: 'Get a chapter by ID',
+    description: 'Get a chapter by ID with ownership',
   })
   @ApiParam({
     name: 'id',
@@ -257,9 +262,22 @@ export class ChapterController {
       where: { id },
     });
   }
-
-
-
+  @Get('summarize/:id')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ChapterResponseDto,
+    description: 'Summarize a chapter',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Chapter ID',
+  })
+  @Public()
+  async summarize(@Param('id', ParseUUIDPipe) id: string) {
+    const chapter = await this.chapterService.summarize(id);
+    return new ChapterResponseDto(chapter);
+  }
 
   @Get(':id')
   @ApiResponse({
@@ -325,6 +343,8 @@ export class ChapterController {
     }
     return this.chapterService.create(createChapterDto);
   }
+
+
 
   @Patch(':id')
   @CourseOwnership({ adminDraftOnly: true })
