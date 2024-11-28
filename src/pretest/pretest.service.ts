@@ -1,10 +1,18 @@
+import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Pretest } from './pretest.entity';
+import { ConfigService } from '@nestjs/config';
+import { QuestionOptionService } from 'src/question-option/question-option.service';
+import { QuestionService } from 'src/question/question.service';
+import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
+import { QuestionType, Role } from 'src/shared/enums';
+import { createPagination } from 'src/shared/pagination';
+import { UserBackgroundService } from 'src/user-background/user-background.service';
+import { User } from 'src/user/user.entity';
 import {
   FindOneOptions,
   FindOptionsSelect,
@@ -12,20 +20,11 @@ import {
   ILike,
   Repository,
 } from 'typeorm';
-import { PaginatedPretestResponseDto } from './dtos/pretest-response.dto';
-import { createPagination } from 'src/shared/pagination';
-import { User } from 'src/user/user.entity';
-import { QuestionType, Role } from 'src/shared/enums';
 import { CreatePretestDto } from './dtos/create-pretest.dto';
-import { UpdatePretestDto } from './dtos/update-pretest.dto';
-import { UserService } from 'src/user/user.service';
-import { UserBackgroundService } from 'src/user-background/user-background.service';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
+import { PaginatedPretestResponseDto } from './dtos/pretest-response.dto';
 import { PretestDto } from './dtos/pretest.dto';
-import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
-import { QuestionService } from 'src/question/question.service';
-import { QuestionOptionService } from 'src/question-option/question-option.service';
+import { UpdatePretestDto } from './dtos/update-pretest.dto';
+import { Pretest } from './pretest.entity';
 
 @Injectable()
 export class PretestService {
@@ -248,6 +247,7 @@ export class PretestService {
       );
       return { data: response.data };
     } catch (error) {
+      console.log(error);
       throw new Error('Failed to fetch data or process request');
     }
   }
