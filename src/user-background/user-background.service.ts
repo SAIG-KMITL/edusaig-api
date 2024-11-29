@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createPagination } from 'src/shared/pagination';
-import { UserBackgroundTopic } from 'src/user-background-topic/user-background-topic.entity';
+import { UserBackgroundTopicService } from 'src/user-background-topic/user-background-topic.service';
 import {
   DeepPartial,
   FindOneOptions,
@@ -25,6 +25,7 @@ export class UserBackgroundService {
   constructor(
     @InjectRepository(UserBackground)
     private readonly userBackgroundRepository: Repository<UserBackground>,
+    private readonly userBackgroundTopicService: UserBackgroundTopicService,
   ) {}
 
   async findAll({
@@ -74,9 +75,19 @@ export class UserBackgroundService {
   }
 
   async create(data: CreateUserBackground): Promise<UserBackgroundResponseDto> {
+    const topics = await Promise.all(
+      data.topics.map(async (topic) => {
+        return await this.userBackgroundTopicService.findOne(topic, {
+          where: {
+            id: topic,
+          },
+        });
+      }),
+    );
     const userBackground = this.userBackgroundRepository.create({
       userId: data.userId,
       occupationId: data.occupationId,
+      topics,
     });
 
     const savedUserBackground = await this.userBackgroundRepository.save(

@@ -8,5 +8,6 @@ import { UserBackgroundTopicService } from './user-background-topic.service';
   imports: [TypeOrmModule.forFeature([UserBackgroundTopic])],
   controllers: [UserBackgroundTopicController],
   providers: [UserBackgroundTopicService],
+  exports: [UserBackgroundTopicService]
 })
 export class UserBackgroundTopicModule {}

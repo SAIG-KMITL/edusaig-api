@@ -29,6 +29,7 @@ import {
   UserOccupationResponseDto,
 } from './dtos/user-occupation-response.dto';
 import { UserOccupationService } from './user-occupation.service';
+import { Public } from 'src/shared/decorators/public.decorator';
 
 @Controller('user-occupation')
 @ApiTags('User Occupation')
@@ -39,6 +40,7 @@ export class UserOccupationController {
 
   @Post()
   @Roles(Role.ADMIN)
+  @Public()
   @ApiResponse({
     status: HttpStatus.CREATED,
     type: UserOccupationResponseDto,

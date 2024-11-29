@@ -35,7 +35,9 @@ import { UserBackgroundService } from './user-background.service';
 @ApiBearerAuth()
 @Injectable()
 export class UserBackgroundController {
-  constructor(private readonly userBackgroundService: UserBackgroundService) {}
+  constructor(
+    private readonly userBackgroundService: UserBackgroundService,
+  ) {}
 
   @Get()
   @ApiResponse({
@@ -87,7 +89,7 @@ export class UserBackgroundController {
     type: UserBackgroundResponseDto,
     description: 'Create a user background',
   })
-  @Roles(Role.STUDENT)
+    @Roles(Role.STUDENT)
   async create(
     @Body() data: CreateUserBackground,
   ): Promise<UserBackgroundResponseDto> {

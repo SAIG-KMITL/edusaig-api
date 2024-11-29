@@ -10,7 +10,6 @@ import {
   Patch,
   Post,
   Query,
-  Req,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -19,7 +18,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 import { Roles } from 'src/shared/decorators/role.decorator';
 import { Role } from 'src/shared/enums';
 import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
@@ -30,6 +28,7 @@ import {
   UserBackgroundTopicResponseDto,
 } from './dtos/user-background-response.dto';
 import { UserBackgroundTopicService } from './user-background-topic.service';
+import { Public } from 'src/shared/decorators/public.decorator';
 
 @Controller('user-background-topic')
 @ApiTags('User Background Topic')
@@ -84,6 +83,7 @@ export class UserBackgroundTopicController {
 
   @Post()
   @Roles(Role.ADMIN)
+  @Public()
   @ApiResponse({
     status: HttpStatus.CREATED,
     type: UserBackgroundTopicResponseDto,

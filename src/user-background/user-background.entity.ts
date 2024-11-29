@@ -27,15 +27,7 @@ export class UserBackground {
 
   @ManyToMany(() => UserBackgroundTopic, (topic) => topic.userBackgrounds)
   @JoinTable({
-    name: 'user_background_topics_mapping',
-    joinColumn: {
-      name: 'user_background_id',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'topic_id',
-      referencedColumnName: 'id',
-    },
+    name: 'user_background_topics_mapping'
   })
   topics: UserBackgroundTopic[];
 
