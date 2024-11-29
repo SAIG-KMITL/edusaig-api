@@ -274,7 +274,6 @@ export class ChapterService {
       return await this.findOne({ where: { id } });
 
     } catch (error) {
-      console.error('Summarization error:', error);
       if (error instanceof BadRequestException) {
         throw error;
       }
@@ -313,7 +312,6 @@ export class ChapterService {
       return response.data;
 
     } catch (error) {
-      console.error('Transcription error:', error);
       if (error.response) {
         throw new InternalServerErrorException(
           error.response.data?.message || 'Transcription service error'
@@ -356,7 +354,6 @@ export class ChapterService {
       return { summary: summaryText };
 
     } catch (error) {
-      console.error('Summarization error:', error);
       if (error.response) {
         throw new InternalServerErrorException(
           error.response.data?.message || 'Summarization service error'
@@ -367,7 +364,6 @@ export class ChapterService {
   }
 
   private isValidTranscription(result: TranscribeResponseDto | undefined): result is TranscribeResponseDto {
-    console.log(result.transcription);
     return (
       !!result &&
       typeof result.transcription === 'string' &&
