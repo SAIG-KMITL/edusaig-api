@@ -165,6 +165,53 @@ export class ExamService {
     return exam;
   }
 
+  async findExamByCourseModuleId(
+    userId: string,
+    role: Role,
+    courseModuleId: string,
+    {
+      page = 1,
+      limit = 20,
+      search = '',
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<PaginatedExamResponseDto> {
+    const { find } = await createPagination(this.examRepository, {
+      page,
+      limit,
+    });
+
+    const whereCondition = this.validateAndCreateCondition(
+      userId,
+      role,
+      search,
+    );
+    whereCondition['courseModule'] = { id: courseModuleId };
+
+    const courseModule = await this.courseModuleRepository.findOne({
+      where: { id: courseModuleId },
+    });
+
+    if (!courseModule) {
+      throw new NotFoundException('courseModule not found.');
+    }
+
+    return await find({
+      where: whereCondition,
+      relations: [
+        'courseModule',
+        'courseModule.course',
+        'courseModule.course.teacher',
+      ],
+      select: {
+        courseModule: this.selectPopulateCourseModule(),
+      },
+    }).run();
+  }
+
   async createExam(createExamDto: CreateExamDto): Promise<Exam> {
     const courseModule = await this.courseModuleRepository.findOne({
       where: { id: createExamDto.courseModuleId },
