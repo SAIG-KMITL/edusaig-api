@@ -259,7 +259,6 @@ export class PretestService {
       );
       return { data: response.data };
     } catch (error) {
-      console.log(error);
       throw new Error('Failed to fetch data or process request');
     }
   }
@@ -279,7 +278,6 @@ export class PretestService {
           search: '',
         },
       );
-
     const requestBody: CreateEvaluate = {
       question: preTestExam.data.map((data) => data.question.question),
       correct_answer: preTestExam.data.map(

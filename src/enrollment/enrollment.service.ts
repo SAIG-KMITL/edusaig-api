@@ -58,6 +58,34 @@ export class EnrollmentService {
     return enrollment;
   }
 
+  async findAllByUser(
+    userId: string,
+    {
+      page = 1,
+      limit = 20,
+    }: {
+      page?: number;
+      limit?: number;
+    },
+  ): Promise<PaginatedEnrollmentResponseDto> {
+    const { find } = await createPagination(this.enrollmentRepository, {
+      page,
+      limit,
+    });
+
+    const enrollments = await find({
+      where: {
+        user: { id: userId },
+      },
+      relations: {
+        user: true,
+        course: true,
+      },
+    }).run();
+
+    return enrollments;
+  }
+
   async create(createEnrollmentDto: CreateEnrollmentDto): Promise<Enrollment> {
     const enrollment = await this.enrollmentRepository.findOne({
       where: {

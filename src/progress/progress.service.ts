@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createPagination } from 'src/shared/pagination';
+import { PaginateQueryDto } from 'src/shared/pagination/dtos/paginate-query.dto';
 import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { CreateProgressDto } from './dtos/create-progress.dto';
 import { PaginatedProgressResponseDto } from './dtos/progress-response.dto';
@@ -27,6 +28,29 @@ export class ProgressService {
     });
 
     const progress = await find({
+      relations: {
+        enrollment: true,
+        chapter: true,
+      },
+    }).run();
+
+    return progress;
+  }
+
+  async findAllByUser(
+    userId: string,
+    query: PaginateQueryDto,
+  ): Promise<PaginatedProgressResponseDto> {
+    const { find } = await createPagination(this.progressRepository, query);
+
+    const progress = await find({
+      where: {
+        enrollment: {
+          user: {
+            id: userId,
+          },
+        },
+      },
       relations: {
         enrollment: true,
         chapter: true,
