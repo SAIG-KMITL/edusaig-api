@@ -55,7 +55,6 @@ export class RoadmapService {
           userID: userId,
         },
       };
-      console.log('Request body', requestBody);
       const response = await this.httpService.axiosRef.post(
         `https://ai.edusaig.com/ai/generate-roadmap`,
         requestBody,
@@ -129,7 +128,9 @@ export class RoadmapService {
     const queryBuilder = this.roadmapRepository
       .createQueryBuilder('roadmap')
       .leftJoinAndSelect('roadmap.user', 'user')
-      .leftJoinAndSelect('roadmap.courses', 'courses');
+      .leftJoinAndSelect('roadmap.courses', 'courses')
+      .leftJoinAndSelect('courses.teacher', 'teacher')
+      .leftJoinAndSelect('courses.category', 'category');
 
     if (userId) {
       queryBuilder.andWhere('user.id = :userId', { userId });
