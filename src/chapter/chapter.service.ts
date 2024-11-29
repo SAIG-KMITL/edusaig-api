@@ -250,19 +250,34 @@ export class ChapterService {
 
   async summarize(id: string): Promise<Chapter> {
     try {
-      const transcribeResult = await this.transcribeAudio(id);
+      const chapter = await this.findOne({ where: { id } });
+      if (!chapter) {
+        throw new NotFoundException('Chapter not found');
+      }
 
-      if (!transcribeResult?.transcription) {
+      if (chapter.summary != null) {
+        return chapter;
+      }
+
+      const transcribeResult = await this.transcribeAudio(id);
+      if (!this.isValidTranscription(transcribeResult)) {
         throw new BadRequestException('Invalid transcription response');
       }
 
-      const summarize = await this.summarizeChapter(transcribeResult.transcription);
+      const summarizeResult = await this.summarizeChapter(transcribeResult.transcription);
+      if (!this.isValidSummary(summarizeResult)) {
+        throw new BadRequestException('Invalid summary response');
+      }
 
-      this.chapterRepository.update(id, { summary: summarize.summary });
+      await this.chapterRepository.update(id, { summary: summarizeResult.summary });
 
       return await this.findOne({ where: { id } });
+
     } catch (error) {
-      console.error('Full error details:', error);
+      console.error('Summarization error:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new InternalServerErrorException(
         'Failed to process audio summarization',
         { cause: error }
@@ -270,75 +285,102 @@ export class ChapterService {
     }
   }
 
-  async transcribeAudio(id: string): Promise<TranscribeResponseDto> {
+  private async transcribeAudio(id: string): Promise<TranscribeResponseDto> {
+    const aiUrl = this.configService.get<string>(GLOBAL_CONFIG.AI_URL);
+    const apiUrl = this.configService.getOrThrow<string>(GLOBAL_CONFIG.API_URL);
+
+    if (!aiUrl || !apiUrl) {
+      throw new InternalServerErrorException('Missing configuration for AI or API URL');
+    }
 
     try {
-      const transcriptionResponse = await firstValueFrom(
-        this.httpService.post(
-          `${this.configService.get<string>(GLOBAL_CONFIG.AI_URL)}/asr`,
+      const response = await firstValueFrom(
+        this.httpService.post<TranscribeResponseDto>(
+          `${aiUrl}/asr`,
           {
-            url: `${this.configService.getOrThrow<string>(GLOBAL_CONFIG.API_URL)}/chapter/${id}/video`,
+            url: `${apiUrl}/chapter/${id}/video`,
           },
           {
-            headers: {
-              'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
           }
         )
       );
 
-      if (!transcriptionResponse.data) {
-        throw new BadRequestException('Failed to get transcription');
+      if (!response.data) {
+        throw new BadRequestException('Empty response from transcription service');
       }
 
-      return transcriptionResponse.data;
+      return response.data;
 
     } catch (error) {
+      console.error('Transcription error:', error);
       if (error.response) {
         throw new InternalServerErrorException(
-          error.response.data || 'Transcription service error'
+          error.response.data?.message || 'Transcription service error'
         );
       }
-
       throw new InternalServerErrorException('Error processing transcription request');
     }
   }
+
   private async summarizeChapter(content: string): Promise<SummarizeResponseDto> {
+    const aiUrl = this.configService.get<string>(GLOBAL_CONFIG.AI_URL);
+
+    if (!aiUrl) {
+      throw new InternalServerErrorException('Missing AI service URL configuration');
+    }
+
     try {
-      const summarizeResponse = await firstValueFrom(
-        this.httpService.post(
-          `${this.configService.get<string>(GLOBAL_CONFIG.AI_URL)}/summarize`,
+      const response = await firstValueFrom(
+        this.httpService.post<SummarizeResponseDto>(
+          `${aiUrl}/summarize`,
           { content },
           {
-            headers: {
-              'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
           }
         )
       );
 
-      if (!summarizeResponse.data) {
-        throw new BadRequestException('Failed to get summarization');
+      if (!response.data) {
+        throw new BadRequestException('Empty response from summarization service');
       }
 
-      let summaryText = summarizeResponse.data.summary;
+      let summaryText = response.data.summary;
+
       try {
         const parsedSummary = JSON.parse(summaryText);
         summaryText = parsedSummary.summary || summaryText;
       } catch (e) {
       }
 
-      return {
-        summary: summaryText
-      };
+      return { summary: summaryText };
+
     } catch (error) {
+      console.error('Summarization error:', error);
       if (error.response) {
         throw new InternalServerErrorException(
-          error.response.data || 'Summarization service error'
+          error.response.data?.message || 'Summarization service error'
         );
       }
       throw new InternalServerErrorException('Error processing summarization request');
     }
+  }
+
+  private isValidTranscription(result: TranscribeResponseDto | undefined): result is TranscribeResponseDto {
+    console.log(result.transcription);
+    return (
+      !!result &&
+      typeof result.transcription === 'string' &&
+      result.transcription.length > 0
+    );
+  }
+
+  private isValidSummary(result: SummarizeResponseDto | undefined): result is SummarizeResponseDto {
+    return (
+      !!result &&
+      typeof result.summary === 'string' &&
+      result.summary.length > 0
+    );
   }
   private async validateOrderIndex(
     moduleId: string,
