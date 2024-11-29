@@ -13,9 +13,6 @@ jobs:
   build-and-deploy:
     runs-on: self-hosted
     steps:
-      - name: Switch User
-        run: sudo -s
-
       - name: Copy Repository
         uses: actions/checkout@v4
 
