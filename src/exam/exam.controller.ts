@@ -100,6 +100,55 @@ export class ExamController {
     return new ExamResponseDto(exam);
   }
 
+  @Get('course-module/:courseModuleId')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all exams by courseModule id',
+    type: PaginatedExamResponseDto,
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by title',
+  })
+  async findExamByCourseModuleId(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+    @Param(
+      'courseModuleId',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    courseModuleId: string,
+  ): Promise<PaginatedExamResponseDto> {
+    return await this.examService.findExamByCourseModuleId(
+      request.user.id,
+      request.user.role,
+      courseModuleId,
+      {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      },
+    );
+  }
+
   @Post()
   @Roles(Role.TEACHER)
   @ApiResponse({
