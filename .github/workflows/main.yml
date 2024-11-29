@@ -41,6 +41,7 @@ jobs:
           echo "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}" >> .env
           echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env
           echo "AI_URL=${{ secrets.AI_URL }}" >> .env
+          echo "API_URL=${{ secrets.API_URL }}" >> .env
           cat .env
 
       - name: Running Docker Compose
