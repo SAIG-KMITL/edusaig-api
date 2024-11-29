@@ -47,6 +47,21 @@ export class EnrollmentController {
     return this.enrollmentService.findAll(query);
   }
 
+  @Get('/user')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: EnrollmentResponseDto,
+    description: 'Get all enrollments by user',
+    isArray: true,
+  })
+  @Roles(Role.STUDENT)
+  async findAllByUser(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedEnrollmentResponseDto> {
+    return await this.enrollmentService.findAllByUser(request.user.id, query);
+  }
+
   @Get(':id')
   @ApiParam({
     name: 'id',

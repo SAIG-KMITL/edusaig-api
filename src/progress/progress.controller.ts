@@ -69,6 +69,21 @@ export class ProgressController {
     return this.progressService.findAll(query);
   }
 
+  @Get('/user')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ProgressResponseDto,
+    description: 'Get all progress by user',
+    isArray: true,
+  })
+  @Roles(Role.STUDENT)
+  async findAllByUser(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: PaginateQueryDto,
+  ): Promise<PaginatedProgressResponseDto> {
+    return this.progressService.findAllByUser(request.user.id, query);
+  }
+
   @Get(':id')
   @ApiParam({
     name: 'id',
