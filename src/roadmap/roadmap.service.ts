@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Course } from 'src/course/course.entity';
 import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
+import { CourseStatus } from 'src/shared/enums';
 import { createPagination } from 'src/shared/pagination';
 import { UserBackgroundService } from 'src/user-background/user-background.service';
 import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
@@ -40,6 +41,7 @@ export class RoadmapService {
     );
     const course = await this.courseRepository.find({
       relations: this.defaultRelations,
+      where: { status: CourseStatus.PUBLISHED },
     });
     try {
       const requestBody = {
