@@ -262,7 +262,7 @@ export class ChapterController {
       where: { id },
     });
   }
-  @Get('summarize/:id')
+  @Get(':id/summarize')
   @ApiResponse({
     status: HttpStatus.OK,
     type: ChapterResponseDto,
