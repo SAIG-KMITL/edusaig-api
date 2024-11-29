@@ -40,7 +40,6 @@ export class UserOccupationController {
 
   @Post()
   @Roles(Role.ADMIN)
-  @Public()
   @ApiResponse({
     status: HttpStatus.CREATED,
     type: UserOccupationResponseDto,

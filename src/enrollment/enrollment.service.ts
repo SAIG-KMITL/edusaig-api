@@ -35,10 +35,12 @@ export class EnrollmentService {
     const enrollments = await find({
       relations: {
         user: true,
-        course: true,
+        course: {
+          teacher: true,
+          category: true,
+        },
       },
     }).run();
-
     return enrollments;
   }
 
