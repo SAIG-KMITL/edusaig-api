@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Course } from 'src/course/course.entity';
-import { GLOBAL_CONFIG } from 'src/shared/constants/global-config.constant';
 import { CourseStatus } from 'src/shared/enums';
 import { createPagination } from 'src/shared/pagination';
 import { UserBackgroundService } from 'src/user-background/user-background.service';
@@ -132,7 +131,8 @@ export class RoadmapService {
       .leftJoinAndSelect('roadmap.user', 'user')
       .leftJoinAndSelect('roadmap.courses', 'courses')
       .leftJoinAndSelect('courses.teacher', 'teacher')
-      .leftJoinAndSelect('courses.category', 'category');
+      .leftJoinAndSelect('courses.category', 'category')
+      .orderBy('roadmap.priority', 'ASC');
 
     if (userId) {
       queryBuilder.andWhere('user.id = :userId', { userId });
@@ -152,6 +152,7 @@ export class RoadmapService {
 
     return new PaginatedRoadmapResponseDto(data, total, limit, page);
   }
+
   async findOne(options: FindOneOptions<Roadmap>): Promise<Roadmap> {
     try {
       const roadmap = await this.roadmapRepository.findOne(options);
