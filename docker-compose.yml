@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:alpine3.20
+    container_name: ${DB_HOST}
+    restart: unless-stopped
+    ports:
+      - '${DB_PORT}:${DB_PORT}'
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - ${VOLUMES_PATH}:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    container_name: edusaig-api
+    image: edusaig-api
+    depends_on:
+      db:
+        condition: service_healthy
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Bangkok
+    ports:
+      - '${PORT}:${PORT}'
+    volumes:
+      - ./src/database/migrations:/app/dist/database/migrations

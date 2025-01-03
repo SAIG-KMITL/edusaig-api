@@ -1,13 +1,13 @@
 name: Build and deploy to an VM
 
 on:
-  push: 
+  push:
     branches:
       - dev
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -30,7 +30,7 @@ jobs:
           echo "JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}" >> .env
           echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}" >> .env
           echo "JWT_ACCESS_EXPIRATION=${{ secrets.JWT_ACCESS_EXPIRATION }}" >> .env
-          echo "AI_HOST=${{ secrets.JWT_REFRESH_EXPIRATION }}" >> .env
+          echo "JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}" >> .env
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
           echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
           echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
@@ -38,6 +38,9 @@ jobs:
           echo "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}" >> .env
           echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env
           echo "AI_URL=${{ secrets.AI_URL }}" >> .env
+          echo "API_URL=${{ secrets.API_URL }}" >> .env
+          echo "API_URL=${{ secrets.API_URL }}" >> .env
+          echo "VOLUMES_PATH=${{ secrets.VOLUMES_PATH }}" >> .env
           cat .env
 
       - name: Running Docker Compose
